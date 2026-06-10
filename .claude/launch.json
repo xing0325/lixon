@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hero",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "4173", "--directory", "C:\\Users\\david\\lando-hero-replica"],
+      "port": 4173
+    }
+  ]
+}

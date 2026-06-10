@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAVID — fluid hero study 001</title>
+<style>
+  /* ============================================================
+     HERO STUDY 001 — fluid-reveal helmet
+     original implementation · zero dependencies
+     ============================================================ */
+  :root{
+    --ink:#23261f;
+    --ink-soft:#5a5f52;
+    --paper:#f8f8f3;
+    --accent:#d2ff00;
+    --accent-ink:#50593f;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; overflow:hidden; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Georgia,'Times New Roman','Microsoft YaHei',serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #gl{
+    position:fixed; inset:0;
+    width:100%; height:100%;
+    display:block;
+    cursor:crosshair;
+  }
+  /* ------- DOM overlay ------- */
+  .ui{
+    position:fixed; inset:0;
+    pointer-events:none;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:clamp(16px,2.5vw,32px);
+    z-index:2;
+  }
+  .row{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .row.bottom{ align-items:flex-end; }
+
+  .wordmark{
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-size:clamp(18px,1.6vw,24px);
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .wordmark small{
+    display:block;
+    font-family:Georgia,serif;
+    font-style:italic;
+    font-size:.55em;
+    letter-spacing:.12em;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .est{
+    text-align:right;
+    font-size:clamp(11px,.9vw,13px);
+    font-style:italic;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .est b{ font-style:normal; color:var(--ink); }
+
+  .name-block{ line-height:.84; }
+  .name-block .eyebrow{
+    font-size:clamp(11px,.95vw,14px);
+    font-style:italic;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 clamp(8px,1vw,14px) 6px;
+  }
+  .name-block h1{
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-weight:400;
+    font-size:clamp(64px,13.5vw,210px);
+    letter-spacing:.005em;
+    text-transform:uppercase;
+    transform:scaleY(1.12);
+    transform-origin:bottom left;
+  }
+  .name-block h1 .alt{
+    -webkit-text-stroke:2px var(--ink);
+    color:transparent;
+  }
+  .colophon{
+    max-width:min(34ch,38vw);
+    text-align:right;
+    font-size:clamp(11px,.95vw,14px);
+    line-height:1.65;
+    color:var(--ink-soft);
+  }
+  .colophon b{ color:var(--ink); font-weight:600; }
+  .colophon .keys{
+    display:inline-block;
+    margin-top:8px;
+    font-size:.88em;
+    font-style:italic;
+  }
+  .colophon kbd{
+    font-family:inherit;
+    font-style:normal;
+    border:1px solid var(--ink-soft);
+    border-radius:3px;
+    padding:0 5px;
+    font-size:.9em;
+  }
+  /* ------- center hint ------- */
+  .hint{
+    position:fixed; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    z-index:2;
+    pointer-events:none;
+    font-style:italic;
+    font-size:clamp(13px,1.1vw,16px);
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    transition:opacity .8s ease;
+    animation:hintPulse 2.6s ease-in-out infinite;
+  }
+  .hint.gone{ opacity:0; }
+  @keyframes hintPulse{ 0%,100%{opacity:.85} 50%{opacity:.3} }
+
+  /* ------- load-in choreography ------- */
+  .reveal-up{ opacity:0; animation:revealUp 1s cubic-bezier(.22,1,.36,1) forwards; }
+  .d1{ animation-delay:.95s } .d2{ animation-delay:1.1s }
+  .d3{ animation-delay:1.25s } .d4{ animation-delay:1.4s }
+  @keyframes revealUp{
+    from{ opacity:0; transform:translateY(18px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .hint{ opacity:0; animation:hintIn 1s ease 2s forwards, hintPulse 2.6s ease-in-out 3.4s infinite; }
+  @keyframes hintIn{ from{opacity:0} to{opacity:.85} }
+  .name-block h1{ overflow:hidden; }
+  .name-block h1 span{ display:inline-block; transform:translateY(110%); animation:slideUp 1.1s cubic-bezier(.22,1,.36,1) .75s forwards; }
+  @keyframes slideUp{ to{ transform:translateY(0); } }
+
+  .nogl{
+    position:fixed; inset:0; z-index:9;
+    display:none; place-items:center;
+    background:var(--paper);
+    font-style:italic; color:var(--ink-soft);
+    text-align:center; line-height:2;
+  }
+  @media (max-width:640px){
+    .colophon{ display:none; }
+    .est{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gl"></canvas>
+
+<div class="ui">
+  <div class="row">
+    <div class="wordmark reveal-up d1">DX·0325<small>hero study 001</small></div>
+    <div class="est reveal-up d2"><b>EST·2026</b><br>齐马蓝 · 施工中</div>
+  </div>
+  <div class="row bottom">
+    <div class="name-block">
+      <p class="eyebrow reveal-up d3">personal site — 流体显形实验</p>
+      <h1><span>DAV<span class="alt">ID</span></span></h1>
+    </div>
+    <div class="colophon reveal-up d4">
+      <b>Fluid-reveal hero.</b> 鼠标划过之处，流体把头盔从纸面下"冲刷"出来；
+      停手两秒半，它会自己巡航。Original WebGL2, zero deps —
+      a study after landonorris.com.
+      <span class="keys"><kbd>C</kbd> 换配色 · <kbd>H</kbd> 头盔常驻</span>
+    </div>
+  </div>
+</div>
+
+<div class="hint" id="hint">move your cursor — 动一动鼠标</div>
+<div class="nogl" id="nogl"><p>这台设备的浏览器不支持 WebGL2 浮点渲染，<br>流体引擎点不着火。换个现代浏览器再来。</p></div>
+
+<script>
+'use strict';
+/* ============================================================
+   0. CONFIG
+   simulation numbers tuned to match the reference site's feel:
+   sim at ~10% resolution, 4 jacobi iterations, dissipation .96,
+   fixed timestep .014, idle autopilot after 2.5s
+   ============================================================ */
+const CONF = {
+  simScale      : 0.1,     // fluid grid = canvas size * this
+  noiseScale    : 0.25,    // background noise RT scale
+  dt            : 0.014,
+  dissipation   : 0.972,
+  pressureIters : 4,
+  straightness  : 1.0,
+  mouseForce    : 60.0,
+  splatRadius   : 0.110,   // in min-dimension units
+  maskLow       : 0.050,   // velocity-magnitude threshold for the liquid mask
+  maskHigh      : 0.058,
+  idleAfter     : 2500,    // ms before the autopilot takes over
+  revealDur     : 1.15,    // intro curtain seconds
+  maxDPR        : 1.5,
+};
+
+const PALETTES = [
+  { // 00 — faithful: cream paper / lime shapes (reference palette)
+    name:'lime',
+    bg:'#f8f8f3', fg:'#d2ff00', outline:'#cbcbb9',
+    curBg:'#e2e4d6', curFg:'#c9cdbd', curOutline:'#969d86',
+    shell:'#c5e016', stripe:'#f5f2e6', visor:'#1c2017', trim:'#23261f',
+    cssInk:'#23261f', cssSoft:'#5a5f52', cssPaper:'#f8f8f3',
+  },
+  { // 01 — zima: same structure, my blue
+    name:'zima',
+    bg:'#f5f8f7', fg:'#16b3c7', outline:'#bccbc8',
+    curBg:'#dde6e4', curFg:'#bfcecb', curOutline:'#849c98',
+    shell:'#15a8bd', stripe:'#f0f2ee', visor:'#13191b', trim:'#1d2422',
+    cssInk:'#1d2422', cssSoft:'#52605e', cssPaper:'#f5f8f7',
+  },
+];
+let paletteIdx = 0;
+let showHelmetAlways = false;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reducedMotion) showHelmetAlways = true;
+
+/* ============================================================
+   1. GL BOOT
+   ============================================================ */
+const canvas = document.getElementById('gl');
+const gl = canvas.getContext('webgl2', { antialias:false, alpha:false, preserveDrawingBuffer:true });
+const dead = msg => { document.getElementById('nogl').style.display='grid'; throw new Error(msg); };
+if (!gl) dead('no webgl2');
+if (!gl.getExtension('EXT_color_buffer_float')) dead('no float color buffers');
+
+/* ============================================================
+   2. SHADERS  (fullscreen-triangle vertex, no buffers needed)
+   ============================================================ */
+const VERT = `#version 300 es
+out vec2 vUv;
+void main(){
+  vec2 p = vec2[3](vec2(-1.,-1.), vec2(3.,-1.), vec2(-1.,3.))[gl_VertexID];
+  vUv = p * .5 + .5;
+  gl_Position = vec4(p, 0., 1.);
+}`;
+
+/* --- 2a. advection (semi-lagrangian + BFECC error correction) --- */
+const F_ADVECT = `#version 300 es
+precision highp float;
+uniform sampler2D uVel;
+uniform vec2  uAxis;        // (minDim/W, minDim/H) aspect correction
+uniform float uDt, uDissipation;
+in vec2 vUv; out vec4 frag;
+void main(){
+  vec2 v0   = texture(uVel, vUv).xy;
+  vec2 back = vUv - v0 * uDt * uAxis;
+  vec2 v1   = texture(uVel, back).xy;
+  // BFECC: re-advect forward, fold half the error back in
+  vec2 fwd  = back + v1 * uDt * uAxis;
+  v1 += 0.5 * (v0 - texture(uVel, fwd).xy);
+  // CFL guard: cap speed so one step never jumps too many cells
+  float sp = length(v1);
+  if (sp > 3.0) v1 *= 3.0 / sp;
+  // soft damping band at the borders so flow doesn't smear off-grid
+  vec2 b = smoothstep(0.0, 0.02, vUv) * smoothstep(1.0, 0.98, vUv);
+  frag = vec4(v1 * uDissipation * (b.x * b.y), 0., 1.);
+}`;
+
+/* --- 2b. pointer force splat (rendered with additive blending) --- */
+const F_SPLAT = `#version 300 es
+precision highp float;
+uniform vec2  uCenter;      // uv
+uniform vec2  uForce;
+uniform float uRadius;      // min-dim units
+uniform vec2  uInvAxis;     // (W/minDim, H/minDim)
+in vec2 vUv; out vec4 frag;
+void main(){
+  vec2 d = (vUv - uCenter) * uInvAxis;
+  float fall = 1.0 - smoothstep(0.0, uRadius, length(d));
+  frag = vec4(uForce * (fall * fall), 0., 0.);
+}`;
+
+/* --- 2c. divergence --- */
+const F_DIV = `#version 300 es
+precision highp float;
+uniform sampler2D uVel;
+uniform vec2 uPx;
+uniform float uDt;
+in vec2 vUv; out vec4 frag;
+void main(){
+  // 2-texel stencil throughout the solve: couples the odd/even lattices a
+  // collocated grid otherwise leaves decoupled (checkerboard instability)
+  float l = texture(uVel, vUv - vec2(uPx.x * 2., 0.)).x;
+  float r = texture(uVel, vUv + vec2(uPx.x * 2., 0.)).x;
+  float b = texture(uVel, vUv - vec2(0., uPx.y * 2.)).y;
+  float t = texture(uVel, vUv + vec2(0., uPx.y * 2.)).y;
+  frag = vec4(((r - l) + (t - b)) * 0.25 / uDt);
+}`;
+
+/* --- 2d. pressure (jacobi relaxation, ping-ponged) --- */
+const F_JACOBI = `#version 300 es
+precision highp float;
+uniform sampler2D uPressure, uDiv;
+uniform vec2 uPx;
+uniform float uStraightness;
+in vec2 vUv; out vec4 frag;
+void main(){
+  float l = texture(uPressure, vUv - vec2(uPx.x * 2., 0.)).r;
+  float r = texture(uPressure, vUv + vec2(uPx.x * 2., 0.)).r;
+  float b = texture(uPressure, vUv - vec2(0., uPx.y * 2.)).r;
+  float t = texture(uPressure, vUv + vec2(0., uPx.y * 2.)).r;
+  float d = texture(uDiv, vUv).r;
+  frag = vec4((l + r + b + t) / (4.0 + uStraightness) - d);
+}`;
+
+/* --- 2e. subtract pressure gradient --- */
+const F_PROJECT = `#version 300 es
+precision highp float;
+uniform sampler2D uVel, uPressure;
+uniform vec2 uPx;
+uniform float uDt;
+in vec2 vUv; out vec4 frag;
+void main(){
+  float l = texture(uPressure, vUv - vec2(uPx.x * 2., 0.)).r;
+  float r = texture(uPressure, vUv + vec2(uPx.x * 2., 0.)).r;
+  float b = texture(uPressure, vUv - vec2(0., uPx.y * 2.)).r;
+  float t = texture(uPressure, vUv + vec2(0., uPx.y * 2.)).r;
+  vec2 v = texture(uVel, vUv).xy;
+  frag = vec4(v - uDt * 0.25 * vec2(r - l, t - b), 0., 1.);
+}`;
+
+/* --- 2f. background noise field → small RT ---
+   R: hard organic blob mask   G: secondary band   B: raw fbm  */
+const F_NOISE = `#version 300 es
+precision highp float;
+uniform float uTime;
+uniform vec2  uInvAxis;
+in vec2 vUv; out vec4 frag;
+
+vec3 hash3(vec3 p){
+  p = vec3(dot(p, vec3(127.1, 311.7,  74.7)),
+           dot(p, vec3(269.5, 183.3, 246.1)),
+           dot(p, vec3(113.5, 271.9, 124.6)));
+  return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+float gnoise(vec3 p){
+  vec3 i = floor(p), f = fract(p);
+  vec3 u = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(dot(hash3(i+vec3(0,0,0)), f-vec3(0,0,0)),
+            dot(hash3(i+vec3(1,0,0)), f-vec3(1,0,0)), u.x),
+        mix(dot(hash3(i+vec3(0,1,0)), f-vec3(0,1,0)),
+            dot(hash3(i+vec3(1,1,0)), f-vec3(1,1,0)), u.x), u.y),
+    mix(mix(dot(hash3(i+vec3(0,0,1)), f-vec3(0,0,1)),
+            dot(hash3(i+vec3(1,0,1)), f-vec3(1,0,1)), u.x),
+        mix(dot(hash3(i+vec3(0,1,1)), f-vec3(0,1,1)),
+            dot(hash3(i+vec3(1,1,1)), f-vec3(1,1,1)), u.x), u.y), u.z);
+}
+float fbm(vec3 p){
+  float a = 0.5, s = 0.0;
+  for (int i = 0; i < 4; i++){ s += a * gnoise(p); p *= 2.03; a *= 0.5; }
+  return s;
+}
+void main(){
+  vec2 q = vUv * uInvAxis;            // square-corrected coords
+  float t = uTime * 0.055;
+  // big slow puddles, warped by a second noise pass for organic edges;
+  // stored as a continuous field — thresholding happens at full res
+  vec2 warp = vec2(fbm(vec3(q * 1.2 + 7.3, t)), fbm(vec3(q * 1.2 - 3.1, t)));
+  float n  = fbm(vec3(q * 0.95 + warp * 0.6, t * 0.8));
+  frag = vec4(n * 0.5 + 0.5, 0., 0., 1.);
+}`;
+
+/* --- 2g. composite: paper + blobs + liquid mask + raymarched helmet --- */
+const F_COMPOSITE = `#version 300 es
+precision highp float;
+uniform sampler2D uVel, uNoise;
+uniform vec2  uRes;
+uniform float uTime, uReveal, uHelmetAlways;
+uniform vec2  uMouse;          // normalized -1..1, for helmet rotation
+uniform vec2  uMaskBand;       // (low, high) velocity thresholds
+uniform vec3  uBg, uFg, uOutline, uCurBg, uCurFg, uCurOutline;
+uniform vec3  uShell, uStripe, uVisor, uTrim;
+in vec2 vUv; out vec4 frag;
+
+#define PI 3.14159265
+
+/* ---------- sdf toolkit ---------- */
+float sdEllipsoid(vec3 p, vec3 r){
+  float k0 = length(p / r);
+  float k1 = length(p / (r * r));
+  return k0 * (k0 - 1.0) / k1;
+}
+float sdRoundBox(vec3 p, vec3 b, float r){
+  vec3 q = abs(p) - b;
+  return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+}
+float opSmoothUnion(float a, float b, float k){
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+float opSmoothSub(float a, float b, float k){
+  float h = clamp(0.5 - 0.5 * (a + b) / k, 0.0, 1.0);
+  return mix(a, -b, h) + k * h * (1.0 - h);
+}
+
+/* ---------- helmet, side profile facing left ----------
+   returns: x = distance, y = material id
+   1 shell · 2 stripe · 3 visor · 4 trim */
+vec2 helmetSDF(vec3 p){
+  // shell with a slightly flatter back
+  float shell = sdEllipsoid(p - vec3(0.02, 0.02, 0.), vec3(1.0, 0.94, 0.84));
+  // chin bar sweeping forward-down, kept narrow so it doesn't skirt out
+  float chin = sdRoundBox(p - vec3(-0.55, -0.40, 0.), vec3(0.30, 0.09, 0.30), 0.15);
+  shell = opSmoothUnion(shell, chin, 0.16);
+  // rear spoiler lip
+  float spoiler = sdRoundBox(p - vec3(0.80, -0.42, 0.), vec3(0.14, 0.04, 0.26), 0.05);
+  shell = opSmoothUnion(shell, spoiler, 0.08);
+  // crop the underside
+  shell = max(shell, -(p.y + 0.70));
+  // visor cavity — wide and shallow, F1 style
+  float cavity = sdRoundBox(p - vec3(-0.74, 0.16, 0.), vec3(0.46, 0.20, 0.58), 0.12);
+  float carved = opSmoothSub(shell, cavity, 0.05);
+  // visor glass, sitting just inside the opening
+  float visor = sdRoundBox(p - vec3(-0.60, 0.15, 0.), vec3(0.42, 0.17, 0.52), 0.10);
+  visor = max(visor, sdEllipsoid(p - vec3(0.02, 0.02, 0.), vec3(0.99, 0.93, 0.83)));
+  // materials
+  float d = carved; float id = 1.0;
+  if (visor < d - 0.002){ d = visor; id = 3.0; }
+  // stripe: center band over the crown, only on shell
+  if (id == 1.0 && abs(p.z) < 0.22 && p.y > -0.25) id = 2.0;
+  // visor pivot disc on the cheek
+  if (id == 1.0 && abs(p.z) > 0.52 && distance(p.xy, vec2(-0.34, 0.04)) < 0.13) id = 4.0;
+  // trim near the bottom edge
+  if (id == 1.0 && p.y < -0.56) id = 4.0;
+  return vec2(d, id);
+}
+mat3 rotY(float a){ float c=cos(a), s=sin(a); return mat3(c,0.,s, 0.,1.,0., -s,0.,c); }
+mat3 rotX(float a){ float c=cos(a), s=sin(a); return mat3(1.,0.,0., 0.,c,-s, 0.,s,c); }
+
+vec3 helmetNormal(vec3 p){
+  const vec2 e = vec2(0.0035, 0.);
+  return normalize(vec3(
+    helmetSDF(p + e.xyy).x - helmetSDF(p - e.xyy).x,
+    helmetSDF(p + e.yxy).x - helmetSDF(p - e.yxy).x,
+    helmetSDF(p + e.yyx).x - helmetSDF(p - e.yyx).x));
+}
+float helmetAO(vec3 p, vec3 n){
+  float ao = 0.0, sc = 1.0;
+  for (int i = 1; i <= 3; i++){
+    float h = 0.05 * float(i);
+    ao += (h - helmetSDF(p + n * h).x) * sc;
+    sc *= 0.6;
+  }
+  return clamp(1.0 - 2.0 * ao, 0.0, 1.0);
+}
+
+/* march; returns rgb + coverage alpha */
+vec4 renderHelmet(vec2 uv){
+  // screen-space framing: centered, ~62% of min dimension tall
+  vec2 axis = uRes / min(uRes.x, uRes.y);
+  vec2 s = (uv - vec2(0.5, 0.47)) * axis * 3.4;
+  // camera looks down -z; helmet rotates with the cursor like the reference
+  // a touch of base yaw so the livery reads in three-quarter view
+  mat3 R = rotY(0.38 - uMouse.x * 0.55 + sin(uTime * 0.3) * 0.05)
+         * rotX( uMouse.y * 0.22 + cos(uTime * 0.23) * 0.03);
+  vec3 ro = R * vec3(0., 0., 3.6);
+  vec3 rd = R * normalize(vec3(s, -3.1));
+  // analytic bounding-sphere test first — most rays never touch the helmet,
+  // and skipping the march keeps integrated GPUs comfortable
+  float b = dot(-ro, rd);
+  float disc = b * b - dot(ro, ro) + 1.55 * 1.55;
+  if (disc < 0.0) return vec4(0.);
+  float t = max(b - sqrt(disc), 0.05); float id = 0.0;
+  for (int i = 0; i < 56; i++){
+    vec2 h = helmetSDF(ro + rd * t);
+    if (h.x < 0.0024){ id = h.y; break; }
+    if (!(h.x < 1e9)) break;        // NaN guard
+    t += h.x * 0.9;
+    if (t > b + sqrt(disc)) break;
+  }
+  if (id < 0.5) return vec4(0.);
+  vec3 p = ro + rd * t;
+  vec3 n = helmetNormal(p);
+  vec3 col = uShell;
+  float gloss = 18.0, specAmt = 0.35;
+  if (id > 2.5 && id < 3.5){ col = uVisor; gloss = 60.0; specAmt = 1.0; }
+  else if (id > 1.5 && id < 2.5){ col = uStripe; }
+  else if (id > 3.5){ col = uTrim; gloss = 10.0; specAmt = 0.15; }
+  vec3 L1 = normalize(vec3(-0.55, 0.75, 0.65));   // key
+  vec3 L2 = normalize(vec3( 0.80, 0.15, 0.45));   // rim/fill
+  float dif = max(dot(n, L1), 0.0) * 0.72 + max(dot(n, L2), 0.0) * 0.20;
+  float sky = 0.24 + 0.22 * n.y;
+  vec3 H1 = normalize(L1 - rd);
+  float spec = pow(max(dot(n, H1), 0.0), gloss) * specAmt;
+  float fres = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);
+  float ao = helmetAO(p, n);
+  vec3 lit = col * (sky + dif) * ao + vec3(spec) + fres * vec3(0.10, 0.11, 0.12);
+  return vec4(lit, 1.0);
+}
+
+/* ---------- grain ---------- */
+float hash12(vec2 p){
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+void main(){
+  /* intro curtain: vertical squash that settles to identity */
+  float rv = 1.0 - uReveal;
+  vec2 uv = vUv;
+  uv.y = (uv.y + 1.35 * rv) / (1.0 + 1.35 * rv);
+
+  /* background noise: threshold + iso-contour outline, AA'd at full res */
+  float n = texture(uNoise, uv).r * 2.0 - 1.0;
+  float w = fwidth(n);
+  const float TH = 0.02;
+  float blob = smoothstep(TH - w * 1.6, TH + w * 1.6, n);
+  // derivative-scaled contour: a fixed-width band in n-units turns into fat
+  // halos wherever the field flattens out — this stays ~2px on screen
+  float edge = 1.0 - smoothstep(w * 1.8, w * 3.6, abs(n - TH));
+
+  /* liquid mask from the velocity field */
+  float speed = length(texture(uVel, uv).xy);
+  float mask = smoothstep(uMaskBand.x, uMaskBand.y, speed);
+  mask = clamp(mask + uHelmetAlways, 0.0, 1.0);
+
+  /* paper world vs. inside-the-trail world */
+  vec3 outside = mix(uBg, mix(uBg, uFg, uReveal), blob);
+  outside = mix(outside, mix(uBg, uOutline, uReveal), edge);
+  vec3 inside = mix(uCurBg, uCurFg, blob);
+  inside = mix(inside, uCurOutline, edge * 0.8);
+  vec3 background = mix(outside, inside, mask);
+
+  /* helmet appears only inside the trail */
+  vec4 helm = (mask > 0.003) ? renderHelmet(uv) : vec4(0.);
+  vec3 color = mix(background, helm.rgb, helm.a * mask);
+
+  /* paper grain */
+  color -= (hash12(vUv * uRes + fract(uTime) * 100.0) - 0.5) * 0.035;
+
+  frag = vec4(color, 1.);
+}`;
+
+/* ============================================================
+   3. GL HELPERS
+   ============================================================ */
+function makeProgram(fsSrc){
+  const compile = (type, src) => {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+      throw new Error(gl.getShaderInfoLog(sh) + '\n--- in ---\n' + src);
+    return sh;
+  };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+    throw new Error(gl.getProgramInfoLog(prog));
+  const uniforms = {};
+  const n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS);
+  for (let i = 0; i < n; i++){
+    const info = gl.getActiveUniform(prog, i);
+    uniforms[info.name] = gl.getUniformLocation(prog, info.name);
+  }
+  return { prog, u: uniforms };
+}
+function makeTarget(w, h, internal, filter){
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texStorage2D(gl.TEXTURE_2D, 1, internal, w, h);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  return { tex, fbo, w, h };
+}
+function makePingPong(w, h, internal, filter){
+  return { a: makeTarget(w, h, internal, filter),
+           b: makeTarget(w, h, internal, filter),
+           swap(){ [this.a, this.b] = [this.b, this.a]; } };
+}
+function blitTo(target){
+  gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.fbo : null);
+  gl.viewport(0, 0, target ? target.w : canvas.width, target ? target.h : canvas.height);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+
+/* ============================================================
+   4. PIPELINE STATE
+   ============================================================ */
+const P = {
+  advect    : makeProgram(F_ADVECT),
+  splat     : makeProgram(F_SPLAT),
+  div       : makeProgram(F_DIV),
+  jacobi    : makeProgram(F_JACOBI),
+  project   : makeProgram(F_PROJECT),
+  noise     : makeProgram(F_NOISE),
+  composite : makeProgram(F_COMPOSITE),
+};
+let vel, pressure, divTex, noiseRT;
+let simW, simH, axisX, axisY;
+
+function allocate(){
+  const dpr = Math.min(devicePixelRatio || 1, CONF.maxDPR);
+  canvas.width  = Math.round(innerWidth  * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  simW = Math.max(64, Math.round(canvas.width  * CONF.simScale));
+  simH = Math.max(64, Math.round(canvas.height * CONF.simScale));
+  const minDim = Math.min(canvas.width, canvas.height);
+  axisX = minDim / canvas.width;
+  axisY = minDim / canvas.height;
+  vel      = makePingPong(simW, simH, gl.RG16F, gl.LINEAR);
+  pressure = makePingPong(simW, simH, gl.R16F,  gl.NEAREST);
+  divTex   = makeTarget (simW, simH, gl.R16F,  gl.NEAREST);
+  const nw = Math.max(96, Math.round(canvas.width * CONF.noiseScale));
+  const nh = Math.max(96, Math.round(canvas.height * CONF.noiseScale));
+  // 16-bit float: an 8-bit target quantizes the slow fbm field and the
+  // thresholded contours pick up staircase banding
+  noiseRT  = makeTarget(nw, nh, gl.R16F, gl.LINEAR);
+}
+
+/* ============================================================
+   5. POINTER + IDLE AUTOPILOT
+   ============================================================ */
+const pointer = {
+  x: 0.5, y: 0.5, px: 0.5, py: 0.5,
+  vx: 0, vy: 0,
+  real: false,              // has the user ever moved?
+  lastMove: performance.now(),
+  auto: 0,                  // 0..1 blend toward autopilot
+};
+function onMove(cx, cy){
+  pointer.x = cx / innerWidth;
+  pointer.y = 1 - cy / innerHeight;
+  pointer.lastMove = performance.now();
+  if (!pointer.real){
+    pointer.real = true;
+    pointer.px = pointer.x; pointer.py = pointer.y;
+    document.getElementById('hint').classList.add('gone');
+  }
+}
+addEventListener('pointermove', e => onMove(e.clientX, e.clientY), { passive:true });
+addEventListener('touchmove',  e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive:true });
+
+function updatePointer(now, t){
+  const idleFor = now - pointer.lastMove;
+  const wantAuto = (idleFor > CONF.idleAfter) ? 1 : 0;
+  pointer.auto += (wantAuto - pointer.auto) * 0.022;   // ease in/out of autopilot
+  if (pointer.auto > 0.002 && !reducedMotion){
+    // slow lissajous cruise around the helmet zone
+    const ax = 0.5  + 0.24 * Math.sin(t * 0.55) + 0.07 * Math.sin(t * 1.9);
+    const ay = 0.47 + 0.19 * Math.sin(t * 1.10 + Math.PI / 2) + 0.06 * Math.cos(t * 1.5);
+    pointer.x += (ax - pointer.x) * 0.085 * pointer.auto;
+    pointer.y += (ay - pointer.y) * 0.085 * pointer.auto;
+  }
+  pointer.vx = pointer.x - pointer.px;
+  pointer.vy = pointer.y - pointer.py;
+  pointer.px = pointer.x; pointer.py = pointer.y;
+}
+
+/* ============================================================
+   6. FRAME LOOP
+   ============================================================ */
+const t0 = performance.now();
+let lastFrame = t0;
+let rafId = 0;
+
+function simStep(){
+  gl.disable(gl.BLEND);
+
+  /* advect */
+  let p = P.advect;
+  gl.useProgram(p.prog);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, vel.a.tex);
+  gl.uniform1i(p.u.uVel, 0);
+  gl.uniform2f(p.u.uAxis, axisX, axisY);
+  gl.uniform1f(p.u.uDt, CONF.dt);
+  gl.uniform1f(p.u.uDissipation, CONF.dissipation);
+  blitTo(vel.b);
+
+  /* inject pointer force, additively, into the freshly advected field;
+     the autopilot moves gently, so it gets a force boost to keep a visible wake */
+  const boost = 1 + pointer.auto * 1.6;
+  const fx = pointer.vx * CONF.mouseForce * boost;
+  const fy = pointer.vy * CONF.mouseForce * boost;
+  if (Math.abs(fx) > 1e-5 || Math.abs(fy) > 1e-5){
+    p = P.splat;
+    gl.useProgram(p.prog);
+    gl.uniform2f(p.u.uCenter, pointer.x, pointer.y);
+    gl.uniform2f(p.u.uForce, fx, fy);
+    gl.uniform1f(p.u.uRadius, CONF.splatRadius);
+    gl.uniform2f(p.u.uInvAxis, 1 / axisX, 1 / axisY);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    blitTo(vel.b);
+    gl.disable(gl.BLEND);
+  }
+
+  /* divergence of the forced field */
+  p = P.div;
+  gl.useProgram(p.prog);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, vel.b.tex);
+  gl.uniform1i(p.u.uVel, 0);
+  gl.uniform2f(p.u.uPx, 1 / simW, 1 / simH);
+  gl.uniform1f(p.u.uDt, CONF.dt);
+  blitTo(divTex);
+
+  /* jacobi pressure solve */
+  p = P.jacobi;
+  gl.useProgram(p.prog);
+  gl.uniform2f(p.u.uPx, 1 / simW, 1 / simH);
+  gl.uniform1f(p.u.uStraightness, CONF.straightness);
+  gl.uniform1i(p.u.uPressure, 0);
+  gl.uniform1i(p.u.uDiv, 1);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, divTex.tex);
+  for (let i = 0; i < CONF.pressureIters; i++){
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, pressure.a.tex);
+    blitTo(pressure.b);
+    pressure.swap();
+  }
+
+  /* project out the divergent part */
+  p = P.project;
+  gl.useProgram(p.prog);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, vel.b.tex);
+  gl.uniform1i(p.u.uVel, 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, pressure.a.tex);
+  gl.uniform1i(p.u.uPressure, 1);
+  gl.uniform2f(p.u.uPx, 1 / simW, 1 / simH);
+  gl.uniform1f(p.u.uDt, CONF.dt);
+  blitTo(vel.a);
+}
+
+function frame(now){
+  rafId = requestAnimationFrame(frame);
+  // fixed-cadence sim: only step when ~a frame's worth of time has passed
+  if (now - lastFrame < 1000 / 65) return;
+  renderFrame(now);
+}
+function renderFrame(now){
+  const t = (now - t0) / 1000;
+  lastFrame = now;
+
+  updatePointer(now, t);
+  if (!reducedMotion) simStep();
+
+  /* background noise RT */
+  let p = P.noise;
+  gl.useProgram(p.prog);
+  gl.uniform1f(p.u.uTime, t);
+  gl.uniform2f(p.u.uInvAxis, 1 / axisX, 1 / axisY);
+  blitTo(noiseRT);
+
+  /* composite to screen */
+  const pal = PALETTES[paletteIdx];
+  const reveal = Math.min(1, t / CONF.revealDur);
+  const eased = 1 - Math.pow(1 - reveal, 3);
+  p = P.composite;
+  gl.useProgram(p.prog);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, vel.a.tex);
+  gl.uniform1i(p.u.uVel, 0);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, noiseRT.tex);
+  gl.uniform1i(p.u.uNoise, 1);
+  gl.uniform2f(p.u.uRes, canvas.width, canvas.height);
+  gl.uniform1f(p.u.uTime, t);
+  gl.uniform1f(p.u.uReveal, eased);
+  gl.uniform1f(p.u.uHelmetAlways, showHelmetAlways ? 1 : 0);
+  gl.uniform2f(p.u.uMouse, pointer.x * 2 - 1, pointer.y * 2 - 1);
+  gl.uniform2f(p.u.uMaskBand, CONF.maskLow, CONF.maskHigh);
+  gl.uniform3fv(p.u.uBg, hex(pal.bg));
+  gl.uniform3fv(p.u.uFg, hex(pal.fg));
+  gl.uniform3fv(p.u.uOutline, hex(pal.outline));
+  gl.uniform3fv(p.u.uCurBg, hex(pal.curBg));
+  gl.uniform3fv(p.u.uCurFg, hex(pal.curFg));
+  gl.uniform3fv(p.u.uCurOutline, hex(pal.curOutline));
+  gl.uniform3fv(p.u.uShell, hex(pal.shell));
+  gl.uniform3fv(p.u.uStripe, hex(pal.stripe));
+  gl.uniform3fv(p.u.uVisor, hex(pal.visor));
+  gl.uniform3fv(p.u.uTrim, hex(pal.trim));
+  blitTo(null);
+}
+
+/* ============================================================
+   7. LIFECYCLE + UI
+   ============================================================ */
+function applyPaletteCSS(){
+  const pal = PALETTES[paletteIdx];
+  const r = document.documentElement.style;
+  r.setProperty('--ink', pal.cssInk);
+  r.setProperty('--ink-soft', pal.cssSoft);
+  r.setProperty('--paper', pal.cssPaper);
+  r.setProperty('--accent', pal.fg);
+}
+addEventListener('keydown', e => {
+  if (e.key === 'c' || e.key === 'C'){
+    paletteIdx = (paletteIdx + 1) % PALETTES.length;
+    applyPaletteCSS();
+  }
+  if (e.key === 'h' || e.key === 'H') showHelmetAlways = !showHelmetAlways;
+});
+let resizeTimer = 0;
+addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(allocate, 150);
+});
+canvas.addEventListener('webglcontextlost', e => {
+  e.preventDefault();
+  document.getElementById('nogl').style.display = 'grid';
+});
+
+allocate();
+applyPaletteCSS();
+rafId = requestAnimationFrame(frame);
+
+/* debug handle (also handy for tests) */
+window.HERO = {
+  conf: CONF,
+  pointer,
+  setPalette(i){ paletteIdx = i % PALETTES.length; applyPaletteCSS(); },
+  helmetAlways(v){ showHelmetAlways = v; },
+  nudge(x, y){ onMove(x, y); },
+  // manually advance N frames on a virtual clock — lets the scene run
+  // (and be screenshotted) even when the tab is hidden and rAF is parked
+  step(n = 1){
+    for (let i = 0; i < n; i++){ lastFrame += 0; renderFrame(lastFrame + 16.7); }
+    return lastFrame;
+  },
+};
+</script>
+</body>
+</html>
