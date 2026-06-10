@@ -17,7 +17,8 @@
     --accent-ink:#50593f;
   }
   *{ margin:0; padding:0; box-sizing:border-box; }
-  html,body{ height:100%; overflow:hidden; overscroll-behavior:none; }
+  html{ scroll-behavior:smooth; }
+  html,body{ overscroll-behavior:none; }
   body{
     background:var(--paper);
     color:var(--ink);
@@ -26,18 +27,27 @@
   }
   #gl{
     position:fixed; inset:0;
-    width:100%; height:100%;
+    width:100%; height:100svh;
     display:block;
     cursor:crosshair;
+    z-index:0;
     /* the drag IS the interaction — don't let the browser claim it for
-       scrolling / pull-to-refresh, and keep iOS loupe & selection off it */
+       pull-to-refresh, and keep iOS loupe & selection off it */
     touch-action:none;
     -webkit-user-select:none; user-select:none;
     -webkit-touch-callout:none;
   }
-  /* ------- DOM overlay ------- */
+  /* ------- hero shell (scrolls away over the fixed canvas) ------- */
+  .s-hero{
+    position:relative;
+    height:100svh;
+    z-index:1;
+    /* let vertical swipes scroll the page on touch; the canvas below
+       never receives the touch so its touch-action:none can't trap us */
+    touch-action:pan-y;
+  }
   .ui{
-    position:fixed; inset:0;
+    position:absolute; inset:0;
     pointer-events:none;
     display:flex; flex-direction:column;
     justify-content:space-between;
@@ -117,7 +127,7 @@
   }
   /* ------- center hint ------- */
   .hint{
-    position:fixed; left:50%; top:50%;
+    position:absolute; left:50%; top:50%;
     transform:translate(-50%,-50%);
     z-index:2;
     pointer-events:none;
@@ -153,9 +163,380 @@
     font-style:italic; color:var(--ink-soft);
     text-align:center; line-height:2;
   }
-  @media (max-width:640px){
+
+  /* ============================================================
+     BELOW THE HERO — shared section system
+     one easing rules everything: cubic-bezier(.19,1,.22,1)
+     ============================================================ */
+  :root{
+    --ease:cubic-bezier(.19,1,.22,1);
+    --dark:#1a1d14;
+    --dark-soft:#a8ad97;
+    --maxw:1280px;
+  }
+  ::selection{ background:var(--accent); color:var(--dark); }
+
+  /* --- scroll progress hairline --- */
+  .progress{
+    position:fixed; top:0; left:0; height:2px; width:100%;
+    background:var(--accent);
+    transform-origin:0 50%; transform:scaleX(0);
+    z-index:8; pointer-events:none;
+  }
+
+  /* --- fixed site nav, recolors over dark sections --- */
+  .site-nav{
+    position:fixed; top:0; left:0; right:0; z-index:7;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px clamp(16px,2.5vw,32px);
+    pointer-events:none;
+    color:var(--ink);
+    transition:color .5s var(--ease);
+    mix-blend-mode:normal;
+  }
+  .site-nav.on-dark{ color:var(--paper); }
+  .site-nav a{ color:inherit; text-decoration:none; pointer-events:auto; }
+  .nav-mark{
+    font-family:Impact,'Arial Narrow',sans-serif;
+    font-size:15px; letter-spacing:.06em;
+    opacity:0; transition:opacity .5s var(--ease);
+  }
+  .site-nav.scrolled .nav-mark{ opacity:1; }
+  .nav-right{ display:flex; align-items:center; gap:clamp(10px,1.6vw,22px); }
+  .nav-status{
+    display:flex; align-items:center; gap:7px;
+    font-size:11px; font-style:italic; letter-spacing:.12em;
+    text-transform:uppercase; pointer-events:auto;
+  }
+  .status-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#b0b5a0; box-shadow:0 0 0 0 rgba(210,255,0,.5);
+  }
+  .nav-status.online .status-dot{
+    background:var(--accent);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(210,255,0,.55); }
+    70%{ box-shadow:0 0 0 9px rgba(210,255,0,0); }
+    100%{ box-shadow:0 0 0 0 rgba(210,255,0,0); }
+  }
+  .nav-links{ display:flex; gap:clamp(8px,1.4vw,18px); }
+  .nav-link{
+    position:relative; overflow:hidden; display:inline-block;
+    font-size:12.5px; font-style:italic; letter-spacing:.08em;
+    line-height:1.4; padding:2px 0;
+  }
+  .nav-link i{ display:block; font-style:inherit; transition:transform .55s var(--ease); }
+  .nav-link i.dup{ position:absolute; left:0; top:100%; }
+  .nav-link:hover i{ transform:translateY(-100%); }
+
+  /* --- generic section scaffolding --- */
+  main{ position:relative; z-index:1; }
+  .sec{
+    position:relative;
+    background:var(--paper);
+    color:var(--ink);
+    padding:clamp(72px,11vw,150px) clamp(16px,4vw,48px);
+    overflow:hidden;
+  }
+  .sec[data-theme="dark"]{
+    background:var(--dark);
+    color:#f0f1e8;
+  }
+  .sec[data-theme="dark"] .eyebrow{ color:var(--dark-soft); }
+  .wrap{ max-width:var(--maxw); margin:0 auto; position:relative; }
+  .eyebrow{
+    font-size:clamp(11px,.95vw,14px); font-style:italic;
+    letter-spacing:.24em; text-transform:uppercase;
+    color:var(--ink-soft); margin-bottom:clamp(20px,3vw,44px);
+    display:flex; align-items:center; gap:14px;
+  }
+  .eyebrow::after{ content:''; flex:1; height:1px; background:currentColor; opacity:.25; }
+  .sec h2{
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-weight:400; text-transform:uppercase;
+    font-size:clamp(40px,7.2vw,110px);
+    line-height:.95; letter-spacing:.005em;
+    transform:scaleY(1.08); transform-origin:bottom left;
+    margin-bottom:clamp(28px,4vw,56px);
+  }
+  .sec h2 .alt{ -webkit-text-stroke:1.6px currentColor; color:transparent; }
+  .serif-it{ font-family:Georgia,serif; font-style:italic; text-transform:none; letter-spacing:0; }
+
+  /* --- split-line reveal (the master move of the whole site) --- */
+  .rl{ display:block; overflow:hidden; }
+  .rl > .rl-in{
+    display:block; transform:translateY(115%);
+    transition:transform 1.05s var(--ease);
+    transition-delay:calc(var(--i,0) * 90ms);
+  }
+  .in .rl > .rl-in, .rl.in > .rl-in{ transform:translateY(0); }
+  [data-rise]{
+    opacity:0; transform:translateY(26px);
+    transition:opacity .9s var(--ease), transform .9s var(--ease);
+    transition-delay:calc(var(--i,0) * 90ms);
+  }
+  [data-rise].in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){
+    .rl > .rl-in{ transform:none; transition:none; }
+    [data-rise]{ opacity:1; transform:none; transition:none; }
+  }
+
+  /* --- status strip + marquee band --- */
+  .sec-pulse{ padding:0; }
+  .pulse-strip{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    border-bottom:1px solid rgba(240,241,232,.14);
+  }
+  .pulse-cell{
+    padding:clamp(18px,2.6vw,34px) clamp(14px,2vw,28px);
+    border-right:1px solid rgba(240,241,232,.14);
+    min-width:0;
+  }
+  .pulse-cell:last-child{ border-right:none; }
+  .pulse-k{
+    font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+    font-style:italic; color:var(--dark-soft); margin-bottom:10px;
+  }
+  .pulse-v{
+    font-family:Impact,'Arial Narrow',sans-serif;
+    font-size:clamp(20px,2.4vw,34px); letter-spacing:.02em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .pulse-v small{ font-family:Georgia,serif; font-style:italic; font-size:.5em; color:var(--dark-soft); }
+  .marquee{
+    padding:clamp(26px,4vw,52px) 0;
+    user-select:none;
+  }
+  .mq-row{
+    display:flex; white-space:nowrap; will-change:transform;
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-size:clamp(44px,8vw,120px); text-transform:uppercase;
+    line-height:1.04;
+  }
+  .mq-row + .mq-row{ margin-top:10px; }
+  .mq-chunk{ display:flex; flex-shrink:0; padding-right:.6em; }
+  .mq-chunk .o{ -webkit-text-stroke:1.6px #f0f1e8; color:transparent; }
+  .mq-chunk .lime{ color:var(--accent); }
+  .mq-chunk span{ padding-right:.6em; }
+  .hermes-note{
+    padding:16px clamp(14px,2vw,28px) 22px;
+    font-size:11.5px; font-style:italic; color:var(--dark-soft);
+    border-top:1px solid rgba(240,241,232,.14);
+  }
+
+  /* --- about --- */
+  .about-grid{
+    display:grid; grid-template-columns:1.25fr .75fr;
+    gap:clamp(28px,4vw,72px); align-items:start;
+  }
+  .about-body p{
+    font-size:clamp(15px,1.35vw,19px); line-height:1.95;
+    margin-bottom:1.4em; max-width:62ch;
+  }
+  .about-body b{ background:linear-gradient(transparent 62%, var(--accent) 62%); font-weight:600; }
+  .about-aside{ position:sticky; top:96px; display:flex; flex-direction:column; gap:14px; }
+  .fact-card{
+    border:1px solid rgba(35,38,31,.18);
+    padding:18px 20px; border-radius:4px;
+    background:rgba(255,255,255,.45);
+    transition:transform .6s var(--ease), box-shadow .6s var(--ease);
+  }
+  .fact-card:hover{ transform:translateY(-4px); box-shadow:0 14px 30px -18px rgba(35,38,31,.35); }
+  .fact-card .k{
+    font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+    font-style:italic; color:var(--ink-soft); margin-bottom:8px;
+  }
+  .fact-card .v{ font-size:14.5px; line-height:1.75; }
+
+  /* --- project graph (dark) --- */
+  .graph-stage{
+    position:relative;
+    border:1px solid rgba(240,241,232,.16);
+    border-radius:6px;
+    height:clamp(420px,58vh,640px);
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(210,255,0,.05), transparent 50%),
+      var(--dark);
+  }
+  #graphCanvas{ position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; }
+  .graph-info{
+    position:absolute; right:14px; bottom:14px; z-index:2;
+    width:min(290px, 70vw);
+    border:1px solid rgba(240,241,232,.2);
+    background:rgba(26,29,20,.88);
+    backdrop-filter:blur(6px);
+    padding:14px 16px; border-radius:4px;
+    pointer-events:none;
+    opacity:0; transform:translateY(8px);
+    transition:opacity .45s var(--ease), transform .45s var(--ease);
+  }
+  .graph-info.show{ opacity:1; transform:none; }
+  .graph-info .t{ font-family:Impact,'Arial Narrow',sans-serif; font-size:18px; letter-spacing:.03em; margin-bottom:6px; }
+  .graph-info .d{ font-size:12.5px; line-height:1.7; color:var(--dark-soft); }
+  .graph-info .s{ display:inline-block; margin-top:8px; font-size:10.5px; font-style:italic; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); }
+  .graph-legend{
+    display:flex; gap:18px; margin-top:14px;
+    font-size:11px; font-style:italic; color:var(--dark-soft); flex-wrap:wrap;
+  }
+  .graph-legend i{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+
+  /* --- updating list + 蹲蹲 --- */
+  .up-row{
+    display:grid;
+    grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) auto auto;
+    gap:clamp(10px,2vw,26px); align-items:center;
+    padding:clamp(16px,2.2vw,26px) 6px;
+    border-bottom:1px solid rgba(35,38,31,.16);
+    transition:background .4s var(--ease), padding-left .4s var(--ease);
+  }
+  .up-row:first-of-type{ border-top:1px solid rgba(35,38,31,.16); }
+  .up-row:hover{ background:rgba(210,255,0,.10); padding-left:16px; }
+  .up-name{
+    font-family:Impact,'Arial Narrow',sans-serif;
+    font-size:clamp(17px,1.9vw,26px); letter-spacing:.02em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .up-msg{
+    font-size:13px; font-style:italic; color:var(--ink-soft);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .up-date{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+  .squat{
+    pointer-events:auto; cursor:pointer;
+    font:inherit; font-size:12px; font-style:italic;
+    border:1px solid var(--ink); border-radius:99px;
+    background:transparent; color:var(--ink);
+    padding:7px 14px; white-space:nowrap;
+    transition:background .35s var(--ease), color .35s var(--ease), transform .35s var(--ease);
+  }
+  .squat:hover{ transform:translateY(-2px); }
+  .squat.on{ background:var(--ink); color:var(--accent); }
+  .squat-mail{
+    margin-top:18px; display:none; gap:10px; align-items:center;
+  }
+  .squat-mail.show{ display:flex; }
+  .squat-mail input{
+    font:inherit; font-size:13px; padding:9px 14px;
+    border:1px solid rgba(35,38,31,.4); border-radius:3px;
+    background:transparent; min-width:min(300px,60vw);
+  }
+  .squat-mail button{
+    font:inherit; font-size:12.5px; font-style:italic; cursor:pointer;
+    border:none; border-radius:3px; padding:10px 16px;
+    background:var(--ink); color:var(--paper);
+  }
+  .squat-note{ margin-top:10px; font-size:11.5px; font-style:italic; color:var(--ink-soft); }
+
+  /* --- workflow cards --- */
+  .wf-grid{
+    display:grid; grid-template-columns:repeat(2,1fr);
+    gap:clamp(14px,2vw,26px);
+  }
+  .wf-card{
+    position:relative;
+    border:1px solid rgba(35,38,31,.18);
+    border-radius:5px; padding:clamp(20px,2.6vw,34px);
+    background:rgba(255,255,255,.5);
+    overflow:hidden;
+    transition:transform .6s var(--ease), box-shadow .6s var(--ease);
+  }
+  .wf-card::before{
+    content:''; position:absolute; inset:auto -20% -55% -20%; height:75%;
+    background:radial-gradient(ellipse at 50% 100%, rgba(210,255,0,.5), transparent 65%);
+    opacity:0; transition:opacity .6s var(--ease);
+    pointer-events:none;
+  }
+  .wf-card:hover{ transform:translateY(-6px); box-shadow:0 24px 44px -26px rgba(35,38,31,.4); }
+  .wf-card:hover::before{ opacity:1; }
+  .wf-num{
+    font-family:Impact,'Arial Narrow',sans-serif; font-size:13px;
+    color:var(--ink-soft); margin-bottom:14px; letter-spacing:.08em;
+  }
+  .wf-card h3{
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-weight:400; font-size:clamp(20px,2.2vw,30px);
+    letter-spacing:.02em; margin-bottom:10px; text-transform:uppercase;
+  }
+  .wf-card p{ font-size:13.5px; line-height:1.85; color:var(--ink-soft); max-width:46ch; }
+  .wf-tag{
+    display:inline-block; margin-top:14px; margin-right:8px;
+    font-size:10.5px; font-style:italic; letter-spacing:.12em; text-transform:uppercase;
+    border:1px solid rgba(35,38,31,.3); border-radius:99px; padding:4px 10px;
+  }
+
+  /* --- topics (dark) --- */
+  .topic-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2vw,26px); }
+  .topic-card{
+    position:relative; border:1px solid rgba(240,241,232,.16);
+    border-radius:5px; padding:clamp(22px,3vw,40px);
+    min-height:clamp(220px,30vh,320px);
+    display:flex; flex-direction:column; justify-content:flex-end;
+    overflow:hidden;
+    transition:border-color .5s var(--ease);
+  }
+  .topic-card:hover{ border-color:rgba(210,255,0,.6); }
+  .topic-bg{ position:absolute; inset:0; opacity:.5; }
+  .topic-card h3{
+    position:relative;
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-weight:400; font-size:clamp(22px,2.6vw,36px);
+    letter-spacing:.02em; margin-bottom:10px;
+  }
+  .topic-card p{ position:relative; font-size:13px; font-style:italic; line-height:1.8; color:var(--dark-soft); max-width:44ch; }
+
+  /* --- contact --- */
+  .contact-links{ display:flex; flex-direction:column; }
+  .c-link{
+    pointer-events:auto;
+    display:flex; align-items:baseline; justify-content:space-between;
+    gap:18px; text-decoration:none; color:inherit;
+    border-bottom:1px solid rgba(35,38,31,.16);
+    padding:clamp(14px,2vw,24px) 6px;
+    transition:padding-left .45s var(--ease), background .45s var(--ease);
+  }
+  .c-link:first-of-type{ border-top:1px solid rgba(35,38,31,.16); }
+  .c-link:hover{ padding-left:20px; background:rgba(210,255,0,.12); }
+  .c-link .n{
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-size:clamp(26px,4vw,56px); text-transform:uppercase; letter-spacing:.02em;
+  }
+  .c-link .h{ font-size:12.5px; font-style:italic; color:var(--ink-soft); white-space:nowrap; }
+  .c-link .arrow{ font-family:Georgia; font-size:clamp(18px,2.4vw,32px); transition:transform .45s var(--ease); }
+  .c-link:hover .arrow{ transform:translate(6px,-4px); }
+  .site-footer{
+    margin-top:clamp(40px,6vw,90px);
+    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    font-size:11.5px; font-style:italic; color:var(--ink-soft);
+  }
+
+  /* --- cursor accent dot --- */
+  .cursor{
+    position:fixed; left:0; top:0; z-index:99;
+    width:10px; height:10px; border-radius:50%;
+    background:var(--accent);
+    mix-blend-mode:difference;
+    pointer-events:none;
+    transform:translate(-100px,-100px);
+    transition:width .3s var(--ease), height .3s var(--ease);
+  }
+  .cursor.big{ width:34px; height:34px; }
+  @media (hover:none){ .cursor{ display:none; } }
+
+  @media (max-width:760px){
     .colophon{ display:none; }
     .est{ display:none; }
+    .nav-links{ display:none; }
+    .about-grid{ grid-template-columns:1fr; }
+    .about-aside{ position:static; }
+    .pulse-strip{ grid-template-columns:1fr 1fr; }
+    .pulse-cell:nth-child(2){ border-right:none; }
+    .wf-grid{ grid-template-columns:1fr; }
+    .topic-grid{ grid-template-columns:1fr; }
+    .up-row{ grid-template-columns:minmax(0,1fr) auto; }
+    .up-msg,.up-date{ display:none; }
   }
 </style>
 </head>
@@ -163,6 +544,27 @@
 
 <canvas id="gl"></canvas>
 
+<div class="progress" id="progress"></div>
+
+<nav class="site-nav" id="siteNav">
+  <a class="nav-mark" href="#top">DX·0325</a>
+  <div class="nav-right">
+    <div class="nav-status" id="navStatus" data-hermes="status" title="由 Hermes 探测，当前为占位">
+      <span class="status-dot"></span>
+      <span data-hermes="status-label">probing…</span>
+    </div>
+    <div class="nav-links">
+      <a class="nav-link" href="#about"><i>关于</i><i class="dup">关于</i></a>
+      <a class="nav-link" href="#graph"><i>星图</i><i class="dup">星图</i></a>
+      <a class="nav-link" href="#updating"><i>在更新</i><i class="dup">在更新</i></a>
+      <a class="nav-link" href="#workflow"><i>工作流</i><i class="dup">工作流</i></a>
+      <a class="nav-link" href="#topics"><i>课题</i><i class="dup">课题</i></a>
+      <a class="nav-link" href="#contact"><i>来玩</i><i class="dup">来玩</i></a>
+    </div>
+  </div>
+</nav>
+
+<header class="s-hero" id="top">
 <div class="ui">
   <div class="row">
     <div class="wordmark reveal-up d1">DX·0325<small>hero study 001</small></div>
@@ -183,6 +585,196 @@
 </div>
 
 <div class="hint" id="hint">move your cursor — 动一动鼠标</div>
+</header>
+
+<main id="main">
+
+  <!-- ====== 00 · PULSE: status strip + marquee (Hermes 接口预留) ====== -->
+  <section class="sec sec-pulse" data-theme="dark" id="status">
+    <div class="pulse-strip">
+      <div class="pulse-cell" data-rise style="--i:0">
+        <div class="pulse-k">现在</div>
+        <div class="pulse-v" data-hermes="now">离线 <small>· hermes probing</small></div>
+      </div>
+      <div class="pulse-cell" data-rise style="--i:1">
+        <div class="pulse-k">今日 tokens</div>
+        <div class="pulse-v" data-hermes="tokens">——<small> · 待探测</small></div>
+      </div>
+      <div class="pulse-cell" data-rise style="--i:2">
+        <div class="pulse-k">今日在场</div>
+        <div class="pulse-v" data-hermes="hours">——<small> · 待探测</small></div>
+      </div>
+      <div class="pulse-cell" data-rise style="--i:3">
+        <div class="pulse-k">昨日更新</div>
+        <div class="pulse-v" data-hermes="lastlog">hero v2 上线</div>
+      </div>
+    </div>
+    <div class="marquee" aria-hidden="true">
+      <div class="mq-row" data-mq data-dir="1">
+        <div class="mq-chunk"><span>VIBE CODER</span><span class="o">·18·</span><span class="lime">操作熵↓</span><span class="o">OPEN SOURCE</span></div>
+      </div>
+      <div class="mq-row" data-mq data-dir="-1">
+        <div class="mq-chunk"><span class="o">BUILD IN PUBLIC</span><span class="lime">好奇心驱动</span><span>DOGFOOD EVERYTHING</span><span class="o">·</span></div>
+      </div>
+    </div>
+    <div class="hermes-note">
+      ※ 这一条数据带 + 公屏留言板 + 每日更新日志由 Hermes 负责（vibe-coder-dashboard），接口已留：<code>window.VIBE_DASH</code> — 他做完即插即用。
+    </div>
+  </section>
+
+  <!-- ====== 01 · ABOUT ====== -->
+  <section class="sec" id="about">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>01 — 关于 · about</p>
+      <h2 data-split>我叫 CHICHU，<br>一名 <span class="alt">18 岁</span>的 VIBE CODER<span class="serif-it">。</span></h2>
+      <div class="about-grid">
+        <div class="about-body">
+          <p data-rise style="--i:0">最喜欢做的事：<b>整理我的电脑和电子笔记</b>，以及没完没了地迭代自己的工作流程——对工具，我有自己的审美洁癖。对平面设计的兴趣在 coding 里转化成了对 UI/UX 的痴迷，我一直在找一个问题的答案：<b>"更好的交互长什么样？"</b></p>
+          <p data-rise style="--i:1">在这个网站，你会看到一个刚起步的 vibe coder 积压十几年的灵感：一些小 demo 游戏，一些我为自己做的 dogfood 工具（用来减少电子大脑的操作熵），一些我写的 skills 和插件，还有那些我感兴趣的跨学科怪课题——我往往会把它们做成 HTML 展示。</p>
+          <p data-rise style="--i:2">当然，这里也有很多<b>"未完成"</b>。它们静静躺在列表里，你可以跟进进度，也可以给喜欢的项目点一个<b>"蹲蹲"</b>——你的期待是我推进项目的第二大动力（第一大动力是我的好奇心）。</p>
+          <p data-rise style="--i:3">希望这份对我的生活、灵感和工作方法的全面展示能对你有启发。<b>所有项目全部开源</b>，欢迎来提 issue。</p>
+        </div>
+        <aside class="about-aside">
+          <div class="fact-card" data-rise style="--i:1">
+            <div class="k">主战场</div>
+            <div class="v">Claude Code · 单文件零依赖审美 · Win11 + 核显也要跑 60fps</div>
+          </div>
+          <div class="fact-card" data-rise style="--i:2">
+            <div class="k">蹲蹲是什么</div>
+            <div class="v">看上某个未完成项目 → 点蹲蹲 → 留邮箱 → 它完成那天你会收到一封信。这套玩法叫 build in public + waitlist。</div>
+          </div>
+          <div class="fact-card" data-rise style="--i:3">
+            <div class="k">本站</div>
+            <div class="v">复刻自 landonorris.com 的流体 hero，往下全部原创。代码同样开源。</div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== 02 · PROJECT GRAPH (obsidian 风格星图) ====== -->
+  <section class="sec" data-theme="dark" id="graph">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>02 — 项目星图 · constellation</p>
+      <h2 data-split>灵感不删除，<br><span class="alt">只是还没连上线</span><span class="serif-it">。</span></h2>
+      <div class="graph-stage" data-rise>
+        <canvas id="graphCanvas"></canvas>
+        <div class="graph-info" id="graphInfo">
+          <div class="t"></div>
+          <div class="d"></div>
+          <span class="s"></span>
+        </div>
+      </div>
+      <div class="graph-legend" data-rise>
+        <span><i style="background:#d2ff00"></i>正在更新</span>
+        <span><i style="background:#f0f1e8"></i>已上线</span>
+        <span><i style="background:#6b7060"></i>蛰伏中</span>
+        <span style="opacity:.7">— 大点是项目，小点是它的分支动态 · 鼠标可以拨弄它们</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== 03 · UPDATING + 蹲蹲榜 ====== -->
+  <section class="sec" id="updating">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>03 — 正在更新 · now building</p>
+      <h2 data-split>这周的<span class="alt">提交记录</span><span class="serif-it">，</span><br>和蹲蹲榜<span class="serif-it">。</span></h2>
+      <div id="upList"><!-- rows injected --></div>
+      <div class="squat-mail" id="squatMail">
+        <input type="email" placeholder="you@somewhere — 完成时通知你" id="squatEmail">
+        <button id="squatSave">蹲下了</button>
+      </div>
+      <p class="squat-note">※ 蹲蹲数暂存在你的浏览器里；列表数据将由 Hermes 从 GitHub 自动同步，当前为手工快照。</p>
+    </div>
+  </section>
+
+  <!-- ====== 04 · WORKFLOW ====== -->
+  <section class="sec" id="workflow">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>04 — 工作流陈列室 · how i work</p>
+      <h2 data-split>方法本身<br>也是<span class="alt">作品</span><span class="serif-it">。</span></h2>
+      <div class="wf-grid">
+        <div class="wf-card" data-rise style="--i:0">
+          <div class="wf-num">WF·01</div>
+          <h3>sessionss — 多会话并行</h3>
+          <p>自己写的 skill：把大项目拆进多个并行 session，互不污染上下文，进度统一汇合。大概是我对"操作熵"宣战的代表作。</p>
+          <span class="wf-tag">claude skill</span><span class="wf-tag">开源</span>
+        </div>
+        <div class="wf-card" data-rise style="--i:1">
+          <div class="wf-num">WF·02</div>
+          <h3>小红书预览工作台</h3>
+          <p>发帖之前在本地像素级预览卡片排版，所见即所得，不再被发布后的折行背刺。</p>
+          <span class="wf-tag">dogfood 工具</span>
+        </div>
+        <div class="wf-card" data-rise style="--i:2">
+          <div class="wf-num">WF·03</div>
+          <h3>GitHub 仓库营销器</h3>
+          <p>仓库写完不算完——README、预览图、发布文案一条龙生成，让项目自己会说话。</p>
+          <span class="wf-tag">dogfood 工具</span>
+        </div>
+        <div class="wf-card" data-rise style="--i:3">
+          <div class="wf-num">WF·04</div>
+          <h3>cardputer 预览工作台</h3>
+          <p>掌上硬件的固件 UI 预览管线。还在路上——这是一条可以蹲的。</p>
+          <span class="wf-tag">coming soon</span><span class="wf-tag">硬件</span>
+        </div>
+      </div>
+      <p class="squat-note" style="margin-top:22px">我装的所有 skills 会陆续在这里陈列（仓库 + 职能）。觉得我的工作流哪里不对？
+        <a href="https://github.com/xing0325/chichu_habit/issues" target="_blank" rel="noopener" style="color:inherit">直接来提 issue →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ====== 05 · TOPICS ====== -->
+  <section class="sec" data-theme="dark" id="topics">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>05 — 怪问题研究所 · weird questions</p>
+      <h2 data-split>有些问题不挣钱，<br><span class="alt">但是好玩</span><span class="serif-it">。</span></h2>
+      <div class="topic-grid">
+        <div class="topic-card" data-rise style="--i:0">
+          <canvas class="topic-bg" data-topic-bg="markov"></canvas>
+          <h3>狼人杀 × 马尔可夫链</h3>
+          <p>把一局狼人杀建模成状态转移：发言改变信念，信念改变投票。社交推理游戏到底能不能算出来？</p>
+        </div>
+        <div class="topic-card" data-rise style="--i:1">
+          <canvas class="topic-bg" data-topic-bg="balance"></canvas>
+          <h3>棋类游戏的平衡性</h3>
+          <p>从国象×将棋融合实验开始的问题：怎么科学地判断一套新规则是不是"先手必胜的垃圾"？</p>
+        </div>
+      </div>
+      <p class="squat-note" style="margin-top:22px;color:var(--dark-soft)">研究往往以一个 HTML 展示收尾——做完会挂在这里。</p>
+    </div>
+  </section>
+
+  <!-- ====== 06 · CONTACT ====== -->
+  <section class="sec" id="contact">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>06 — 来玩 · say hi</p>
+      <h2 data-split>提 ISSUE，<br>或者只是<span class="alt">来串门</span><span class="serif-it">。</span></h2>
+      <div class="contact-links">
+        <a class="c-link" href="https://github.com/xing0325" target="_blank" rel="noopener" data-rise style="--i:0">
+          <span class="n">GitHub</span><span class="h">@xing0325 · 全部开源在这</span><span class="arrow">↗</span>
+        </a>
+        <a class="c-link" href="#" data-rise style="--i:1" data-todo="小红书主页链接">
+          <span class="n">小红书</span><span class="h">施工日志 + 预览图都发这</span><span class="arrow">↗</span>
+        </a>
+        <a class="c-link" href="#" data-rise style="--i:2" data-todo="mailto:你的公开邮箱">
+          <span class="n">Email</span><span class="h">蹲蹲的回信从这里寄出</span><span class="arrow">↗</span>
+        </a>
+        <a class="c-link" href="#" data-rise style="--i:3" data-todo="微信号或二维码弹层">
+          <span class="n">WeChat</span><span class="h">熟人通道 · 暗号是"蹲蹲"</span><span class="arrow">↗</span>
+        </a>
+      </div>
+      <div class="site-footer">
+        <span>© 2026 chichu · DX·0325 — 单文件零依赖，view-source 欢迎抄走</span>
+        <span><kbd style="border:1px solid;border-radius:3px;padding:0 5px;font-style:normal">C</kbd> 换配色 · <kbd style="border:1px solid;border-radius:3px;padding:0 5px;font-style:normal">H</kbd> 头盔常驻 · a study after landonorris.com</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="cursor" id="cursor"></div>
 <div class="nogl" id="nogl"><p>这台设备的浏览器不支持 WebGL2 浮点渲染，<br>流体引擎点不着火。换个现代浏览器再来。</p></div>
 
 <script>
@@ -803,6 +1395,8 @@ function simStep(){
 
 function frame(now){
   rafId = requestAnimationFrame(frame);
+  // hero scrolled out of view: skip all GL work, sections cover the canvas
+  if (!heroVisible){ lastFrame = now; return; }
   // reduced motion: the scene is static — 30fps presentation is plenty
   if (reducedMotion && now - lastFrame < 33) return;
   renderFrame(now);
@@ -944,6 +1538,329 @@ window.HERO = {
     for (let i = 0; i < n; i++) renderFrame(lastFrame + 16.7);
     return lastFrame;
   },
+};
+
+/* ============================================================
+   8. BELOW THE HERO — page systems
+   (everything below is plain DOM/canvas work; the one shared
+   easing lives in CSS as --ease)
+   ============================================================ */
+
+/* --- 8a. pause the fluid when the hero scrolls out of view --- */
+let heroVisible = true;
+new IntersectionObserver(es => { heroVisible = es[0].isIntersecting; }, { threshold: 0.02 })
+  .observe(document.querySelector('.s-hero'));
+
+/* --- 8b. scroll progress + nav state + per-section nav theme --- */
+const navEl = document.getElementById('siteNav');
+const progressEl = document.getElementById('progress');
+const darkSecs = [...document.querySelectorAll('.sec[data-theme="dark"]')];
+let scrollY0 = scrollY, scrollVel = 0;
+function scrollTick(){
+  const max = document.documentElement.scrollHeight - innerHeight;
+  progressEl.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+  navEl.classList.toggle('scrolled', scrollY > innerHeight * 0.6);
+  const probeY = 34;
+  let dark = false;
+  for (const s of darkSecs){
+    const r = s.getBoundingClientRect();
+    if (r.top <= probeY && r.bottom >= probeY){ dark = true; break; }
+  }
+  navEl.classList.toggle('on-dark', dark);
+}
+addEventListener('scroll', scrollTick, { passive:true });
+scrollTick();
+
+/* --- 8c. split headings into lines, reveal on scroll --- */
+document.querySelectorAll('[data-split]').forEach(h => {
+  const lines = [[]];
+  [...h.childNodes].forEach(n => {
+    if (n.nodeName === 'BR'){ lines.push([]); n.remove(); }
+    else lines[lines.length - 1].push(n);
+  });
+  h.textContent = '';
+  lines.forEach((nodes, i) => {
+    const outer = document.createElement('span'); outer.className = 'rl';
+    const inner = document.createElement('span'); inner.className = 'rl-in';
+    inner.style.setProperty('--i', i);
+    nodes.forEach(n => inner.appendChild(n));
+    outer.appendChild(inner);
+    h.appendChild(outer);
+  });
+});
+const revealIO = new IntersectionObserver(es => {
+  for (const e of es) if (e.isIntersecting){ e.target.classList.add('in'); revealIO.unobserve(e.target); }
+}, { threshold: 0.2 });
+document.querySelectorAll('[data-split], [data-rise]').forEach(el => revealIO.observe(el));
+
+/* --- 8d. marquee: direction-aware, speed follows your scrolling --- */
+const mqRows = [...document.querySelectorAll('[data-mq]')].map(row => {
+  const chunk = row.firstElementChild;
+  // clone chunks until we can loop seamlessly
+  for (let i = 0; i < 5; i++) row.appendChild(chunk.cloneNode(true));
+  return { row, dir: +row.dataset.dir, x: 0, w: 0 };
+});
+function measureMq(){ for (const m of mqRows) m.w = m.row.firstElementChild.getBoundingClientRect().width; }
+measureMq(); addEventListener('resize', measureMq);
+let mqVisible = true;
+const mqSec = document.getElementById('status');
+if (mqSec) new IntersectionObserver(es => { mqVisible = es[0].isIntersecting; }).observe(mqSec);
+
+/* --- 8e. cursor accent dot --- */
+const cursorEl = document.getElementById('cursor');
+let cx = -100, cyp = -100, tx = -100, ty = -100;
+addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; }, { passive:true });
+document.querySelectorAll('a, button, .graph-stage, .squat, kbd').forEach(el => {
+  el.addEventListener('pointerenter', () => cursorEl.classList.add('big'));
+  el.addEventListener('pointerleave', () => cursorEl.classList.remove('big'));
+});
+
+/* --- 8f. shared page rAF (separate from the GL loop) --- */
+let lastPage = performance.now();
+function pageLoop(now){
+  requestAnimationFrame(pageLoop);
+  const dt = Math.min(50, now - lastPage); lastPage = now;
+  // scroll velocity (px/frame, smoothed)
+  scrollVel += ((scrollY - scrollY0) - scrollVel) * 0.12;
+  scrollY0 = scrollY;
+  // marquee
+  if (mqVisible && !reducedMotion) for (const m of mqRows){
+    if (!m.w) continue;
+    m.x += (0.9 + Math.min(6, Math.abs(scrollVel) * 0.35)) * m.dir * (dt / 16.7);
+    if (scrollVel < -1) m.x += scrollVel * 0.08 * m.dir;  // scrolling up nudges it backwards
+    m.x = ((m.x % m.w) + m.w) % m.w;
+    m.row.style.transform = `translateX(${-m.x}px)`;
+  }
+  // cursor dot
+  cx += (tx - cx) * 0.22; cyp += (ty - cyp) * 0.22;
+  cursorEl.style.transform = `translate(${cx - 5}px, ${cyp - 5}px)`;
+}
+requestAnimationFrame(pageLoop);
+
+/* --- 8g. project constellation (obsidian-style graph) --- */
+const NODES = [
+  { id:'zima',     n:'齐马蓝 · 本站',    d:'你正在看的这个网站。流体显形 hero + 全站动效，单文件零依赖。', s:'updating', x:.50, y:.42, r:15, sat:4 },
+  { id:'chess',    n:'棋界融合',         d:'国际象棋 × 将棋的 9×9 融合棋，规则已锁定，已上线可玩。', s:'live', x:.18, y:.30, r:12, sat:3 },
+  { id:'dazi',     n:'打字爽',           d:'中文打字练习站，Monkeytype 式手感 + 强反馈 + 自定义文章导入。', s:'updating', x:.30, y:.66, r:12, sat:3 },
+  { id:'mofa',     n:'嬤法大逃杀',       d:'多人混战小游戏实验，已部署上线。', s:'live', x:.10, y:.55, r:9, sat:2 },
+  { id:'kindle',   n:'kindle-station',  d:'EPUB 上传 → AI 魔改 → 转发 Kindle，外加高亮抓取同步。', s:'updating', x:.68, y:.24, r:11, sat:3 },
+  { id:'remix',    n:'EPUB remixer',    d:'kindle-station 的前身实验，ADHD 友好的电子书重排。', s:'dormant', x:.80, y:.12, r:6, sat:0 },
+  { id:'ody',      n:'odysseus 汉化',   d:'自托管 AI 工作台的中文本地化，已开源。', s:'live', x:.84, y:.46, r:9, sat:2 },
+  { id:'card',     n:'cardputer 掌机',  d:'M5Stack 掌上终端的固件折腾，键盘唤醒等坑已踩平。', s:'updating', x:.62, y:.72, r:10, sat:3 },
+  { id:'pen',      n:'vibe 笔',         d:'笔形外设 DIY。蛰伏中——等互动模块学完就回来定 BOM。可蹲。', s:'dormant', x:.76, y:.86, r:8, sat:0 },
+  { id:'liumang',  n:'剧本杀宇宙',       d:'21 本 1845 页剧本 OCR 成 59 万字故事圣经，改写与续写进行中。', s:'dormant', x:.36, y:.14, r:8, sat:1 },
+  { id:'sess',     n:'sessionss',       d:'多 session 并行大项目的 skill，工作流陈列室 WF·01。', s:'live', x:.44, y:.84, r:8, sat:2 },
+  { id:'cook',     n:'动效食谱',         d:'65 个高端 web 动效 demo，从 lando 官网逆向而来。', s:'live', x:.58, y:.55, r:9, sat:2 },
+];
+const EDGES = [['zima','cook'],['cook','sess'],['zima','sess'],['chess','liumang'],['dazi','zima'],
+               ['kindle','remix'],['card','pen'],['mofa','chess'],['ody','sess'],['kindle','zima']];
+const GCOL = { updating:'#d2ff00', live:'#f0f1e8', dormant:'#6b7060' };
+const gCanvas = document.getElementById('graphCanvas');
+const gInfo = document.getElementById('graphInfo');
+if (gCanvas){
+  const gtx = gCanvas.getContext('2d');
+  let gw = 0, gh = 0, gdpr = 1, gVisible = false, gMouse = { x:-1e4, y:-1e4 }, hovered = null;
+  const sats = [];
+  NODES.forEach(nd => {
+    for (let i = 0; i < nd.sat; i++)
+      sats.push({ p:nd, a:Math.random() * 6.28, dist:nd.r + 14 + Math.random() * 22, sp:(0.12 + Math.random() * 0.25) * (Math.random() < .5 ? -1 : 1) });
+  });
+  function gSize(){
+    const r = gCanvas.getBoundingClientRect();
+    gdpr = Math.min(devicePixelRatio || 1, 2);
+    gw = r.width; gh = r.height;
+    gCanvas.width = Math.round(gw * gdpr); gCanvas.height = Math.round(gh * gdpr);
+    gtx.setTransform(gdpr, 0, 0, gdpr, 0, 0);
+  }
+  gSize(); addEventListener('resize', gSize);
+  new IntersectionObserver(es => { gVisible = es[0].isIntersecting; }).observe(gCanvas);
+  gCanvas.addEventListener('pointermove', e => {
+    const r = gCanvas.getBoundingClientRect();
+    gMouse.x = e.clientX - r.left; gMouse.y = e.clientY - r.top;
+  });
+  gCanvas.addEventListener('pointerleave', () => { gMouse.x = gMouse.y = -1e4; });
+  function nodePos(nd, t){
+    let x = nd.x * gw + Math.sin(t * 0.5 + nd.x * 9) * 7;
+    let y = nd.y * gh + Math.cos(t * 0.4 + nd.y * 7) * 6;
+    const dx = x - gMouse.x, dy = y - gMouse.y, d2 = dx * dx + dy * dy;
+    if (d2 < 16000){ const f = (16000 - d2) / 16000 * 14; const d = Math.sqrt(d2) || 1; x += dx / d * f; y += dy / d * f; }
+    return [x, y];
+  }
+  function gDraw(now){
+    requestAnimationFrame(gDraw);
+    if (!gVisible) return;
+    const t = now / 1000;
+    gtx.clearRect(0, 0, gw, gh);
+    const pos = {};
+    NODES.forEach(nd => pos[nd.id] = nodePos(nd, t));
+    // edges
+    gtx.lineWidth = 1;
+    for (const [a, b] of EDGES){
+      const pa = pos[a], pb = pos[b];
+      gtx.strokeStyle = 'rgba(240,241,232,0.13)';
+      gtx.beginPath(); gtx.moveTo(pa[0], pa[1]); gtx.lineTo(pb[0], pb[1]); gtx.stroke();
+    }
+    // satellites
+    for (const s of sats){
+      const p = pos[s.p.id];
+      const x = p[0] + Math.cos(t * s.sp * 2 + s.a) * s.dist;
+      const y = p[1] + Math.sin(t * s.sp * 2 + s.a) * s.dist * 0.7;
+      gtx.fillStyle = 'rgba(240,241,232,0.35)';
+      gtx.beginPath(); gtx.arc(x, y, 1.6, 0, 6.29); gtx.fill();
+      gtx.strokeStyle = 'rgba(240,241,232,0.05)';
+      gtx.beginPath(); gtx.moveTo(p[0], p[1]); gtx.lineTo(x, y); gtx.stroke();
+    }
+    // nodes
+    hovered = null;
+    for (const nd of NODES){
+      const [x, y] = pos[nd.id];
+      const dx = gMouse.x - x, dy = gMouse.y - y;
+      const isHover = dx * dx + dy * dy < (nd.r + 12) * (nd.r + 12);
+      if (isHover) hovered = nd;
+      gtx.fillStyle = GCOL[nd.s];
+      gtx.beginPath(); gtx.arc(x, y, nd.r * (isHover ? 1.18 : 1), 0, 6.29); gtx.fill();
+      if (nd.s === 'updating'){
+        gtx.strokeStyle = 'rgba(210,255,0,' + (0.35 + 0.3 * Math.sin(t * 2 + nd.x * 10)) + ')';
+        gtx.lineWidth = 1.4;
+        gtx.beginPath(); gtx.arc(x, y, nd.r + 6 + Math.sin(t * 2 + nd.x * 10) * 2, 0, 6.29); gtx.stroke();
+        gtx.lineWidth = 1;
+      }
+      gtx.fillStyle = 'rgba(240,241,232,' + (isHover ? 1 : 0.62) + ')';
+      gtx.font = (isHover ? '600 ' : '') + '11px Georgia, serif';
+      gtx.textAlign = 'center';
+      gtx.fillText(nd.n, x, y + nd.r + 16);
+    }
+    gCanvas.style.cursor = hovered ? 'pointer' : 'crosshair';
+    if (hovered){
+      gInfo.querySelector('.t').textContent = hovered.n;
+      gInfo.querySelector('.d').textContent = hovered.d;
+      gInfo.querySelector('.s').textContent = { updating:'● 正在更新', live:'● 已上线', dormant:'● 蛰伏中 · 可蹲' }[hovered.s];
+      gInfo.classList.add('show');
+    } else gInfo.classList.remove('show');
+  }
+  requestAnimationFrame(gDraw);
+}
+
+/* --- 8h. updating list + 蹲蹲 (localStorage; Hermes will feed real data) --- */
+const UPDATES = [
+  { id:'zima',   name:'齐马蓝 · 本站',   msg:'hero v2：流体显形上线 + 17 条审查修复', date:'今天',  base:12 },
+  { id:'chess',  name:'棋界融合',        msg:'上线 Railway · 规则全部锁定',           date:'本周',  base:9 },
+  { id:'dazi',   name:'打字爽',          msg:'自定义文章导入 + 手感打磨',             date:'本周',  base:7 },
+  { id:'kindle', name:'kindle-station', msg:'高亮抓取 bookmarklet 调通',             date:'本周',  base:5 },
+  { id:'card',   name:'cardputer 掌机',  msg:'fn 键唤醒的坑填平了',                   date:'上周',  base:4 },
+  { id:'pen',    name:'vibe 笔',         msg:'蛰伏中 · 等互动模块学完回来定 BOM',      date:'蹲蹲位', base:11 },
+];
+const upList = document.getElementById('upList');
+const squats = JSON.parse(localStorage.getItem('squats') || '{}');
+if (upList){
+  UPDATES.forEach((u, i) => {
+    const row = document.createElement('div');
+    row.className = 'up-row'; row.setAttribute('data-rise', ''); row.style.setProperty('--i', i % 4);
+    const on = !!squats[u.id];
+    row.innerHTML =
+      `<div class="up-name">${u.name}</div>` +
+      `<div class="up-msg">${u.msg}</div>` +
+      `<div class="up-date">${u.date}</div>` +
+      `<button class="squat${on ? ' on' : ''}" data-squat="${u.id}">蹲蹲 ${u.base + (on ? 1 : 0)}</button>`;
+    upList.appendChild(row);
+    revealIO.observe(row);
+  });
+  upList.addEventListener('click', e => {
+    const btn = e.target.closest('[data-squat]');
+    if (!btn) return;
+    const id = btn.dataset.squat;
+    const u = UPDATES.find(x => x.id === id);
+    squats[id] = !squats[id];
+    localStorage.setItem('squats', JSON.stringify(squats));
+    btn.classList.toggle('on', squats[id]);
+    btn.textContent = `蹲蹲 ${u.base + (squats[id] ? 1 : 0)}`;
+    if (squats[id]) document.getElementById('squatMail').classList.add('show');
+  });
+  document.getElementById('squatSave').addEventListener('click', () => {
+    const input = document.getElementById('squatEmail');
+    if (!input.value.includes('@')) { input.focus(); return; }
+    // TODO(backend): 蹲蹲邮箱目前只存在本地，等 Hermes/后端接手再上传
+    const mails = JSON.parse(localStorage.getItem('squatEmails') || '[]');
+    mails.push({ mail: input.value, at: Date.now(), squats: Object.keys(squats).filter(k => squats[k]) });
+    localStorage.setItem('squatEmails', JSON.stringify(mails));
+    input.value = '';
+    document.getElementById('squatMail').classList.remove('show');
+  });
+}
+
+/* --- 8i. topic card generative backgrounds --- */
+document.querySelectorAll('[data-topic-bg]').forEach(cv => {
+  const kind = cv.dataset.topicBg;
+  const ctx2 = cv.getContext('2d');
+  function draw(){
+    const r = cv.getBoundingClientRect();
+    const dpr2 = Math.min(devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * dpr2); cv.height = Math.round(r.height * dpr2);
+    ctx2.setTransform(dpr2, 0, 0, dpr2, 0, 0);
+    ctx2.clearRect(0, 0, r.width, r.height);
+    if (kind === 'markov'){
+      // a little state machine: nodes + weighted arrows
+      const pts = [];
+      for (let i = 0; i < 7; i++)
+        pts.push([r.width * (0.12 + 0.76 * Math.abs(Math.sin(i * 2.39))), r.height * (0.15 + 0.65 * Math.abs(Math.cos(i * 1.71)))]);
+      ctx2.strokeStyle = 'rgba(210,255,0,0.16)';
+      for (let i = 0; i < pts.length; i++)
+        for (let j = i + 1; j < pts.length; j++)
+          if ((i + j) % 3 === 0){
+            ctx2.lineWidth = 0.5 + ((i * j) % 3);
+            ctx2.beginPath(); ctx2.moveTo(pts[i][0], pts[i][1]); ctx2.lineTo(pts[j][0], pts[j][1]); ctx2.stroke();
+          }
+      pts.forEach(p => { ctx2.fillStyle = 'rgba(240,241,232,0.3)'; ctx2.beginPath(); ctx2.arc(p[0], p[1], 4, 0, 6.29); ctx2.fill(); });
+    } else {
+      // balance: two mirrored dot triangles tipping on a fulcrum
+      ctx2.fillStyle = 'rgba(240,241,232,0.16)';
+      const cx2 = r.width / 2, cy2 = r.height * 0.52;
+      for (let row = 0; row < 6; row++)
+        for (let col = 0; col <= row; col++){
+          ctx2.beginPath();
+          ctx2.arc(cx2 - 60 - row * 13 + col * 13, cy2 - 28 + row * 13, 3, 0, 6.29);
+          ctx2.arc(cx2 + 60 + row * 13 - col * 13, cy2 - 40 + row * 13, 3, 0, 6.29);
+          ctx2.fill();
+        }
+      ctx2.strokeStyle = 'rgba(210,255,0,0.3)'; ctx2.lineWidth = 1.5;
+      ctx2.beginPath(); ctx2.moveTo(cx2 - 130, cy2 + 56); ctx2.lineTo(cx2 + 130, cy2 + 40); ctx2.stroke();
+      ctx2.beginPath(); ctx2.moveTo(cx2, cy2 + 90); ctx2.lineTo(cx2 - 14, cy2 + 110); ctx2.lineTo(cx2 + 14, cy2 + 110); ctx2.closePath(); ctx2.stroke();
+    }
+  }
+  draw(); addEventListener('resize', draw);
+});
+
+/* --- 8j. placeholder contact links --- */
+document.querySelectorAll('[data-todo]').forEach(a => {
+  a.addEventListener('click', e => {
+    if (a.getAttribute('href') === '#'){
+      e.preventDefault();
+      const h = a.querySelector('.h'), old = h.textContent;
+      h.textContent = '链接还没填——催 chichu 去 (' + a.dataset.todo + ')';
+      setTimeout(() => h.textContent = old, 2200);
+    }
+  });
+});
+
+/* --- 8k. Hermes interface (vibe-coder-dashboard 即插即用) ---
+   Hermes 同学：页面上所有 [data-hermes] 节点归你。约定如下，
+   做完 dashboard 后在任意 <script> 里调用即可，无需改本文件。 */
+window.VIBE_DASH = {
+  /** 在线状态: VIBE_DASH.setOnline(true, 'coding · claude 连线中') */
+  setOnline(on, label){
+    document.getElementById('navStatus').classList.toggle('online', !!on);
+    document.querySelector('[data-hermes="status-label"]').textContent = label || (on ? 'online' : 'offline');
+    document.querySelector('[data-hermes="now"]').innerHTML = on ? '在线 <small>· live</small>' : '离线 <small>· offline</small>';
+  },
+  /** 工作数据: VIBE_DASH.setStats({ tokens:'1.2M', hours:'5.4h' }) */
+  setStats({ tokens, hours } = {}){
+    if (tokens) document.querySelector('[data-hermes="tokens"]').textContent = tokens;
+    if (hours)  document.querySelector('[data-hermes="hours"]').textContent = hours;
+  },
+  /** 昨日更新一句话: VIBE_DASH.setLastLog('给打字爽加了暴击音效') */
+  setLastLog(text){ document.querySelector('[data-hermes="lastlog"]').textContent = text; },
+  /** 更新日志列表/公屏留言板：预留挂载点，等 dashboard 定下数据结构 */
+  mountBoard(renderFn){ /* TODO(Hermes): 自定义渲染入口 */ this._board = renderFn; },
 };
 </script>
 </body>
