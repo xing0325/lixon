@@ -17,7 +17,7 @@
     --accent-ink:#50593f;
   }
   *{ margin:0; padding:0; box-sizing:border-box; }
-  html,body{ height:100%; overflow:hidden; }
+  html,body{ height:100%; overflow:hidden; overscroll-behavior:none; }
   body{
     background:var(--paper);
     color:var(--ink);
@@ -29,6 +29,11 @@
     width:100%; height:100%;
     display:block;
     cursor:crosshair;
+    /* the drag IS the interaction — don't let the browser claim it for
+       scrolling / pull-to-refresh, and keep iOS loupe & selection off it */
+    touch-action:none;
+    -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none;
   }
   /* ------- DOM overlay ------- */
   .ui{
@@ -195,7 +200,7 @@ const CONF = {
   dissipation   : 0.972,
   pressureIters : 4,
   straightness  : 1.0,
-  mouseForce    : 60.0,
+  mouseForce    : 48.0,
   splatRadius   : 0.110,   // in min-dimension units
   maskLow       : 0.050,   // velocity-magnitude threshold for the liquid mask
   maskHigh      : 0.058,
@@ -232,7 +237,10 @@ const canvas = document.getElementById('gl');
 const gl = canvas.getContext('webgl2', { antialias:false, alpha:false, preserveDrawingBuffer:true });
 const dead = msg => { document.getElementById('nogl').style.display='grid'; throw new Error(msg); };
 if (!gl) dead('no webgl2');
-if (!gl.getExtension('EXT_color_buffer_float')) dead('no float color buffers');
+// everything here renders to 16F targets, for which the smaller
+// half-float extension is sufficient (older Adreno/Mali expose only that)
+if (!gl.getExtension('EXT_color_buffer_float') &&
+    !gl.getExtension('EXT_color_buffer_half_float')) dead('no float color buffers');
 
 /* ============================================================
    2. SHADERS  (fullscreen-triangle vertex, no buffers needed)
@@ -250,6 +258,7 @@ const F_ADVECT = `#version 300 es
 precision highp float;
 uniform sampler2D uVel;
 uniform vec2  uAxis;        // (minDim/W, minDim/H) aspect correction
+uniform vec2  uPx;
 uniform float uDt, uDissipation;
 in vec2 vUv; out vec4 frag;
 void main(){
@@ -259,6 +268,15 @@ void main(){
   // BFECC: re-advect forward, fold half the error back in
   vec2 fwd  = back + v1 * uDt * uAxis;
   v1 += 0.5 * (v0 - texture(uVel, fwd).xy);
+  // MacCormack limiter: the raw correction is anti-diffusive and rings at
+  // sharp wakes — clamp to the bilinear neighborhood at the back-trace point
+  vec2 c0  = (floor(back / uPx - 0.5) + 0.5) * uPx;
+  vec2 q00 = texture(uVel, c0).xy;
+  vec2 q10 = texture(uVel, c0 + vec2(uPx.x, 0.)).xy;
+  vec2 q01 = texture(uVel, c0 + vec2(0., uPx.y)).xy;
+  vec2 q11 = texture(uVel, c0 + uPx).xy;
+  v1 = clamp(v1, min(min(q00, q10), min(q01, q11)),
+                 max(max(q00, q10), max(q01, q11)));
   // CFL guard: cap speed so one step never jumps too many cells
   float sp = length(v1);
   if (sp > 3.0) v1 *= 3.0 / sp;
@@ -278,7 +296,10 @@ in vec2 vUv; out vec4 frag;
 void main(){
   vec2 d = (vUv - uCenter) * uInvAxis;
   float fall = 1.0 - smoothstep(0.0, uRadius, length(d));
-  frag = vec4(uForce * (fall * fall), 0., 0.);
+  // uInvAxis converts the window-normalized pointer delta into the same
+  // min-dim units the advection uses — otherwise horizontal strokes on a
+  // landscape screen inject ~0.56x the velocity of vertical ones
+  frag = vec4(uForce * uInvAxis * (fall * fall), 0., 0.);
 }`;
 
 /* --- 2c. divergence --- */
@@ -289,8 +310,10 @@ uniform vec2 uPx;
 uniform float uDt;
 in vec2 vUv; out vec4 frag;
 void main(){
-  // 2-texel stencil throughout the solve: couples the odd/even lattices a
-  // collocated grid otherwise leaves decoupled (checkerboard instability)
+  // deliberate 2-texel stencil throughout the solve. It does NOT couple the
+  // odd/even sub-lattices (no collocated central difference can) — it trades
+  // pressure-solve resolution for a smoother field, which reads better
+  // through the velocity-magnitude mask. Chosen empirically.
   float l = texture(uVel, vUv - vec2(uPx.x * 2., 0.)).x;
   float r = texture(uVel, vUv + vec2(uPx.x * 2., 0.)).x;
   float b = texture(uVel, vUv - vec2(0., uPx.y * 2.)).y;
@@ -339,10 +362,14 @@ uniform vec2  uInvAxis;
 in vec2 vUv; out vec4 frag;
 
 vec3 hash3(vec3 p){
-  p = vec3(dot(p, vec3(127.1, 311.7,  74.7)),
-           dot(p, vec3(269.5, 183.3, 246.1)),
-           dot(p, vec3(113.5, 271.9, 124.6)));
-  return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+  // integer-lattice PCG-style hash. The classic fract(sin(...)*43758.5)
+  // degrades once the (unbounded) time coordinate makes the sin argument
+  // large — this stays uniform no matter how long the tab lives
+  uvec3 v = uvec3(ivec3(floor(p + 0.5))) * uvec3(1664525u, 1013904223u, 2891336453u);
+  v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;
+  v ^= v >> 16u;
+  v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;
+  return -1.0 + 2.0 * vec3(v & 0x00ffffffu) * (1.0 / 16777215.0);
 }
 float gnoise(vec3 p){
   vec3 i = floor(p), f = fract(p);
@@ -378,7 +405,7 @@ precision highp float;
 uniform sampler2D uVel, uNoise;
 uniform vec2  uRes;
 uniform float uTime, uReveal, uHelmetAlways;
-uniform vec2  uMouse;          // normalized -1..1, for helmet rotation
+uniform mat3  uRot;            // helmet orientation, built on the CPU
 uniform vec2  uMaskBand;       // (low, high) velocity thresholds
 uniform vec3  uBg, uFg, uOutline, uCurBg, uCurFg, uCurOutline;
 uniform vec3  uShell, uStripe, uVisor, uTrim;
@@ -436,9 +463,6 @@ vec2 helmetSDF(vec3 p){
   if (id == 1.0 && p.y < -0.56) id = 4.0;
   return vec2(d, id);
 }
-mat3 rotY(float a){ float c=cos(a), s=sin(a); return mat3(c,0.,s, 0.,1.,0., -s,0.,c); }
-mat3 rotX(float a){ float c=cos(a), s=sin(a); return mat3(1.,0.,0., 0.,c,-s, 0.,s,c); }
-
 vec3 helmetNormal(vec3 p){
   const vec2 e = vec2(0.0035, 0.);
   return normalize(vec3(
@@ -461,21 +485,20 @@ vec4 renderHelmet(vec2 uv){
   // screen-space framing: centered, ~62% of min dimension tall
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.47)) * axis * 3.4;
-  // camera looks down -z; helmet rotates with the cursor like the reference
-  // a touch of base yaw so the livery reads in three-quarter view
-  mat3 R = rotY(0.38 - uMouse.x * 0.55 + sin(uTime * 0.3) * 0.05)
-         * rotX( uMouse.y * 0.22 + cos(uTime * 0.23) * 0.03);
-  vec3 ro = R * vec3(0., 0., 3.6);
-  vec3 rd = R * normalize(vec3(s, -3.1));
+  // camera looks down -z; orientation matrix comes in as a uniform so the
+  // per-fragment cost is one mat-vec instead of 4 sin/cos + 2 mat builds
+  vec3 ro = uRot * vec3(0., 0., 3.6);
+  vec3 rd = uRot * normalize(vec3(s, -3.1));
   // analytic bounding-sphere test first — most rays never touch the helmet,
   // and skipping the march keeps integrated GPUs comfortable
+  // (geometry extremes stay within r≈1.2, so 1.3 is a safe tight bound)
   float b = dot(-ro, rd);
-  float disc = b * b - dot(ro, ro) + 1.55 * 1.55;
+  float disc = b * b - dot(ro, ro) + 1.3 * 1.3;
   if (disc < 0.0) return vec4(0.);
   float t = max(b - sqrt(disc), 0.05); float id = 0.0;
-  for (int i = 0; i < 56; i++){
+  for (int i = 0; i < 48; i++){
     vec2 h = helmetSDF(ro + rd * t);
-    if (h.x < 0.0024){ id = h.y; break; }
+    if (h.x < 0.0022 * t){ id = h.y; break; }
     if (!(h.x < 1e9)) break;        // NaN guard
     t += h.x * 0.9;
     if (t > b + sqrt(disc)) break;
@@ -593,39 +616,63 @@ function blitTo(target){
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+// precomputed per-palette Float32Arrays — hex() in the hot loop is GC churn
+const PALETTES_F = PALETTES.map(p => {
+  const o = {};
+  for (const k in p) if (typeof p[k] === 'string' && p[k][0] === '#') o[k] = new Float32Array(hex(p[k]));
+  return o;
+});
 
 /* ============================================================
    4. PIPELINE STATE
    ============================================================ */
-const P = {
-  advect    : makeProgram(F_ADVECT),
-  splat     : makeProgram(F_SPLAT),
-  div       : makeProgram(F_DIV),
-  jacobi    : makeProgram(F_JACOBI),
-  project   : makeProgram(F_PROJECT),
-  noise     : makeProgram(F_NOISE),
-  composite : makeProgram(F_COMPOSITE),
-};
+let P;
+function buildPrograms(){
+  P = {
+    advect    : makeProgram(F_ADVECT),
+    splat     : makeProgram(F_SPLAT),
+    div       : makeProgram(F_DIV),
+    jacobi    : makeProgram(F_JACOBI),
+    project   : makeProgram(F_PROJECT),
+    noise     : makeProgram(F_NOISE),
+    composite : makeProgram(F_COMPOSITE),
+  };
+}
 let vel, pressure, divTex, noiseRT;
 let simW, simH, axisX, axisY;
+let viewW = innerWidth, viewH = innerHeight;  // CSS-px canvas box, for pointer math
+let noiseStale = true;
 
-function allocate(){
+function allocate(force){
+  // size from the canvas box, not the window: iOS pinch-zoom shrinks
+  // innerWidth/innerHeight (visual viewport) while this fixed-position
+  // canvas stays layout-viewport sized
+  const rect = canvas.getBoundingClientRect();
   const dpr = Math.min(devicePixelRatio || 1, CONF.maxDPR);
-  canvas.width  = Math.round(innerWidth  * dpr);
-  canvas.height = Math.round(innerHeight * dpr);
-  simW = Math.max(64, Math.round(canvas.width  * CONF.simScale));
-  simH = Math.max(64, Math.round(canvas.height * CONF.simScale));
-  const minDim = Math.min(canvas.width, canvas.height);
-  axisX = minDim / canvas.width;
-  axisY = minDim / canvas.height;
+  const W = Math.max(1, Math.round(rect.width  * dpr));
+  const H = Math.max(1, Math.round(rect.height * dpr));
+  if (!force && vel && W === canvas.width && H === canvas.height) return;
+  viewW = rect.width  || innerWidth;
+  viewH = rect.height || innerHeight;
+  canvas.width  = W;
+  canvas.height = H;
+  simW = Math.max(64, Math.round(W * CONF.simScale));
+  simH = Math.max(64, Math.round(H * CONF.simScale));
+  const minDim = Math.min(W, H);
+  axisX = minDim / W;
+  axisY = minDim / H;
+  // GPU memory is invisible to the GC — free the old targets explicitly
+  const free = t => { if (t){ gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fbo); } };
+  if (vel){ free(vel.a); free(vel.b); free(pressure.a); free(pressure.b); free(divTex); free(noiseRT); }
   vel      = makePingPong(simW, simH, gl.RG16F, gl.LINEAR);
   pressure = makePingPong(simW, simH, gl.R16F,  gl.NEAREST);
   divTex   = makeTarget (simW, simH, gl.R16F,  gl.NEAREST);
-  const nw = Math.max(96, Math.round(canvas.width * CONF.noiseScale));
-  const nh = Math.max(96, Math.round(canvas.height * CONF.noiseScale));
+  const nw = Math.max(96, Math.round(W * CONF.noiseScale));
+  const nh = Math.max(96, Math.round(H * CONF.noiseScale));
   // 16-bit float: an 8-bit target quantizes the slow fbm field and the
   // thresholded contours pick up staircase banding
   noiseRT  = makeTarget(nw, nh, gl.R16F, gl.LINEAR);
+  noiseStale = true;
 }
 
 /* ============================================================
@@ -639,8 +686,8 @@ const pointer = {
   auto: 0,                  // 0..1 blend toward autopilot
 };
 function onMove(cx, cy){
-  pointer.x = cx / innerWidth;
-  pointer.y = 1 - cy / innerHeight;
+  pointer.x = cx / viewW;
+  pointer.y = 1 - cy / viewH;
   pointer.lastMove = performance.now();
   if (!pointer.real){
     pointer.real = true;
@@ -651,7 +698,7 @@ function onMove(cx, cy){
 addEventListener('pointermove', e => onMove(e.clientX, e.clientY), { passive:true });
 addEventListener('touchmove',  e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive:true });
 
-function updatePointer(now, t){
+function updatePointer(now, t, elapsedMs){
   const idleFor = now - pointer.lastMove;
   const wantAuto = (idleFor > CONF.idleAfter) ? 1 : 0;
   pointer.auto += (wantAuto - pointer.auto) * 0.022;   // ease in/out of autopilot
@@ -662,8 +709,11 @@ function updatePointer(now, t){
     pointer.x += (ax - pointer.x) * 0.085 * pointer.auto;
     pointer.y += (ay - pointer.y) * 0.085 * pointer.auto;
   }
-  pointer.vx = pointer.x - pointer.px;
-  pointer.vy = pointer.y - pointer.py;
+  // normalize the delta to per-16.7ms units so injected force doesn't
+  // depend on the display's refresh rate
+  const rate = 16.7 / Math.max(elapsedMs, 4);
+  pointer.vx = (pointer.x - pointer.px) * rate;
+  pointer.vy = (pointer.y - pointer.py) * rate;
   pointer.px = pointer.x; pointer.py = pointer.y;
 }
 
@@ -672,7 +722,11 @@ function updatePointer(now, t){
    ============================================================ */
 const t0 = performance.now();
 let lastFrame = t0;
+let simAcc = 0;        // sim-time accumulator (ms)
+let presentNo = 0;
 let rafId = 0;
+const SIM_MS = 1000 / 65;
+const ROT = new Float32Array(9);
 
 function simStep(){
   gl.disable(gl.BLEND);
@@ -684,6 +738,7 @@ function simStep(){
   gl.bindTexture(gl.TEXTURE_2D, vel.a.tex);
   gl.uniform1i(p.u.uVel, 0);
   gl.uniform2f(p.u.uAxis, axisX, axisY);
+  gl.uniform2f(p.u.uPx, 1 / simW, 1 / simH);
   gl.uniform1f(p.u.uDt, CONF.dt);
   gl.uniform1f(p.u.uDissipation, CONF.dissipation);
   blitTo(vel.b);
@@ -748,29 +803,40 @@ function simStep(){
 
 function frame(now){
   rafId = requestAnimationFrame(frame);
-  // fixed-cadence sim: only step when ~a frame's worth of time has passed
-  if (now - lastFrame < 1000 / 65) return;
+  // reduced motion: the scene is static — 30fps presentation is plenty
+  if (reducedMotion && now - lastFrame < 33) return;
   renderFrame(now);
 }
 function renderFrame(now){
   const t = (now - t0) / 1000;
+  // present every vsync (90/144Hz displays would otherwise drop to 45/48fps),
+  // but step the sim on its own fixed ~65Hz clock via an accumulator
+  const elapsed = Math.min(100, now - lastFrame);
   lastFrame = now;
 
-  updatePointer(now, t);
-  if (!reducedMotion) simStep();
+  updatePointer(now, t, elapsed);
+  if (!reducedMotion){
+    simAcc = Math.min(simAcc + elapsed, 67);   // cap backlog after stalls
+    while (simAcc >= SIM_MS){ simStep(); simAcc -= SIM_MS; }
+  }
 
-  /* background noise RT */
-  let p = P.noise;
-  gl.useProgram(p.prog);
-  gl.uniform1f(p.u.uTime, t);
-  gl.uniform2f(p.u.uInvAxis, 1 / axisX, 1 / axisY);
-  blitTo(noiseRT);
+  /* background noise RT — the field drifts at 0.055x time, so refreshing
+     every 3rd presented frame is visually identical and 3x cheaper */
+  if (noiseStale || presentNo % 3 === 0){
+    const np = P.noise;
+    gl.useProgram(np.prog);
+    gl.uniform1f(np.u.uTime, t);
+    gl.uniform2f(np.u.uInvAxis, 1 / axisX, 1 / axisY);
+    blitTo(noiseRT);
+    noiseStale = false;
+  }
+  presentNo++;
 
   /* composite to screen */
-  const pal = PALETTES[paletteIdx];
+  const pal = PALETTES_F[paletteIdx];
   const reveal = Math.min(1, t / CONF.revealDur);
   const eased = 1 - Math.pow(1 - reveal, 3);
-  p = P.composite;
+  const p = P.composite;
   gl.useProgram(p.prog);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, vel.a.tex);
@@ -782,18 +848,28 @@ function renderFrame(now){
   gl.uniform1f(p.u.uTime, t);
   gl.uniform1f(p.u.uReveal, eased);
   gl.uniform1f(p.u.uHelmetAlways, showHelmetAlways ? 1 : 0);
-  gl.uniform2f(p.u.uMouse, pointer.x * 2 - 1, pointer.y * 2 - 1);
   gl.uniform2f(p.u.uMaskBand, CONF.maskLow, CONF.maskHigh);
-  gl.uniform3fv(p.u.uBg, hex(pal.bg));
-  gl.uniform3fv(p.u.uFg, hex(pal.fg));
-  gl.uniform3fv(p.u.uOutline, hex(pal.outline));
-  gl.uniform3fv(p.u.uCurBg, hex(pal.curBg));
-  gl.uniform3fv(p.u.uCurFg, hex(pal.curFg));
-  gl.uniform3fv(p.u.uCurOutline, hex(pal.curOutline));
-  gl.uniform3fv(p.u.uShell, hex(pal.shell));
-  gl.uniform3fv(p.u.uStripe, hex(pal.stripe));
-  gl.uniform3fv(p.u.uVisor, hex(pal.visor));
-  gl.uniform3fv(p.u.uTrim, hex(pal.trim));
+  // helmet orientation on the CPU: one mat3 upload instead of per-fragment
+  // sin/cos. Sway freezes under reduced motion.
+  const sway = reducedMotion ? 0 : 1;
+  const yaw   = 0.38 - (pointer.x * 2 - 1) * 0.55 + Math.sin(t * 0.3) * 0.05 * sway;
+  const pitch = (pointer.y * 2 - 1) * 0.22 + Math.cos(t * 0.23) * 0.03 * sway;
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const cx = Math.cos(pitch), sx = Math.sin(pitch);
+  ROT[0] = cy;       ROT[1] = 0;   ROT[2] = sy;
+  ROT[3] = sy * sx;  ROT[4] = cx;  ROT[5] = -cy * sx;
+  ROT[6] = -sy * cx; ROT[7] = sx;  ROT[8] = cy * cx;
+  gl.uniformMatrix3fv(p.u.uRot, false, ROT);
+  gl.uniform3fv(p.u.uBg, pal.bg);
+  gl.uniform3fv(p.u.uFg, pal.fg);
+  gl.uniform3fv(p.u.uOutline, pal.outline);
+  gl.uniform3fv(p.u.uCurBg, pal.curBg);
+  gl.uniform3fv(p.u.uCurFg, pal.curFg);
+  gl.uniform3fv(p.u.uCurOutline, pal.curOutline);
+  gl.uniform3fv(p.u.uShell, pal.shell);
+  gl.uniform3fv(p.u.uStripe, pal.stripe);
+  gl.uniform3fv(p.u.uVisor, pal.visor);
+  gl.uniform3fv(p.u.uTrim, pal.trim);
   blitTo(null);
 }
 
@@ -809,6 +885,7 @@ function applyPaletteCSS(){
   r.setProperty('--accent', pal.fg);
 }
 addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;   // don't hijack copy etc.
   if (e.key === 'c' || e.key === 'C'){
     paletteIdx = (paletteIdx + 1) % PALETTES.length;
     applyPaletteCSS();
@@ -816,18 +893,43 @@ addEventListener('keydown', e => {
   if (e.key === 'h' || e.key === 'H') showHelmetAlways = !showHelmetAlways;
 });
 let resizeTimer = 0;
-addEventListener('resize', () => {
+const queueAllocate = () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(allocate, 150);
-});
+  resizeTimer = setTimeout(() => allocate(), 150);
+};
+addEventListener('resize', queueAllocate);
+// DPR can change without a resize (window dragged between monitors with
+// different OS scaling) — watch it directly, re-arming after each flip
+(function watchDPR(){
+  matchMedia(`(resolution: ${devicePixelRatio}dppx)`)
+    .addEventListener('change', () => { queueAllocate(); watchDPR(); }, { once:true });
+})();
 canvas.addEventListener('webglcontextlost', e => {
-  e.preventDefault();
+  e.preventDefault();                 // signal that we'll handle the restore
+  cancelAnimationFrame(rafId);
   document.getElementById('nogl').style.display = 'grid';
 });
+canvas.addEventListener('webglcontextrestored', () => {
+  // every GL object died with the context — rebuild the whole pipeline
+  buildPrograms();
+  allocate(true);
+  document.getElementById('nogl').style.display = 'none';
+  lastFrame = performance.now();
+  simAcc = 0;
+  rafId = requestAnimationFrame(frame);
+});
 
-allocate();
-applyPaletteCSS();
-rafId = requestAnimationFrame(frame);
+try {
+  buildPrograms();
+  allocate();
+  applyPaletteCSS();
+  rafId = requestAnimationFrame(frame);
+} catch (err) {
+  // a driver-specific shader compile/link failure should land on the same
+  // friendly overlay as the missing-extension path, not a silent blank page
+  document.getElementById('nogl').style.display = 'grid';
+  console.error(err);
+}
 
 /* debug handle (also handy for tests) */
 window.HERO = {
@@ -839,7 +941,7 @@ window.HERO = {
   // manually advance N frames on a virtual clock — lets the scene run
   // (and be screenshotted) even when the tab is hidden and rAF is parked
   step(n = 1){
-    for (let i = 0; i < n; i++){ lastFrame += 0; renderFrame(lastFrame + 16.7); }
+    for (let i = 0; i < n; i++) renderFrame(lastFrame + 16.7);
     return lastFrame;
   },
 };
