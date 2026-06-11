@@ -167,19 +167,123 @@
   .hint.gone{ opacity:0; }
   @keyframes hintPulse{ 0%,100%{opacity:.85} 50%{opacity:.3} }
 
-  /* ------- load-in choreography ------- */
-  .reveal-up{ opacity:0; animation:revealUp 1s cubic-bezier(.22,1,.36,1) forwards; }
-  .d1{ animation-delay:.95s } .d2{ animation-delay:1.1s }
-  .d3{ animation-delay:1.25s } .d4{ animation-delay:1.4s }
+  /* ------- load-in choreography: armed by the boot button, not by time ------- */
+  .reveal-up{ opacity:0; }
+  body.booted .reveal-up{ animation:revealUp 1s cubic-bezier(.22,1,.36,1) forwards; }
+  .d1{ animation-delay:.55s } .d2{ animation-delay:.7s }
+  .d3{ animation-delay:.85s } .d4{ animation-delay:1s }
   @keyframes revealUp{
     from{ opacity:0; transform:translateY(18px); }
     to{ opacity:1; transform:translateY(0); }
   }
-  .hint{ opacity:0; animation:hintIn 1s ease 2s forwards, hintPulse 2.6s ease-in-out 3.4s infinite; }
+  .hint{ opacity:0; }
+  body.booted .hint{ animation:hintIn 1s ease 1.8s forwards, hintPulse 2.6s ease-in-out 3.2s infinite; }
   @keyframes hintIn{ from{opacity:0} to{opacity:.85} }
   .name-block h1{ overflow:hidden; }
-  .name-block h1 span{ display:inline-block; transform:translateY(110%); animation:slideUp 1.1s cubic-bezier(.22,1,.36,1) .75s forwards; }
+  .name-block h1 span{ display:inline-block; transform:translateY(110%); }
+  body.booted .name-block h1 span{ animation:slideUp 1.1s cubic-bezier(.22,1,.36,1) .35s forwards; }
   @keyframes slideUp{ to{ transform:translateY(0); } }
+
+  /* ------- boot loader: 点火仪式 ------- */
+  .boot{
+    position:fixed; inset:0; z-index:80;
+    background:#0d0f0a; color:#f0f1e8;
+    display:grid; place-items:center;
+    clip-path:inset(0);
+    transition:clip-path .95s cubic-bezier(.76,0,.24,1);
+  }
+  .boot.gone{ clip-path:inset(0 0 100% 0); pointer-events:none; }
+  .boot::after{
+    content:''; position:absolute; left:0; right:0; bottom:0; height:5px;
+    background:var(--accent);
+  }
+  .boot-inner{ text-align:center; }
+  .boot-mark{
+    font-family:Impact,'Arial Narrow',sans-serif;
+    font-size:clamp(15px,1.4vw,19px); letter-spacing:.3em; color:#a8ad97;
+  }
+  .boot-pct{
+    font-family:Impact,'Arial Narrow',sans-serif;
+    font-size:clamp(90px,17vw,230px); line-height:1;
+    -webkit-text-stroke:2px #f0f1e8; color:transparent;
+    margin:10px 0 22px;
+    font-variant-numeric:tabular-nums;
+  }
+  .boot-pct.full{ color:var(--accent); -webkit-text-stroke:2px var(--accent); }
+  .boot-btn{
+    font:inherit; cursor:pointer;
+    font-family:Impact,'Arial Narrow',sans-serif;
+    font-size:clamp(16px,1.8vw,24px); letter-spacing:.18em; text-transform:uppercase;
+    background:none; color:#f0f1e8;
+    border:1.5px solid #f0f1e8; border-radius:99px;
+    padding:14px 38px;
+    opacity:.25; pointer-events:none;
+    transition:opacity .5s var(--ease), background .4s var(--ease),
+               color .4s var(--ease), transform .4s var(--ease), border-color .4s var(--ease);
+  }
+  .boot-btn.ready{ opacity:1; pointer-events:auto; animation:hintPulse 2.4s ease-in-out infinite; }
+  .boot-btn.ready:hover{
+    background:var(--accent); color:#0d0f0a; border-color:var(--accent);
+    transform:translateY(-3px); animation:none;
+  }
+  .boot-cap{
+    margin-top:18px; font-size:11px; font-style:italic;
+    letter-spacing:.22em; text-transform:uppercase; color:#6b7060;
+  }
+  @media (prefers-reduced-motion:reduce){ .boot{ display:none; } }
+
+  /* ------- hero scroll cue ------- */
+  .scroll-cue{
+    position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
+    z-index:2; pointer-events:none;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    opacity:0;
+  }
+  body.booted .scroll-cue{ animation:hintIn .8s ease 2.4s forwards; }
+  .scroll-cue i{
+    width:1.5px; height:38px; position:relative;
+    background:rgba(35,38,31,.25); overflow:hidden;
+  }
+  .scroll-cue i::after{
+    content:''; position:absolute; left:0; top:-40%;
+    width:100%; height:40%;
+    background:var(--ink);
+    animation:cueDrop 1.8s cubic-bezier(.76,0,.24,1) infinite;
+  }
+  @keyframes cueDrop{ to{ top:110%; } }
+  .scroll-cue span{
+    font-size:9.5px; font-style:italic; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .scroll-cue.bye{ animation:none !important; opacity:0 !important; }
+  body:not(.booted){ overflow:hidden; }   /* no scrolling before ignition */
+
+  /* ------- status card circuit line (原站赛道线的生态位) ------- */
+  .hs-circuit{ display:block; width:100%; height:26px; margin-bottom:10px; }
+  .hs-circuit path{
+    fill:none; stroke:var(--accent); stroke-width:2;
+    stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:90 420;
+    animation:circRun 4.5s linear infinite;
+  }
+  @keyframes circRun{ to{ stroke-dashoffset:-510; } }
+  @media (prefers-reduced-motion:reduce){
+    .hs-circuit path{ animation:none; stroke-dasharray:none; }
+    .scroll-cue i::after{ animation:none; }
+  }
+
+  /* ------- tap to lock (touch only, 原站 home-swipe 的生态位) ------- */
+  .lock-pill{
+    display:none;
+    position:absolute; right:16px; bottom:26px; z-index:3;
+    font:inherit; font-size:11px; font-style:italic; letter-spacing:.14em;
+    text-transform:uppercase;
+    border:1px solid var(--ink); border-radius:99px;
+    background:rgba(248,248,243,.6); color:var(--ink);
+    padding:9px 16px;
+  }
+  .lock-pill.on{ background:var(--ink); color:var(--accent); }
+  @media (hover:none) and (pointer:coarse){ .lock-pill{ display:block; } }
 
   .nogl{
     position:fixed; inset:0; z-index:9;
@@ -988,6 +1092,16 @@
 </head>
 <body data-page="home">
 
+<!-- 点火仪式：进度满格才解锁 LOAD DAVID，点击落幕 + 全场入场编排 -->
+<div class="boot" id="boot">
+  <div class="boot-inner">
+    <div class="boot-mark">DX·0325 — PERSONAL SITE</div>
+    <div class="boot-pct" id="bootPct">00</div>
+    <button class="boot-btn" id="bootBtn">Load David</button>
+    <div class="boot-cap" id="bootCap">fluid engine warming up…</div>
+  </div>
+</div>
+
 <div class="hero-back" id="heroBack"></div>
 <canvas id="gl"></canvas>
 
@@ -1032,7 +1146,10 @@
 <div class="page" data-route="home" id="pageHome">
 <header class="s-hero" id="top">
 <div class="hero-pin">
-<div class="hero-status">
+<div class="hero-status" data-plx="22">
+  <svg class="hs-circuit" viewBox="0 0 200 26" aria-hidden="true">
+    <path d="M2 20 H38 L50 6 H86 L94 20 H120 L132 6 H160 L170 20 H198 V20"/>
+  </svg>
   <div class="hs-row"><span class="status-dot" id="hsDot"></span><span data-hermes="status-label-hero">probing…</span></div>
   <div class="hs-tokens">
     <div class="hs-tok"><b data-tok="claude">——</b><i>claude</i></div>
@@ -1043,24 +1160,24 @@
 </div>
 <div class="ui">
   <div class="row">
-    <div class="wordmark reveal-up d1">DX·0325<small>hero study 001</small></div>
-    <div class="est reveal-up d2"><b>EST·2026</b><br>齐马蓝 · 施工中</div>
+    <div class="wordmark reveal-up d1" data-plx="-6">DX·0325<small>hero study 001</small></div>
+    <div class="est reveal-up d2" data-plx="-6"><b>EST·2026</b><br>齐马蓝 · 施工中</div>
   </div>
   <div class="row bottom">
-    <div class="name-block">
+    <div class="name-block" data-plx="12">
       <p class="eyebrow reveal-up d3">personal site — 流体显形实验</p>
       <h1><span>DAV<span class="alt">ID</span></span></h1>
     </div>
-    <div class="colophon reveal-up d4">
-      <b>Fluid-reveal hero.</b> 鼠标划过之处，流体把头盔从纸面下"冲刷"出来；
-      停手两秒半，它会自己巡航。Original WebGL2, zero deps —
-      a study after landonorris.com.
-      <span class="keys"><kbd>C</kbd> 换配色 · <kbd>H</kbd> 头盔常驻</span>
+    <div class="colophon reveal-up d4" data-plx="-9">
+      <b>Fluid-reveal hero.</b> 动一动鼠标——流体会把它冲刷出来。<br>
+      Original WebGL2 · zero deps · a study after landonorris.com
     </div>
   </div>
 </div>
 
 <div class="hint" id="hint">move your cursor — 动一动鼠标</div>
+<div class="scroll-cue" id="scrollCue"><i></i><span>scroll</span></div>
+<button class="lock-pill" id="lockPill">tap to lock</button>
 <!-- 转场签名：钉住阶段由滚动进度描画，盖在变灰收缩的画布上 -->
 <svg class="sig hero-sig" id="heroSig" viewBox="0 0 360 180" aria-hidden="true">
   <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
@@ -1949,6 +2066,7 @@ const pointer = {
   auto: 0,                  // 0..1 blend toward autopilot
 };
 function onMove(cx, cy){
+  if (fluidLock) return;        // tap-to-lock: autopilot owns the brush
   pointer.x = cx / viewW;
   pointer.y = 1 - cy / viewH;
   pointer.lastMove = performance.now();
@@ -1983,7 +2101,7 @@ function updatePointer(now, t, elapsedMs){
 /* ============================================================
    6. FRAME LOOP
    ============================================================ */
-const t0 = performance.now();
+let t0 = performance.now();   // re-stamped by the boot button so the intro plays on ignition
 let lastFrame = t0;
 let simAcc = 0;        // sim-time accumulator (ms)
 let presentNo = 0;
@@ -2414,6 +2532,13 @@ function pageLoop(now){
     heroSig.style.opacity = clamp01((pinP - 0.10) * 6);
     const sp = clamp01((pinP - 0.14) / 0.6);
     heroSigPath.style.strokeDashoffset = heroSigLen * (1 - sp);
+    // scroll cue hides as soon as the exit begins
+    if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.03);
+    // subtle DOM parallax against the cursor
+    plxX += ((tx / Math.max(1, innerWidth) - 0.5) - plxX) * 0.06;
+    plxY += ((ty / Math.max(1, innerHeight) - 0.5) - plxY) * 0.06;
+    for (const pl of plxEls)
+      pl.el.style.translate = `${(-plxX * pl.f).toFixed(1)}px ${(-plxY * pl.f).toFixed(1)}px`;
   }
 
   // horizontal album: scroll → sideways travel + dark-to-paper color morph
@@ -2955,6 +3080,52 @@ menuPanel.querySelectorAll('[data-menu-anchor]').forEach(a =>
     const el = document.querySelector(sel);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   }));
+
+/* --- 9f. boot loader (点火仪式) + parallax targets + tap-to-lock --- */
+const scrollCue = document.getElementById('scrollCue');
+const plxEls = [...document.querySelectorAll('[data-plx]')].map(el => ({ el, f: +el.dataset.plx }));
+let plxX = 0, plxY = 0;
+
+const bootEl = document.getElementById('boot');
+const bootPct = document.getElementById('bootPct');
+const bootBtn = document.getElementById('bootBtn');
+let booted = false;
+function finishBoot(instant){
+  if (booted) return;
+  booted = true;
+  document.body.classList.add('booted');
+  // replay the fluid intro curtain from the moment of ignition
+  t0 = performance.now(); lastFrame = t0; simAcc = 0;
+  if (bootEl){
+    if (instant) bootEl.remove();
+    else { bootEl.classList.add('gone'); setTimeout(() => bootEl.remove(), 1100); }
+  }
+}
+if (reducedMotion || !bootEl){
+  finishBoot(true);
+} else {
+  let bp = 0;
+  const iv = setInterval(() => {
+    bp += (100 - bp) * 0.055 + 0.6;
+    if (bp >= 100){
+      bp = 100; clearInterval(iv);
+      bootPct.classList.add('full');
+      bootBtn.classList.add('ready');
+      document.getElementById('bootCap').textContent = 'engine ready — 点火';
+    }
+    bootPct.textContent = String(Math.floor(bp)).padStart(2, '0');
+  }, 30);
+  bootBtn.addEventListener('click', () => finishBoot(false));
+}
+
+const lockPill = document.getElementById('lockPill');
+let fluidLock = false;
+if (lockPill) lockPill.addEventListener('click', () => {
+  fluidLock = !fluidLock;
+  lockPill.classList.toggle('on', fluidLock);
+  lockPill.textContent = fluidLock ? 'locked · 巡航中' : 'tap to lock';
+  pointer.lastMove = fluidLock ? -1e9 : performance.now();
+});
 </script>
 </body>
 </html>
