@@ -392,7 +392,11 @@
     transform:scaleY(1.08); transform-origin:bottom left;
     margin-bottom:clamp(28px,4vw,56px);
   }
-  .sec h2 .alt{ -webkit-text-stroke:2.2px currentColor; color:transparent; }
+  /* NB: stroke color must be explicit — `currentColor` here would resolve to
+     the element's own color, which is transparent → invisible glyphs */
+  .sec h2 .alt{ -webkit-text-stroke:2.2px var(--ink); color:transparent; }
+  .sec[data-theme="dark"] h2 .alt,
+  .sec[data-theme="dark"] h1 .alt{ -webkit-text-stroke-color:#f0f1e8; }
   .serif-it{ font-family:Georgia,serif; font-style:italic; text-transform:none; letter-spacing:0; }
 
   /* --- split-line reveal (the master move of the whole site) --- */
@@ -933,7 +937,7 @@
     font-size:clamp(54px,11vw,180px); line-height:.95;
     text-transform:uppercase; transform:scaleY(1.1); transform-origin:bottom left;
   }
-  .p-hero h1 .alt{ -webkit-text-stroke:2.2px currentColor; color:transparent; }
+  .p-hero h1 .alt{ -webkit-text-stroke:2.2px var(--ink); color:transparent; }
   .p-hero .p-sub{
     margin-top:18px; font-size:clamp(13px,1.2vw,16px); font-style:italic; color:var(--ink-soft);
     max-width:60ch; line-height:1.9;
@@ -1783,6 +1787,11 @@ uniform vec2  uRes;
 uniform float uTime, uReveal, uHelmetAlways;
 uniform float uDesat;          // hero-exit: scroll drains the color away
 uniform mat3  uRot;            // helmet orientation, built on the CPU
+uniform sampler2D uPhoto;      // chichu 正脸 — fluid 冲刷的对象
+uniform float uHasPhoto;
+uniform float uPhotoAspect;    // cropped width / height
+uniform vec4  uPhotoCrop;      // crop window: x0,y0,x1,y1 (photo uv)
+uniform vec2  uPar;            // eased pointer, -1..1, for pseudo-depth
 uniform vec2  uMaskBand;       // (low, high) velocity thresholds
 uniform vec3  uBg, uFg, uOutline, uCurBg, uCurFg, uCurOutline;
 uniform vec3  uShell, uStripe, uVisor, uTrim;
@@ -1900,6 +1909,25 @@ vec4 renderHelmet(vec2 uv){
   return vec4(lit, 1.0);
 }
 
+/* ---------- the photo head, fluid-smeared, like the reference's GL head ---------- */
+vec4 renderPhoto(vec2 uv, vec2 vel){
+  vec2 axis = uRes / min(uRes.x, uRes.y);
+  vec2 s = (uv - vec2(0.5, 0.45)) * axis;        // min-dim units, y up
+  s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
+  float h = 0.78;                                 // portrait height in min-dim units
+  float w = h * uPhotoAspect;
+  vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
+  puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
+  if (any(lessThan(puv, vec2(0.))) || any(greaterThan(puv, vec2(1.)))) return vec4(0.);
+  vec3 col = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, puv)).rgb;
+  col = (col - 0.5) * 1.07 + 0.5;                // a touch of contrast
+  col *= uBg / vec3(0.905, 0.897, 0.885);        // marry the studio backdrop to the paper
+  // soft oval falloff so the photo rectangle never reads as a rectangle
+  vec2 q = (puv - vec2(0.5, 0.44)) / vec2(0.47, 0.54);
+  float a = 1.0 - smoothstep(0.74, 1.0, length(q));
+  return vec4(col, a);
+}
+
 /* ---------- grain ---------- */
 float hash12(vec2 p){
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -1923,7 +1951,8 @@ void main(){
   float edge = 1.0 - smoothstep(w * 1.8, w * 3.6, abs(n - TH));
 
   /* liquid mask from the velocity field */
-  float speed = length(texture(uVel, uv).xy);
+  vec2 vfield = texture(uVel, uv).xy;
+  float speed = length(vfield);
   float mask = smoothstep(uMaskBand.x, uMaskBand.y, speed);
   mask = clamp(mask + uHelmetAlways, 0.0, 1.0);
 
@@ -1934,8 +1963,10 @@ void main(){
   inside = mix(inside, uCurOutline, edge * 0.8);
   vec3 background = mix(outside, inside, mask);
 
-  /* helmet appears only inside the trail */
-  vec4 helm = (mask > 0.003) ? renderHelmet(uv) : vec4(0.);
+  /* the head (photo if loaded, SDF helmet otherwise) appears only inside the trail */
+  vec4 helm = vec4(0.);
+  if (mask > 0.003)
+    helm = (uHasPhoto > 0.5) ? renderPhoto(uv, vfield) : renderHelmet(uv);
   vec3 color = mix(background, helm.rgb, helm.a * mask);
 
   /* hero exit: desaturate toward newsprint as the page scrolls on */
@@ -2023,6 +2054,37 @@ let simW, simH, axisX, axisY;
 let viewW = innerWidth, viewH = innerHeight;  // CSS-px canvas box, for pointer math
 let noiseStale = true;
 
+/* --- hero photo: drop hero-photo.jpg next to this file and the fluid
+   reveals chichu's face instead of the SDF helmet. Crop window picks
+   head + shoulders out of the full portrait. --- */
+const PHOTO_SRC = 'hero-photo.jpg';
+const PHOTO_CROP = [0.08, 0.02, 0.92, 0.84];   // x0, y0, x1, y1
+let photoTex = null, photoAspect = 1, photoReady = false;
+const photoImg = new Image();
+function uploadPhoto(){
+  if (!photoImg.naturalWidth) return;
+  try {
+    photoTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, photoTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, photoImg);
+    photoAspect = ((PHOTO_CROP[2] - PHOTO_CROP[0]) * photoImg.naturalWidth) /
+                  ((PHOTO_CROP[3] - PHOTO_CROP[1]) * photoImg.naturalHeight);
+    photoReady = true;
+  } catch (e) {
+    // file:// pages can't upload local images to WebGL (opaque origin) —
+    // serve over http(s)/localhost for the photo; helmet remains as fallback
+    console.warn('hero photo blocked:', e);
+    photoReady = false;
+  }
+}
+photoImg.onload = uploadPhoto;
+photoImg.onerror = () => {};   // no photo yet → SDF helmet fallback
+photoImg.src = PHOTO_SRC;
+
 function allocate(force){
   // size from the canvas box, not the window: iOS pinch-zoom shrinks
   // innerWidth/innerHeight (visual viewport) while this fixed-position
@@ -2108,6 +2170,7 @@ let presentNo = 0;
 let rafId = 0;
 const SIM_MS = 1000 / 65;
 const ROT = new Float32Array(9);
+let parX = 0, parY = 0;   // eased pointer for photo parallax
 
 function simStep(){
   gl.disable(gl.BLEND);
@@ -2244,6 +2307,16 @@ function renderFrame(now){
   ROT[3] = sy * sx;  ROT[4] = cx;  ROT[5] = -cy * sx;
   ROT[6] = -sy * cx; ROT[7] = sx;  ROT[8] = cy * cx;
   gl.uniformMatrix3fv(p.u.uRot, false, ROT);
+  // photo head: texture + crop + eased parallax
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, photoTex || noiseRT.tex);
+  gl.uniform1i(p.u.uPhoto, 2);
+  gl.uniform1f(p.u.uHasPhoto, photoReady ? 1 : 0);
+  gl.uniform1f(p.u.uPhotoAspect, photoAspect);
+  gl.uniform4f(p.u.uPhotoCrop, PHOTO_CROP[0], PHOTO_CROP[1], PHOTO_CROP[2], PHOTO_CROP[3]);
+  parX += ((pointer.x * 2 - 1) - parX) * 0.07;
+  parY += ((pointer.y * 2 - 1) - parY) * 0.07;
+  gl.uniform2f(p.u.uPar, parX, parY);
   gl.uniform3fv(p.u.uBg, pal.bg);
   gl.uniform3fv(p.u.uFg, pal.fg);
   gl.uniform3fv(p.u.uOutline, pal.outline);
@@ -2297,6 +2370,7 @@ canvas.addEventListener('webglcontextrestored', () => {
   // every GL object died with the context — rebuild the whole pipeline
   buildPrograms();
   allocate(true);
+  uploadPhoto();
   document.getElementById('nogl').style.display = 'none';
   lastFrame = performance.now();
   simAcc = 0;
