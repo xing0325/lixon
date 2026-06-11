@@ -30,21 +30,44 @@
     width:100%; height:100svh;
     display:block;
     cursor:crosshair;
-    z-index:0;
+    z-index:1;   /* above .hero-back, below everything else */
     /* the drag IS the interaction — don't let the browser claim it for
        pull-to-refresh, and keep iOS loupe & selection off it */
     touch-action:none;
     -webkit-user-select:none; user-select:none;
     -webkit-touch-callout:none;
   }
-  /* ------- hero shell (scrolls away over the fixed canvas) ------- */
+  /* ------- hero: a 250svh pinned track, like the reference site.
+     While pinned, scroll drives the exit choreography instead of moving
+     the page: canvas shrinks to a rounded card on a dark mat, the shader
+     drains color, and the signature draws across. ------- */
   .s-hero{
     position:relative;
-    height:100svh;
-    z-index:1;
+    height:250svh;
+    z-index:2;
     /* let vertical swipes scroll the page on touch; the canvas below
        never receives the touch so its touch-action:none can't trap us */
     touch-action:pan-y;
+  }
+  .hero-pin{
+    position:sticky; top:0;
+    height:100svh;
+    overflow:hidden;
+  }
+  .hero-back{
+    position:fixed; inset:0; z-index:0;
+    background:var(--dark);
+    opacity:0;
+    pointer-events:none;
+  }
+  .hero-sig{
+    position:absolute; left:50%; top:50%; z-index:3;
+    width:clamp(300px,46vw,680px);
+    transform:translate(-50%,-52%) rotate(-7deg);
+    color:var(--accent);
+    opacity:0;
+    pointer-events:none;
+    filter:drop-shadow(0 4px 22px rgba(0,0,0,.25));
   }
   .ui{
     position:absolute; inset:0;
@@ -232,7 +255,7 @@
   .nav-link:hover i{ transform:translateY(-100%); }
 
   /* --- generic section scaffolding --- */
-  main{ position:relative; z-index:1; }
+  main{ position:relative; z-index:2; }
   .sec{
     position:relative;
     background:var(--paper);
@@ -519,14 +542,6 @@
     fill:none; stroke:currentColor;
     stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round;
   }
-  .pulse-sig{
-    position:absolute; right:4%; top:26%; z-index:3;
-    width:clamp(180px,26vw,340px);
-    color:var(--accent);
-    transform:rotate(-7deg);
-    opacity:.95;
-  }
-
   /* xiaohongshu note cards — stacked deck fans out on scroll */
   .xhs-stage{
     position:relative;
@@ -636,6 +651,7 @@
 </head>
 <body>
 
+<div class="hero-back" id="heroBack"></div>
 <canvas id="gl"></canvas>
 
 <div class="progress" id="progress"></div>
@@ -660,6 +676,7 @@
 </nav>
 
 <header class="s-hero" id="top">
+<div class="hero-pin">
 <div class="ui">
   <div class="row">
     <div class="wordmark reveal-up d1">DX·0325<small>hero study 001</small></div>
@@ -680,6 +697,17 @@
 </div>
 
 <div class="hint" id="hint">move your cursor — 动一动鼠标</div>
+<!-- 转场签名：钉住阶段由滚动进度描画，盖在变灰收缩的画布上 -->
+<svg class="sig hero-sig" id="heroSig" viewBox="0 0 360 180" aria-hidden="true">
+  <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
+           M84 132 C92 100 98 72 100 52 C96 84 92 116 92 132 C98 118 110 108 118 112 C126 116 120 128 126 132
+           M140 112 C138 120 136 128 138 132 M144 94 C145 92 146 91 147 92
+           M196 98 C178 84 156 94 156 112 C156 132 178 140 194 132
+           M210 132 C218 100 224 72 226 52 C222 84 218 116 218 132 C224 118 236 108 244 112 C252 116 246 128 252 132
+           M266 112 C262 124 264 132 272 132 C280 132 286 124 288 114 C288 124 290 132 298 130 C308 127 314 116 316 108
+           M40 152 C120 164 240 164 330 146"/>
+</svg>
+</div>
 </header>
 
 <main id="main">
@@ -715,16 +743,6 @@
     <div class="hermes-note">
       ※ 这一条数据带 + 公屏留言板 + 每日更新日志由 Hermes 负责（vibe-coder-dashboard），接口已留：<code>window.VIBE_DASH</code> — 他做完即插即用。
     </div>
-    <!-- scroll-driven handwriting: chichu 签名占位稿，等真签名照片矢量化替换 -->
-    <svg class="sig pulse-sig" data-sig viewBox="0 0 360 180" aria-hidden="true">
-      <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
-               M84 132 C92 100 98 72 100 52 C96 84 92 116 92 132 C98 118 110 108 118 112 C126 116 120 128 126 132
-               M140 112 C138 120 136 128 138 132 M144 94 C145 92 146 91 147 92
-               M196 98 C178 84 156 94 156 112 C156 132 178 140 194 132
-               M210 132 C218 100 224 72 226 52 C222 84 218 116 218 132 C224 118 236 108 244 112 C252 116 246 128 252 132
-               M266 112 C262 124 264 132 272 132 C280 132 286 124 288 114 C288 124 290 132 298 130 C308 127 314 116 316 108
-               M40 152 C120 164 240 164 330 146"/>
-    </svg>
   </section>
 
   <!-- ====== 01 · ABOUT ====== -->
@@ -1577,7 +1595,7 @@ function renderFrame(now){
   gl.uniform1f(p.u.uTime, t);
   gl.uniform1f(p.u.uReveal, eased);
   gl.uniform1f(p.u.uHelmetAlways, showHelmetAlways ? 1 : 0);
-  gl.uniform1f(p.u.uDesat, Math.min(1, heroExitP * 1.15));
+  gl.uniform1f(p.u.uDesat, heroExitP);
   gl.uniform2f(p.u.uMaskBand, CONF.maskLow, CONF.maskHigh);
   // helmet orientation on the CPU: one mat3 upload instead of per-fragment
   // sin/cos. Sway freezes under reduced motion.
@@ -1763,6 +1781,16 @@ const sigs = [...document.querySelectorAll('[data-sig]')].map(svg => {
   return { svg, path, len };
 });
 
+// pinned hero exit choreography (the reference's screen-1 → screen-2 move)
+const heroTrack = document.querySelector('.s-hero');
+const heroBack = document.getElementById('heroBack');
+const heroUi = heroTrack.querySelector('.ui');
+const heroSig = document.getElementById('heroSig');
+const heroSigPath = heroSig.querySelector('path');
+const heroSigLen = heroSigPath.getTotalLength();
+heroSigPath.style.strokeDasharray = heroSigLen;
+heroSigPath.style.strokeDashoffset = heroSigLen;
+
 const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
 const XHS_NOTES = [
   { tag:'#施工日志', t:'用 Claude 把 landonorris.com 的流体头盔搬回了家', d:'今天', g:['#c5e016','#86a009'], w:'FLUID' },
@@ -1815,10 +1843,24 @@ function pageLoop(now){
   scrollVel += ((scrollY - scrollY0) - scrollVel) * 0.12;
   scrollY0 = scrollY;
 
-  // hero exit: shrink into a rounded card while the shader drains color
-  heroExitP = clamp01(scrollY / ih);
-  canvas.style.transform = `scale(${1 - 0.14 * heroExitP})`;
-  canvas.style.borderRadius = `${heroExitP * 28}px`;
+  // pinned hero exit: while the 250svh track is pinned, scroll drives the
+  // choreography instead of moving the page —
+  //   canvas shrinks to a rounded card on the dark mat, the shader drains
+  //   color (uDesat), the hero UI gets out of the way, and the signature
+  //   draws itself across the grayscale card
+  {
+    const hr = heroTrack.getBoundingClientRect();
+    const pinP = reducedMotion ? 0 : clamp01(-hr.top / (hr.height - ih));
+    const pe = 1 - Math.pow(1 - pinP, 2);              // ease-out
+    canvas.style.transform = `scale(${1 - 0.34 * pe})`;
+    canvas.style.borderRadius = `${pe * 30}px`;
+    heroBack.style.opacity = clamp01(pinP * 1.6);
+    heroExitP = clamp01(pinP * 1.7);                   // → uDesat
+    heroUi.style.opacity = 1 - clamp01(pinP * 2.4);
+    heroSig.style.opacity = clamp01((pinP - 0.18) * 5);
+    const sp = clamp01((pinP - 0.26) / 0.55);
+    heroSigPath.style.strokeDashoffset = heroSigLen * (1 - sp);
+  }
 
   // signatures: handwriting follows the scroll
   for (const s of sigs){
@@ -1869,6 +1911,8 @@ function pageLoop(now){
   cursorEl.style.transform = `translate(${cx - 5}px, ${cyp - 5}px)`;
 }
 requestAnimationFrame(pageLoop);
+// debug hook: drive one choreography tick while the tab is hidden (rAF parked)
+window.HERO.pageTick = () => pageLoop(performance.now());
 
 /* --- 8g. project constellation (obsidian-style graph) --- */
 const NODES = [
