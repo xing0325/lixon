@@ -150,9 +150,9 @@
     padding:0 5px;
     font-size:.9em;
   }
-  /* ------- center hint ------- */
+  /* ------- center hint (below the chin so it never sits on the face) ------- */
   .hint{
-    position:absolute; left:50%; top:50%;
+    position:absolute; left:50%; top:69%;
     transform:translate(-50%,-50%);
     z-index:2;
     pointer-events:none;
@@ -832,7 +832,7 @@
   /* --- hero status card (bottom-left zone, above the name) --- */
   .hero-status{
     position:absolute; left:clamp(16px,2.5vw,32px);
-    top:50%; transform:translateY(-50%);   /* center-left: clear of the name block at any window size */
+    top:29%;   /* upper-left air: clear of the portrait and the name block */
     z-index:2;
     width:min(250px,44vw);
     border:1px solid rgba(35,38,31,.32); border-radius:8px;
@@ -1818,35 +1818,33 @@ float opSmoothSub(float a, float b, float k){
   return mix(a, -b, h) + k * h * (1.0 - h);
 }
 
-/* ---------- helmet, side profile facing left ----------
+/* ---------- helmet, FRONT view — it gets washed onto the face ----------
+   camera looks straight at the visor; +z is toward the viewer
    returns: x = distance, y = material id
    1 shell · 2 stripe · 3 visor · 4 trim */
 vec2 helmetSDF(vec3 p){
-  // shell with a slightly flatter back
-  float shell = sdEllipsoid(p - vec3(0.02, 0.02, 0.), vec3(1.0, 0.94, 0.84));
-  // chin bar sweeping forward-down, kept narrow so it doesn't skirt out
-  float chin = sdRoundBox(p - vec3(-0.55, -0.40, 0.), vec3(0.30, 0.09, 0.30), 0.15);
-  shell = opSmoothUnion(shell, chin, 0.16);
-  // rear spoiler lip
-  float spoiler = sdRoundBox(p - vec3(0.80, -0.42, 0.), vec3(0.14, 0.04, 0.26), 0.05);
-  shell = opSmoothUnion(shell, spoiler, 0.08);
+  // shell: a touch narrower than tall, deep enough to read round
+  float shell = sdEllipsoid(p - vec3(0., 0.05, 0.), vec3(0.82, 0.86, 0.88));
+  // chin bar across the lower front
+  float chin = sdRoundBox(p - vec3(0., -0.50, 0.46), vec3(0.40, 0.11, 0.26), 0.15);
+  shell = opSmoothUnion(shell, chin, 0.18);
   // crop the underside
-  shell = max(shell, -(p.y + 0.70));
-  // visor cavity — wide and shallow, F1 style
-  float cavity = sdRoundBox(p - vec3(-0.74, 0.16, 0.), vec3(0.46, 0.20, 0.58), 0.12);
+  shell = max(shell, -(p.y + 0.78));
+  // visor opening carved into the front face
+  float cavity = sdRoundBox(p - vec3(0., 0.16, 0.82), vec3(0.50, 0.19, 0.34), 0.12);
   float carved = opSmoothSub(shell, cavity, 0.05);
-  // visor glass, sitting just inside the opening
-  float visor = sdRoundBox(p - vec3(-0.60, 0.15, 0.), vec3(0.42, 0.17, 0.52), 0.10);
-  visor = max(visor, sdEllipsoid(p - vec3(0.02, 0.02, 0.), vec3(0.99, 0.93, 0.83)));
+  // visor glass just inside the opening
+  float visor = sdRoundBox(p - vec3(0., 0.15, 0.58), vec3(0.46, 0.17, 0.30), 0.11);
+  visor = max(visor, sdEllipsoid(p - vec3(0., 0.05, 0.), vec3(0.81, 0.85, 0.87)));
   // materials
   float d = carved; float id = 1.0;
   if (visor < d - 0.002){ d = visor; id = 3.0; }
-  // stripe: center band over the crown, only on shell
-  if (id == 1.0 && abs(p.z) < 0.22 && p.y > -0.25) id = 2.0;
-  // visor pivot disc on the cheek
-  if (id == 1.0 && abs(p.z) > 0.52 && distance(p.xy, vec2(-0.34, 0.04)) < 0.13) id = 4.0;
+  // crown stripe, vertical center band running front-to-back
+  if (id == 1.0 && abs(p.x) < 0.17 && p.y > 0.22) id = 2.0;
+  // cheek pods left/right
+  if (id == 1.0 && abs(p.x) > 0.56 && distance(p.yz, vec2(-0.10, 0.30)) < 0.17) id = 4.0;
   // trim near the bottom edge
-  if (id == 1.0 && p.y < -0.56) id = 4.0;
+  if (id == 1.0 && p.y < -0.64) id = 4.0;
   return vec2(d, id);
 }
 vec3 helmetNormal(vec3 p){
@@ -1870,7 +1868,9 @@ float helmetAO(vec3 p, vec3 n){
 vec4 renderHelmet(vec2 uv){
   // screen-space framing: centered, ~62% of min dimension tall
   vec2 axis = uRes / min(uRes.x, uRes.y);
-  vec2 s = (uv - vec2(0.5, 0.47)) * axis * 3.4;
+  // framed to sit exactly over the portrait's head:
+  // crown above the hair, visor band on the eyes, chin bar at the jaw
+  vec2 s = (uv - vec2(0.5, 0.625)) * axis * 2.78;
   // camera looks down -z; orientation matrix comes in as a uniform so the
   // per-fragment cost is one mat-vec instead of 4 sin/cos + 2 mat builds
   vec3 ro = uRot * vec3(0., 0., 3.6);
@@ -1963,11 +1963,15 @@ void main(){
   inside = mix(inside, uCurOutline, edge * 0.8);
   vec3 background = mix(outside, inside, mask);
 
-  /* the head (photo if loaded, SDF helmet otherwise) appears only inside the trail */
-  vec4 helm = vec4(0.);
-  if (mask > 0.003)
-    helm = (uHasPhoto > 0.5) ? renderPhoto(uv, vfield) : renderHelmet(uv);
-  vec3 color = mix(background, helm.rgb, helm.a * mask);
+  /* the portrait lives on the page permanently; the fluid trail washes
+     the helmet ONTO the head (and flips the world palette around it) */
+  vec3 color = background;
+  if (uHasPhoto > 0.5){
+    vec4 photo = renderPhoto(uv, vfield);
+    color = mix(color, photo.rgb, photo.a);
+  }
+  vec4 helm = (mask > 0.003) ? renderHelmet(uv) : vec4(0.);
+  color = mix(color, helm.rgb, helm.a * mask);
 
   /* hero exit: desaturate toward newsprint as the page scrolls on */
   color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), uDesat);
@@ -2302,8 +2306,9 @@ function renderFrame(now){
   // helmet orientation on the CPU: one mat3 upload instead of per-fragment
   // sin/cos. Sway freezes under reduced motion.
   const sway = reducedMotion ? 0 : 1;
-  const yaw   = 0.38 - (pointer.x * 2 - 1) * 0.55 + Math.sin(t * 0.3) * 0.05 * sway;
-  const pitch = (pointer.y * 2 - 1) * 0.22 + Math.cos(t * 0.23) * 0.03 * sway;
+  // front view: no base yaw, moderate cursor sway so it stays frontal
+  const yaw   = -(pointer.x * 2 - 1) * 0.38 + Math.sin(t * 0.3) * 0.04 * sway;
+  const pitch = (pointer.y * 2 - 1) * 0.16 + Math.cos(t * 0.23) * 0.03 * sway;
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
   const cx = Math.cos(pitch), sx = Math.sin(pitch);
   ROT[0] = cy;       ROT[1] = 0;   ROT[2] = sy;
