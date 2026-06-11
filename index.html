@@ -1914,7 +1914,7 @@ vec4 renderPhoto(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;        // min-dim units, y up
   s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
-  float h = 0.78;                                 // portrait height in min-dim units
+  float h = 1.0;                                  // portrait height in min-dim units
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
@@ -1923,8 +1923,8 @@ vec4 renderPhoto(vec2 uv, vec2 vel){
   col = (col - 0.5) * 1.07 + 0.5;                // a touch of contrast
   col *= uBg / vec3(0.905, 0.897, 0.885);        // marry the studio backdrop to the paper
   // soft oval falloff so the photo rectangle never reads as a rectangle
-  vec2 q = (puv - vec2(0.5, 0.44)) / vec2(0.47, 0.54);
-  float a = 1.0 - smoothstep(0.74, 1.0, length(q));
+  vec2 q = (puv - vec2(0.5, 0.46)) / vec2(0.50, 0.60);
+  float a = 1.0 - smoothstep(0.80, 1.0, length(q));
   return vec4(col, a);
 }
 
@@ -2058,7 +2058,7 @@ let noiseStale = true;
    reveals chichu's face instead of the SDF helmet. Crop window picks
    head + shoulders out of the full portrait. --- */
 const PHOTO_SRC = 'hero-photo.jpg';
-const PHOTO_CROP = [0.08, 0.02, 0.92, 0.84];   // x0, y0, x1, y1
+const PHOTO_CROP = [0.08, 0.10, 0.92, 0.88];   // x0, y0, x1, y1 — 头到肩，掐掉头顶的空气
 let photoTex = null, photoAspect = 1, photoReady = false;
 const photoImg = new Image();
 function uploadPhoto(){
@@ -2082,8 +2082,11 @@ function uploadPhoto(){
   }
 }
 photoImg.onload = uploadPhoto;
-photoImg.onerror = () => {};   // no photo yet → SDF helmet fallback
-photoImg.src = PHOTO_SRC;
+// try extensions in order; SDF helmet stays as the fallback if none exist
+const PHOTO_TRIES = [PHOTO_SRC, 'hero-photo.png', 'hero-photo.webp'];
+let photoTry = 0;
+photoImg.onerror = () => { if (++photoTry < PHOTO_TRIES.length) photoImg.src = PHOTO_TRIES[photoTry]; };
+photoImg.src = PHOTO_TRIES[0];
 
 function allocate(force){
   // size from the canvas box, not the window: iOS pinch-zoom shrinks
