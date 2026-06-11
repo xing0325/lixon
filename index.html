@@ -830,14 +830,13 @@
   }
 
   /* --- hero status card (bottom-left zone, above the name) --- */
+  /* embedded in the hero's bottom-left stack — not a floating card;
+     it lives and dies with the first screen's UI */
   .hero-status{
-    position:absolute; left:clamp(16px,2.5vw,32px);
-    top:29%;   /* upper-left air: clear of the portrait and the name block */
-    z-index:2;
     width:min(250px,44vw);
-    border:1px solid rgba(35,38,31,.32); border-radius:8px;
-    background:rgba(248,248,243,.55); backdrop-filter:blur(5px);
-    padding:13px 15px;
+    margin:0 0 clamp(12px,1.6vw,20px) 6px;
+    padding:2px 0 2px 13px;
+    border-left:2px solid var(--accent);
     font-size:11px;
   }
   .hs-row{ display:flex; align-items:center; gap:8px; font-style:italic; letter-spacing:.12em; text-transform:uppercase; }
@@ -1073,7 +1072,6 @@
     .colophon{ display:none; }
     .est{ display:none; }
     .nav-links{ display:none; }
-    .hero-status{ bottom:42vh; }
     .menu-inner{ flex-direction:column; justify-content:flex-end; }
     .menu-side{ align-items:flex-start; text-align:left; }
     .doors{ grid-template-columns:1fr; }
@@ -1150,18 +1148,6 @@
 <div class="page" data-route="home" id="pageHome">
 <header class="s-hero" id="top">
 <div class="hero-pin">
-<div class="hero-status" data-plx="22">
-  <svg class="hs-circuit" viewBox="0 0 200 26" aria-hidden="true">
-    <path d="M2 20 H38 L50 6 H86 L94 20 H120 L132 6 H160 L170 20 H198 V20"/>
-  </svg>
-  <div class="hs-row"><span class="status-dot" id="hsDot"></span><span data-hermes="status-label-hero">probing…</span></div>
-  <div class="hs-tokens">
-    <div class="hs-tok"><b data-tok="claude">——</b><i>claude</i></div>
-    <div class="hs-tok"><b data-tok="codex">——</b><i>codex</i></div>
-    <div class="hs-tok"><b data-tok="deepseek">——</b><i>deepseek</i></div>
-  </div>
-  <div class="hs-cap">今日 tokens · 由 hermes 探测</div>
-</div>
 <div class="ui">
   <div class="row">
     <div class="wordmark reveal-up d1" data-plx="-6">DX·0325<small>hero study 001</small></div>
@@ -1169,6 +1155,18 @@
   </div>
   <div class="row bottom">
     <div class="name-block" data-plx="12">
+      <div class="hero-status reveal-up d2">
+        <svg class="hs-circuit" viewBox="0 0 200 26" aria-hidden="true">
+          <path d="M2 20 H38 L50 6 H86 L94 20 H120 L132 6 H160 L170 20 H198 V20"/>
+        </svg>
+        <div class="hs-row"><span class="status-dot" id="hsDot"></span><span data-hermes="status-label-hero">probing…</span></div>
+        <div class="hs-tokens">
+          <div class="hs-tok"><b data-tok="claude">——</b><i>claude</i></div>
+          <div class="hs-tok"><b data-tok="codex">——</b><i>codex</i></div>
+          <div class="hs-tok"><b data-tok="deepseek">——</b><i>deepseek</i></div>
+        </div>
+        <div class="hs-cap">今日 tokens · 由 hermes 探测</div>
+      </div>
       <p class="eyebrow reveal-up d3">personal site — 流体显形实验</p>
       <h1><span>DAV<span class="alt">ID</span></span></h1>
     </div>
@@ -1973,8 +1971,11 @@ void main(){
   vec4 helm = (mask > 0.003) ? renderHelmet(uv) : vec4(0.);
   color = mix(color, helm.rgb, helm.a * mask);
 
-  /* hero exit: desaturate toward newsprint as the page scrolls on */
-  color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), uDesat);
+  /* hero exit: fade toward a warm old-print monochrome (NOT neutral gray —
+     the reference goes yellowish, and the backdrop shifts with it) */
+  float lum = dot(color, vec3(0.299, 0.587, 0.114));
+  vec3 mono = lum * vec3(1.10, 1.03, 0.84) + vec3(0.05, 0.04, 0.01);
+  color = mix(color, mono, uDesat);
 
   /* paper grain */
   color -= (hash12(vUv * uRes + fract(uTime) * 100.0) - 0.5) * 0.035;
@@ -2178,6 +2179,9 @@ let rafId = 0;
 const SIM_MS = 1000 / 65;
 const ROT = new Float32Array(9);
 let parX = 0, parY = 0;   // eased pointer for photo parallax
+// once the exit shrink passes ~55%, the card freezes into a still image:
+// the animation clock stops, the sim stops stepping, pointer is ignored
+let heroFrozen = false, frozenT = 0;
 
 function simStep(){
   gl.disable(gl.BLEND);
@@ -2261,21 +2265,21 @@ function frame(now){
   renderFrame(now);
 }
 function renderFrame(now){
-  const t = (now - t0) / 1000;
+  const t = heroFrozen ? frozenT : (now - t0) / 1000;
   // present every vsync (90/144Hz displays would otherwise drop to 45/48fps),
   // but step the sim on its own fixed ~65Hz clock via an accumulator
   const elapsed = Math.min(100, now - lastFrame);
   lastFrame = now;
 
   updatePointer(now, t, elapsed);
-  if (!reducedMotion){
+  if (!reducedMotion && !heroFrozen){
     simAcc = Math.min(simAcc + elapsed, 67);   // cap backlog after stalls
     while (simAcc >= SIM_MS){ simStep(); simAcc -= SIM_MS; }
   }
 
   /* background noise RT — the field drifts at 0.055x time, so refreshing
      every 3rd presented frame is visually identical and 3x cheaper */
-  if (noiseStale || presentNo % 3 === 0){
+  if (!heroFrozen && (noiseStale || presentNo % 3 === 0)){
     const np = P.noise;
     gl.useProgram(np.prog);
     gl.uniform1f(np.u.uTime, t);
@@ -2305,15 +2309,21 @@ function renderFrame(now){
   gl.uniform2f(p.u.uMaskBand, CONF.maskLow, CONF.maskHigh);
   // helmet orientation on the CPU: one mat3 upload instead of per-fragment
   // sin/cos. Sway freezes under reduced motion.
-  const sway = reducedMotion ? 0 : 1;
-  // front view: no base yaw, moderate cursor sway so it stays frontal
-  const yaw   = -(pointer.x * 2 - 1) * 0.38 + Math.sin(t * 0.3) * 0.04 * sway;
-  const pitch = (pointer.y * 2 - 1) * 0.16 + Math.cos(t * 0.23) * 0.03 * sway;
-  const cy = Math.cos(yaw), sy = Math.sin(yaw);
-  const cx = Math.cos(pitch), sx = Math.sin(pitch);
-  ROT[0] = cy;       ROT[1] = 0;   ROT[2] = sy;
-  ROT[3] = sy * sx;  ROT[4] = cx;  ROT[5] = -cy * sx;
-  ROT[6] = -sy * cx; ROT[7] = sx;  ROT[8] = cy * cx;
+  if (!heroFrozen){
+    // interactive inputs freeze with the card: helmet orientation and photo
+    // parallax keep their last values once the still-image state begins
+    const sway = reducedMotion ? 0 : 1;
+    // front view: no base yaw, moderate cursor sway so it stays frontal
+    const yaw   = -(pointer.x * 2 - 1) * 0.38 + Math.sin(t * 0.3) * 0.04 * sway;
+    const pitch = (pointer.y * 2 - 1) * 0.16 + Math.cos(t * 0.23) * 0.03 * sway;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const cx = Math.cos(pitch), sx = Math.sin(pitch);
+    ROT[0] = cy;       ROT[1] = 0;   ROT[2] = sy;
+    ROT[3] = sy * sx;  ROT[4] = cx;  ROT[5] = -cy * sx;
+    ROT[6] = -sy * cx; ROT[7] = sx;  ROT[8] = cy * cx;
+    parX += ((pointer.x * 2 - 1) - parX) * 0.07;
+    parY += ((pointer.y * 2 - 1) - parY) * 0.07;
+  }
   gl.uniformMatrix3fv(p.u.uRot, false, ROT);
   // photo head: texture + crop + eased parallax
   gl.activeTexture(gl.TEXTURE2);
@@ -2322,8 +2332,6 @@ function renderFrame(now){
   gl.uniform1f(p.u.uHasPhoto, photoReady ? 1 : 0);
   gl.uniform1f(p.u.uPhotoAspect, photoAspect);
   gl.uniform4f(p.u.uPhotoCrop, PHOTO_CROP[0], PHOTO_CROP[1], PHOTO_CROP[2], PHOTO_CROP[3]);
-  parX += ((pointer.x * 2 - 1) - parX) * 0.07;
-  parY += ((pointer.y * 2 - 1) - parY) * 0.07;
   gl.uniform2f(p.u.uPar, parX, parY);
   gl.uniform3fv(p.u.uBg, pal.bg);
   gl.uniform3fv(p.u.uFg, pal.fg);
@@ -2504,24 +2512,40 @@ document.querySelectorAll('a, button, .graph-stage, .squat, kbd').forEach(el => 
 });
 
 /* --- 8f. scroll-driven props: signatures, xhs deck, slogan --- */
-// hand-drawn "chichu" placeholder — trace the real signature later
-const sigs = [...document.querySelectorAll('[data-sig]')].map(svg => {
-  const path = svg.querySelector('path');
-  const len = path.getTotalLength();
-  path.style.strokeDasharray = len;
-  path.style.strokeDashoffset = len;
-  return { svg, path, len };
-});
+// signature drawing: split the scribble into per-stroke paths so progress
+// writes them SEQUENTIALLY, like a pen — a single dash across subpaths
+// would grow every stroke at once
+function prepSig(svg){
+  const src = svg.querySelector('path');
+  const segs = (src.getAttribute('d').match(/M[^M]+/g) || []).map(s => s.trim());
+  src.remove();
+  const strokes = segs.map(d => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    svg.appendChild(p);
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+    return { p, len };
+  });
+  return { svg, strokes, total: strokes.reduce((a, s) => a + s.len, 0) };
+}
+function drawSig(sig, prog){
+  let ink = clamp01(prog) * sig.total;
+  for (const s of sig.strokes){
+    const v = clamp01(ink / s.len);
+    s.p.style.strokeDashoffset = s.len * (1 - v);
+    ink -= s.len;
+  }
+}
+const sigs = [...document.querySelectorAll('[data-sig]')].map(prepSig);
 
 // pinned hero exit choreography (the reference's screen-1 → screen-2 move)
 const heroTrack = document.querySelector('.s-hero');
 const heroBack = document.getElementById('heroBack');
 const heroUi = heroTrack.querySelector('.ui');
 const heroSig = document.getElementById('heroSig');
-const heroSigPath = heroSig.querySelector('path');
-const heroSigLen = heroSigPath.getTotalLength();
-heroSigPath.style.strokeDasharray = heroSigLen;
-heroSigPath.style.strokeDashoffset = heroSigLen;
+const heroSigObj = prepSig(heroSig);
 
 const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
 const XHS_NOTES = [
@@ -2605,6 +2629,13 @@ function pageLoop(now){
     const hr = heroTrack.getBoundingClientRect();
     const pinP = reducedMotion ? 0 : clamp01(-hr.top / (hr.height - ih));
     const pe = 1 - Math.pow(1 - pinP, 2);              // ease-out
+    // past 55% of the shrink the card is a still photograph: clock stops,
+    // fluid stops, mouse does nothing — scrolling back up resumes seamlessly
+    if (pinP > 0.55 && !heroFrozen){
+      heroFrozen = true; frozenT = (performance.now() - t0) / 1000;
+    } else if (pinP <= 0.55 && heroFrozen){
+      heroFrozen = false; t0 = performance.now() - frozenT * 1000;
+    }
     // 原站口径：缩到 ~45%，垫一块近黑深绿衬底，50% 进度前拉满灰度
     canvas.style.transform = `scale(${1 - 0.55 * pe})`;
     canvas.style.borderRadius = `${pe * 44}px`;
@@ -2612,8 +2643,7 @@ function pageLoop(now){
     heroExitP = clamp01(pinP * 2.0);                   // → uDesat
     heroUi.style.opacity = 1 - clamp01(pinP * 3.2);
     heroSig.style.opacity = clamp01((pinP - 0.10) * 6);
-    const sp = clamp01((pinP - 0.14) / 0.6);
-    heroSigPath.style.strokeDashoffset = heroSigLen * (1 - sp);
+    drawSig(heroSigObj, (pinP - 0.14) / 0.6);
     // scroll cue hides as soon as the exit begins
     if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.03);
     // subtle DOM parallax against the cursor
@@ -2638,12 +2668,11 @@ function pageLoop(now){
     }
   }
 
-  // signatures: handwriting follows the scroll
+  // signatures: handwriting follows the scroll, stroke by stroke
   for (const s of sigs){
     const r = s.svg.getBoundingClientRect();
     if (r.bottom < -40 || r.top > ih + 40) continue;
-    const p = reducedMotion ? 1 : clamp01((ih * 0.92 - r.top) / (ih * 0.55));
-    s.path.style.strokeDashoffset = s.len * (1 - p);
+    drawSig(s, reducedMotion ? 1 : (ih * 0.92 - r.top) / (ih * 0.55));
   }
 
   // xhs deck: stacked pile fans out into a row as the section arrives
