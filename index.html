@@ -261,7 +261,7 @@
     transform:scaleY(1.08); transform-origin:bottom left;
     margin-bottom:clamp(28px,4vw,56px);
   }
-  .sec h2 .alt{ -webkit-text-stroke:1.6px currentColor; color:transparent; }
+  .sec h2 .alt{ -webkit-text-stroke:2.2px currentColor; color:transparent; }
   .serif-it{ font-family:Georgia,serif; font-style:italic; text-transform:none; letter-spacing:0; }
 
   /* --- split-line reveal (the master move of the whole site) --- */
@@ -512,6 +512,100 @@
     font-size:11.5px; font-style:italic; color:var(--ink-soft);
   }
 
+  /* --- scroll-driven: hero exit + signatures + xhs cards + slogan --- */
+  #gl{ will-change:transform; }
+  .sig{ display:block; pointer-events:none; overflow:visible; }
+  .sig path{
+    fill:none; stroke:currentColor;
+    stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round;
+  }
+  .pulse-sig{
+    position:absolute; right:4%; top:26%; z-index:3;
+    width:clamp(180px,26vw,340px);
+    color:var(--accent);
+    transform:rotate(-7deg);
+    opacity:.95;
+  }
+
+  /* xiaohongshu note cards — stacked deck fans out on scroll */
+  .xhs-stage{
+    position:relative;
+    height:clamp(400px,58vh,580px);
+    margin-top:clamp(10px,2vw,30px);
+  }
+  .xhs-wrap{
+    position:absolute; left:50%; top:50%;
+    will-change:transform;
+  }
+  .xhs-card{
+    width:clamp(198px,21vw,256px);
+    aspect-ratio:3/4.15;
+    background:#fffdf6;
+    border:1px solid rgba(35,38,31,.16);
+    border-radius:10px;
+    padding:11px;
+    display:flex; flex-direction:column; gap:10px;
+    box-shadow:0 18px 42px -28px rgba(35,38,31,.5);
+    transform:translate(-50%,-50%);
+    transition:transform .5s var(--ease), box-shadow .5s var(--ease);
+    cursor:pointer;
+  }
+  .xhs-wrap:hover{ z-index:6; }
+  .xhs-wrap:hover .xhs-card{
+    transform:translate(-50%,-54%) scale(1.05) rotate(.001deg);
+    box-shadow:0 34px 64px -30px rgba(35,38,31,.6);
+  }
+  .xhs-pic{
+    flex:1; border-radius:6px; position:relative; overflow:hidden;
+  }
+  .xhs-pic::after{
+    content:''; position:absolute; inset:0;
+    background-image:radial-gradient(rgba(35,38,31,.22) 1px, transparent 1.4px);
+    background-size:9px 9px;
+    mix-blend-mode:multiply;
+  }
+  .xhs-pic b{
+    position:absolute; left:10px; bottom:8px;
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-weight:400; font-size:30px; letter-spacing:.02em;
+    color:rgba(255,255,255,.92); text-transform:uppercase;
+  }
+  .xhs-t{ font-size:13px; line-height:1.65; font-weight:600; }
+  .xhs-meta{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:10.5px; font-style:italic; color:var(--ink-soft);
+  }
+  .xhs-meta .tag{ color:#ff2442; font-style:normal; }
+  .xhs-note{ margin-top:18px; }
+
+  /* final slogan: outline text, ink pours in as you scroll */
+  .sloganwrap{ margin-top:clamp(64px,9vw,130px); position:relative; }
+  .contact-sig{
+    width:clamp(170px,21vw,310px);
+    color:var(--ink);
+    transform:rotate(-4deg);
+    margin-bottom:clamp(-6px,-0.5vw,-2px);
+  }
+  .slogan{
+    position:relative;
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-size:clamp(46px,9.4vw,156px);
+    line-height:.98; text-transform:uppercase; letter-spacing:.005em;
+    transform:scaleY(1.1); transform-origin:bottom left;
+    user-select:none;
+  }
+  .slogan-base{ display:block; -webkit-text-stroke:1.8px var(--ink); color:transparent; }
+  .slogan-fill{
+    position:absolute; inset:0; display:block;
+    color:var(--ink);
+    clip-path:inset(-5% 100% -5% 0);
+    will-change:clip-path;
+  }
+  .slogan-sub{
+    margin-top:14px; font-size:clamp(12px,1.1vw,15px);
+    font-style:italic; color:var(--ink-soft); letter-spacing:.14em;
+  }
+
   /* --- cursor accent dot --- */
   .cursor{
     position:fixed; left:0; top:0; z-index:99;
@@ -559,6 +653,7 @@
       <a class="nav-link" href="#updating"><i>在更新</i><i class="dup">在更新</i></a>
       <a class="nav-link" href="#workflow"><i>工作流</i><i class="dup">工作流</i></a>
       <a class="nav-link" href="#topics"><i>课题</i><i class="dup">课题</i></a>
+      <a class="nav-link" href="#socials"><i>小红书</i><i class="dup">小红书</i></a>
       <a class="nav-link" href="#contact"><i>来玩</i><i class="dup">来玩</i></a>
     </div>
   </div>
@@ -620,6 +715,16 @@
     <div class="hermes-note">
       ※ 这一条数据带 + 公屏留言板 + 每日更新日志由 Hermes 负责（vibe-coder-dashboard），接口已留：<code>window.VIBE_DASH</code> — 他做完即插即用。
     </div>
+    <!-- scroll-driven handwriting: chichu 签名占位稿，等真签名照片矢量化替换 -->
+    <svg class="sig pulse-sig" data-sig viewBox="0 0 360 180" aria-hidden="true">
+      <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
+               M84 132 C92 100 98 72 100 52 C96 84 92 116 92 132 C98 118 110 108 118 112 C126 116 120 128 126 132
+               M140 112 C138 120 136 128 138 132 M144 94 C145 92 146 91 147 92
+               M196 98 C178 84 156 94 156 112 C156 132 178 140 194 132
+               M210 132 C218 100 224 72 226 52 C222 84 218 116 218 132 C224 118 236 108 244 112 C252 116 246 128 252 132
+               M266 112 C262 124 264 132 272 132 C280 132 286 124 288 114 C288 124 290 132 298 130 C308 127 314 116 316 108
+               M40 152 C120 164 240 164 330 146"/>
+    </svg>
   </section>
 
   <!-- ====== 01 · ABOUT ====== -->
@@ -746,10 +851,20 @@
     </div>
   </section>
 
-  <!-- ====== 06 · CONTACT ====== -->
+  <!-- ====== 06 · SOCIALS: 小红书最新笔记 ====== -->
+  <section class="sec" id="socials">
+    <div class="wrap">
+      <p class="eyebrow" data-rise>06 — 小红书在写 · what's up on socials</p>
+      <h2 data-split>施工日志<br>都发在<span class="alt">小红书</span><span class="serif-it">。</span></h2>
+      <div class="xhs-stage" id="xhsStage"><!-- cards injected --></div>
+      <p class="squat-note xhs-note">※ 卡片当前为手工快照，接口 <code>VIBE_DASH.setNotes([...])</code> 留给 Hermes 抓真实笔记；点卡片去主页（链接待填）。</p>
+    </div>
+  </section>
+
+  <!-- ====== 07 · CONTACT ====== -->
   <section class="sec" id="contact">
     <div class="wrap">
-      <p class="eyebrow" data-rise>06 — 来玩 · say hi</p>
+      <p class="eyebrow" data-rise>07 — 来玩 · say hi</p>
       <h2 data-split>提 ISSUE，<br>或者只是<span class="alt">来串门</span><span class="serif-it">。</span></h2>
       <div class="contact-links">
         <a class="c-link" href="https://github.com/xing0325" target="_blank" rel="noopener" data-rise style="--i:0">
@@ -764,6 +879,22 @@
         <a class="c-link" href="#" data-rise style="--i:3" data-todo="微信号或二维码弹层">
           <span class="n">WeChat</span><span class="h">熟人通道 · 暗号是"蹲蹲"</span><span class="arrow">↗</span>
         </a>
+      </div>
+      <div class="sloganwrap">
+        <svg class="sig contact-sig" data-sig viewBox="0 0 360 180" aria-hidden="true">
+          <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
+                   M84 132 C92 100 98 72 100 52 C96 84 92 116 92 132 C98 118 110 108 118 112 C126 116 120 128 126 132
+                   M140 112 C138 120 136 128 138 132 M144 94 C145 92 146 91 147 92
+                   M196 98 C178 84 156 94 156 112 C156 132 178 140 194 132
+                   M210 132 C218 100 224 72 226 52 C222 84 218 116 218 132 C224 118 236 108 244 112 C252 116 246 128 252 132
+                   M266 112 C262 124 264 132 272 132 C280 132 286 124 288 114 C288 124 290 132 298 130 C308 127 314 116 316 108
+                   M40 152 C120 164 240 164 330 146"/>
+        </svg>
+        <div class="slogan" id="slogan">
+          <span class="slogan-base">Build something<br>cool<span class="serif-it" style="-webkit-text-stroke:0">。</span></span>
+          <span class="slogan-fill" aria-hidden="true">Build something<br>cool<span class="serif-it">。</span></span>
+        </div>
+        <p class="slogan-sub">— chichu · 18 · vibe coder · 好奇心是第一动力</p>
       </div>
       <div class="site-footer">
         <span>© 2026 chichu · DX·0325 — 单文件零依赖，view-source 欢迎抄走</span>
@@ -997,6 +1128,7 @@ precision highp float;
 uniform sampler2D uVel, uNoise;
 uniform vec2  uRes;
 uniform float uTime, uReveal, uHelmetAlways;
+uniform float uDesat;          // hero-exit: scroll drains the color away
 uniform mat3  uRot;            // helmet orientation, built on the CPU
 uniform vec2  uMaskBand;       // (low, high) velocity thresholds
 uniform vec3  uBg, uFg, uOutline, uCurBg, uCurFg, uCurOutline;
@@ -1152,6 +1284,9 @@ void main(){
   /* helmet appears only inside the trail */
   vec4 helm = (mask > 0.003) ? renderHelmet(uv) : vec4(0.);
   vec3 color = mix(background, helm.rgb, helm.a * mask);
+
+  /* hero exit: desaturate toward newsprint as the page scrolls on */
+  color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), uDesat);
 
   /* paper grain */
   color -= (hash12(vUv * uRes + fract(uTime) * 100.0) - 0.5) * 0.035;
@@ -1442,6 +1577,7 @@ function renderFrame(now){
   gl.uniform1f(p.u.uTime, t);
   gl.uniform1f(p.u.uReveal, eased);
   gl.uniform1f(p.u.uHelmetAlways, showHelmetAlways ? 1 : 0);
+  gl.uniform1f(p.u.uDesat, Math.min(1, heroExitP * 1.15));
   gl.uniform2f(p.u.uMaskBand, CONF.maskLow, CONF.maskHigh);
   // helmet orientation on the CPU: one mat3 upload instead of per-fragment
   // sin/cos. Sway freezes under reduced motion.
@@ -1548,6 +1684,8 @@ window.HERO = {
 
 /* --- 8a. pause the fluid when the hero scrolls out of view --- */
 let heroVisible = true;
+let heroExitP = 0;   // 0 at top → 1 once the hero has fully scrolled away
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
 new IntersectionObserver(es => { heroVisible = es[0].isIntersecting; }, { threshold: 0.02 })
   .observe(document.querySelector('.s-hero'));
 
@@ -1615,14 +1753,109 @@ document.querySelectorAll('a, button, .graph-stage, .squat, kbd').forEach(el => 
   el.addEventListener('pointerleave', () => cursorEl.classList.remove('big'));
 });
 
-/* --- 8f. shared page rAF (separate from the GL loop) --- */
+/* --- 8f. scroll-driven props: signatures, xhs deck, slogan --- */
+// hand-drawn "chichu" placeholder — trace the real signature later
+const sigs = [...document.querySelectorAll('[data-sig]')].map(svg => {
+  const path = svg.querySelector('path');
+  const len = path.getTotalLength();
+  path.style.strokeDasharray = len;
+  path.style.strokeDashoffset = len;
+  return { svg, path, len };
+});
+
+const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
+const XHS_NOTES = [
+  { tag:'#施工日志', t:'用 Claude 把 landonorris.com 的流体头盔搬回了家', d:'今天', g:['#c5e016','#86a009'], w:'FLUID' },
+  { tag:'#上线了',   t:'棋界融合：国象 × 将棋的 9×9 缝合实验',           d:'本周', g:['#23261f','#4a5240'], w:'CHESS' },
+  { tag:'#dogfood',  t:'打字爽——给中文打字一点 juice',                  d:'本周', g:['#ff7847','#ffb347'], w:'DAZI' },
+  { tag:'#硬件',     t:'Cardputer 掌机开箱 + 第一行固件点灯',            d:'上月', g:['#16b3c7','#0e7a88'], w:'M5' },
+  { tag:'#工作流',   t:'sessionss：把大项目拆进并行会话',                d:'上月', g:['#5a5f52','#23261f'], w:'FLOW' },
+];
+const xhsStage = document.getElementById('xhsStage');
+const xhsCards = [];
+const stackRot = [-11, 7, -4, 9, -7, 5];
+const finalRot = [-7, 4, -2, 5, 8, -4];
+function buildXhs(notes){
+  if (!xhsStage) return;
+  xhsStage.textContent = '';
+  xhsCards.length = 0;
+  notes.forEach((nt, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'xhs-wrap';
+    wrap.style.zIndex = 10 - Math.abs(i - (notes.length - 1) / 2) * 2;
+    wrap.innerHTML =
+      `<div class="xhs-card">` +
+      `<div class="xhs-pic" style="background:linear-gradient(145deg,${nt.g[0]},${nt.g[1]})"><b>${nt.w}</b></div>` +
+      `<div class="xhs-t">${nt.t}</div>` +
+      `<div class="xhs-meta"><span class="tag">${nt.tag}</span><span>${nt.d}</span></div>` +
+      `</div>`;
+    wrap.addEventListener('click', () => {
+      if (XHS_PROFILE) open(XHS_PROFILE, '_blank');
+      else {
+        const tEl = wrap.querySelector('.xhs-t'), old = tEl.textContent;
+        tEl.textContent = '主页链接还没填——催 chichu 去';
+        setTimeout(() => tEl.textContent = old, 1800);
+      }
+    });
+    xhsStage.appendChild(wrap);
+    xhsCards.push(wrap);
+  });
+}
+buildXhs(XHS_NOTES);
+const sloganEl = document.getElementById('slogan');
+const sloganFill = sloganEl ? sloganEl.querySelector('.slogan-fill') : null;
+
+/* --- 8g. shared page rAF (separate from the GL loop) --- */
 let lastPage = performance.now();
 function pageLoop(now){
   requestAnimationFrame(pageLoop);
   const dt = Math.min(50, now - lastPage); lastPage = now;
+  const ih = innerHeight;
   // scroll velocity (px/frame, smoothed)
   scrollVel += ((scrollY - scrollY0) - scrollVel) * 0.12;
   scrollY0 = scrollY;
+
+  // hero exit: shrink into a rounded card while the shader drains color
+  heroExitP = clamp01(scrollY / ih);
+  canvas.style.transform = `scale(${1 - 0.14 * heroExitP})`;
+  canvas.style.borderRadius = `${heroExitP * 28}px`;
+
+  // signatures: handwriting follows the scroll
+  for (const s of sigs){
+    const r = s.svg.getBoundingClientRect();
+    if (r.bottom < -40 || r.top > ih + 40) continue;
+    const p = reducedMotion ? 1 : clamp01((ih * 0.92 - r.top) / (ih * 0.55));
+    s.path.style.strokeDashoffset = s.len * (1 - p);
+  }
+
+  // xhs deck: stacked pile fans out into a row as the section arrives
+  if (xhsCards.length){
+    const r = xhsStage.getBoundingClientRect();
+    if (!(r.bottom < -80 || r.top > ih + 80)){
+      const raw = clamp01((ih * 0.95 - r.top) / (ih * 0.62));
+      const p = reducedMotion ? 1 : 1 - Math.pow(1 - raw, 3);
+      const n = xhsCards.length;
+      const cardW = xhsCards[0].firstElementChild.offsetWidth || 240;
+      const step = Math.min(300, Math.max(120, (r.width - cardW) / Math.max(1, n - 1)));
+      xhsCards.forEach((el, i) => {
+        const o = i - (n - 1) / 2;
+        const x = o * step * p;
+        const y = Math.abs(o) * 15 * p + (1 - p) * 30;
+        const rot = stackRot[i % stackRot.length] * (1 - p) + finalRot[i % finalRot.length] * p;
+        el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+      });
+    }
+  }
+
+  // slogan: ink pours into the outline
+  if (sloganFill){
+    const r = sloganEl.getBoundingClientRect();
+    if (!(r.bottom < -40 || r.top > ih + 40)){
+      const p = reducedMotion ? 1 : clamp01((ih * 0.96 - r.top) / (ih * 0.52));
+      sloganFill.style.clipPath = `inset(-5% ${(1 - p) * 100}% -5% 0)`;
+    }
+  }
+
   // marquee
   if (mqVisible && !reducedMotion) for (const m of mqRows){
     if (!m.w) continue;
@@ -1859,6 +2092,8 @@ window.VIBE_DASH = {
   },
   /** 昨日更新一句话: VIBE_DASH.setLastLog('给打字爽加了暴击音效') */
   setLastLog(text){ document.querySelector('[data-hermes="lastlog"]').textContent = text; },
+  /** 小红书最新笔记: VIBE_DASH.setNotes([{tag,t,d,g:[c1,c2],w}]) — 结构见 XHS_NOTES */
+  setNotes(notes){ if (Array.isArray(notes) && notes.length) buildXhs(notes); },
   /** 更新日志列表/公屏留言板：预留挂载点，等 dashboard 定下数据结构 */
   mountBoard(renderFn){ /* TODO(Hermes): 自定义渲染入口 */ this._board = renderFn; },
 };
