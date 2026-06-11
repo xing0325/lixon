@@ -211,7 +211,8 @@
 
   /* --- fixed site nav, recolors over dark sections --- */
   .site-nav{
-    position:fixed; top:0; left:0; right:0; z-index:7;
+    position:fixed; top:0; left:0; right:0;
+    z-index:65;   /* above the menu panel (60) so the close button stays reachable */
     display:flex; align-items:center; justify-content:space-between;
     padding:14px clamp(16px,2.5vw,32px);
     pointer-events:none;
@@ -219,7 +220,7 @@
     transition:color .5s var(--ease);
     mix-blend-mode:normal;
   }
-  .site-nav.on-dark{ color:var(--paper); }
+  .site-nav.on-dark, body.menu-open .site-nav{ color:var(--paper); }
   .site-nav a{ color:inherit; text-decoration:none; pointer-events:auto; }
   .nav-mark{
     font-family:Impact,'Arial Narrow',sans-serif;
@@ -722,7 +723,9 @@
 
   /* --- hero status card (bottom-left zone, above the name) --- */
   .hero-status{
-    position:absolute; left:clamp(16px,2.5vw,32px); bottom:36vh; z-index:2;
+    position:absolute; left:clamp(16px,2.5vw,32px);
+    top:50%; transform:translateY(-50%);   /* center-left: clear of the name block at any window size */
+    z-index:2;
     width:min(250px,44vw);
     border:1px solid rgba(35,38,31,.32); border-radius:8px;
     background:rgba(248,248,243,.55); backdrop-filter:blur(5px);
@@ -741,7 +744,9 @@
   .hs-cap{ margin-top:9px; font-size:9.5px; font-style:italic; color:var(--ink-soft); letter-spacing:.08em; }
 
   /* --- horizontal album track (xhs 近期更新长廊) --- */
-  .s-album{ padding:0; height:300svh; background:#11140d; }
+  /* overflow:visible — .sec's overflow:hidden would break position:sticky;
+     the row itself is clipped by .album-pin */
+  .s-album{ padding:0; height:300svh; background:#11140d; overflow:visible; }
   .album-pin{
     position:sticky; top:0; height:100svh; overflow:hidden;
     display:flex; align-items:center;
@@ -981,7 +986,7 @@
   }
 </style>
 </head>
-<body>
+<body data-page="home">
 
 <div class="hero-back" id="heroBack"></div>
 <canvas id="gl"></canvas>
@@ -2932,6 +2937,7 @@ function setMenu(open){
   menuOpen = open;
   menuPanel.classList.toggle('open', open);
   menuBtn.classList.toggle('open', open);
+  document.body.classList.toggle('menu-open', open);
 }
 menuBtn.addEventListener('click', () => setMenu(!menuOpen));
 addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
