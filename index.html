@@ -43,7 +43,7 @@
      drains color, and the signature draws across. ------- */
   .s-hero{
     position:relative;
-    height:250svh;
+    height:420svh;   /* a long ride, like the reference — the exit earns its drama */
     z-index:2;
     /* let vertical swipes scroll the page on touch; the canvas below
        never receives the touch so its touch-action:none can't trap us */
@@ -184,10 +184,10 @@
   body.booted .name-block h1 span{ animation:slideUp 1.1s cubic-bezier(.22,1,.36,1) .35s forwards; }
   @keyframes slideUp{ to{ transform:translateY(0); } }
 
-  /* ------- boot loader: 点火仪式 ------- */
+  /* ------- boot: fluorescent splash + the c_ monogram (原站式) ------- */
   .boot{
     position:fixed; inset:0; z-index:80;
-    background:#0d0f0a; color:#f0f1e8;
+    background:var(--accent);
     display:grid; place-items:center;
     clip-path:inset(0);
     transition:clip-path .95s cubic-bezier(.76,0,.24,1);
@@ -195,40 +195,23 @@
   .boot.gone{ clip-path:inset(0 0 100% 0); pointer-events:none; }
   .boot::after{
     content:''; position:absolute; left:0; right:0; bottom:0; height:5px;
-    background:var(--accent);
+    background:#11140d;
   }
-  .boot-inner{ text-align:center; }
-  .boot-mark{
-    font-family:Impact,'Arial Narrow',sans-serif;
-    font-size:clamp(15px,1.4vw,19px); letter-spacing:.3em; color:#a8ad97;
+  .boot-logo{ width:clamp(110px,16vw,180px); color:#11140d; }
+  .boot-logo svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .boot-logo .bl-c{
+    stroke:currentColor; stroke-width:15;
+    stroke-linecap:round;
   }
-  .boot-pct{
-    font-family:Impact,'Arial Narrow',sans-serif;
-    font-size:clamp(90px,17vw,230px); line-height:1;
-    -webkit-text-stroke:2px #f0f1e8; color:transparent;
-    margin:10px 0 22px;
-    font-variant-numeric:tabular-nums;
+  .boot-logo .bl-cur{
+    fill:currentColor;
+    animation:blBlink 1.05s steps(1) infinite;
   }
-  .boot-pct.full{ color:var(--accent); -webkit-text-stroke:2px var(--accent); }
-  .boot-btn{
-    font:inherit; cursor:pointer;
-    font-family:Impact,'Arial Narrow',sans-serif;
-    font-size:clamp(16px,1.8vw,24px); letter-spacing:.18em; text-transform:uppercase;
-    background:none; color:#f0f1e8;
-    border:1.5px solid #f0f1e8; border-radius:99px;
-    padding:14px 38px;
-    opacity:.25; pointer-events:none;
-    transition:opacity .5s var(--ease), background .4s var(--ease),
-               color .4s var(--ease), transform .4s var(--ease), border-color .4s var(--ease);
-  }
-  .boot-btn.ready{ opacity:1; pointer-events:auto; animation:hintPulse 2.4s ease-in-out infinite; }
-  .boot-btn.ready:hover{
-    background:var(--accent); color:#0d0f0a; border-color:var(--accent);
-    transform:translateY(-3px); animation:none;
-  }
+  @keyframes blBlink{ 0%,55%{ opacity:1 } 56%,100%{ opacity:0 } }
   .boot-cap{
-    margin-top:18px; font-size:11px; font-style:italic;
-    letter-spacing:.22em; text-transform:uppercase; color:#6b7060;
+    position:absolute; left:50%; bottom:30px; transform:translateX(-50%);
+    font-size:10.5px; font-style:italic; letter-spacing:.3em; text-transform:uppercase;
+    color:#11140d; opacity:.7;
   }
   @media (prefers-reduced-motion:reduce){ .boot{ display:none; } }
 
@@ -1096,14 +1079,15 @@
 </head>
 <body data-page="home">
 
-<!-- 点火仪式：进度满格才解锁 LOAD DAVID，点击落幕 + 全场入场编排 -->
+<!-- 开屏：荧光黄纯色 + c_ 字标（开口圆环 = chichu 的 c，闪烁光标 = 永远在输入）-->
 <div class="boot" id="boot">
-  <div class="boot-inner">
-    <div class="boot-mark">DX·0325 — PERSONAL SITE</div>
-    <div class="boot-pct" id="bootPct">00</div>
-    <button class="boot-btn" id="bootBtn">Load David</button>
-    <div class="boot-cap" id="bootCap">fluid engine warming up…</div>
+  <div class="boot-logo" aria-label="chichu logo">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <path class="bl-c" d="M86 34 A36 36 0 1 0 86 86" fill="none"/>
+      <rect class="bl-cur" x="72" y="86" width="28" height="13" rx="3"/>
+    </svg>
   </div>
+  <div class="boot-cap">chichu · personal site</div>
 </div>
 
 <div class="hero-back" id="heroBack"></div>
@@ -1183,14 +1167,17 @@
 <div class="scroll-cue" id="scrollCue"><i></i><span>scroll</span></div>
 <button class="lock-pill" id="lockPill">tap to lock</button>
 <!-- 转场签名：钉住阶段由滚动进度描画，盖在变灰收缩的画布上 -->
-<svg class="sig hero-sig" id="heroSig" viewBox="0 0 360 180" aria-hidden="true">
-  <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
-           M84 132 C92 100 98 72 100 52 C96 84 92 116 92 132 C98 118 110 108 118 112 C126 116 120 128 126 132
-           M140 112 C138 120 136 128 138 132 M144 94 C145 92 146 91 147 92
-           M196 98 C178 84 156 94 156 112 C156 132 178 140 194 132
-           M210 132 C218 100 224 72 226 52 C222 84 218 116 218 132 C224 118 236 108 244 112 C252 116 246 128 252 132
-           M266 112 C262 124 264 132 272 132 C280 132 286 124 288 114 C288 124 290 132 298 130 C308 127 314 116 316 108
-           M40 152 C120 164 240 164 330 146"/>
+<svg class="sig hero-sig" id="heroSig" viewBox="0 0 420 220" aria-hidden="true">
+  <path d="M118 78 C92 26 28 20 22 78 C17 124 62 154 110 139 C140 130 152 108 150 90
+           M160 142 C170 100 178 64 178 40 C172 92 168 122 170 142 C178 124 192 116 200 122 C208 128 202 142 210 144
+           M224 118 C222 128 220 138 222 144
+           M228 100 C229 97 231 95 232 96
+           M262 112 C248 104 236 112 238 128 C240 142 256 146 268 138
+           M286 142 C294 104 300 70 300 46 C295 96 291 126 293 144 C300 128 313 120 321 126 C329 132 323 144 331 146
+           M348 116 C344 128 344 140 352 142 C362 144 370 134 372 122 C372 132 374 142 384 140 C396 137 402 126 404 116
+           M30 182 C140 212 300 208 405 160
+           M398 152 C403 147 409 145 414 148
+           M196 182 C198 180 201 180 202 182"/>
 </svg>
 </div>
 </header>
@@ -1416,14 +1403,17 @@
         </a>
       </div>
       <div class="sloganwrap">
-        <svg class="sig contact-sig" data-sig viewBox="0 0 360 180" aria-hidden="true">
-          <path d="M70 98 C52 84 30 94 30 112 C30 132 52 140 68 132
-                   M84 132 C92 100 98 72 100 52 C96 84 92 116 92 132 C98 118 110 108 118 112 C126 116 120 128 126 132
-                   M140 112 C138 120 136 128 138 132 M144 94 C145 92 146 91 147 92
-                   M196 98 C178 84 156 94 156 112 C156 132 178 140 194 132
-                   M210 132 C218 100 224 72 226 52 C222 84 218 116 218 132 C224 118 236 108 244 112 C252 116 246 128 252 132
-                   M266 112 C262 124 264 132 272 132 C280 132 286 124 288 114 C288 124 290 132 298 130 C308 127 314 116 316 108
-                   M40 152 C120 164 240 164 330 146"/>
+        <svg class="sig contact-sig" data-sig viewBox="0 0 420 220" aria-hidden="true">
+          <path d="M118 78 C92 26 28 20 22 78 C17 124 62 154 110 139 C140 130 152 108 150 90
+                   M160 142 C170 100 178 64 178 40 C172 92 168 122 170 142 C178 124 192 116 200 122 C208 128 202 142 210 144
+                   M224 118 C222 128 220 138 222 144
+                   M228 100 C229 97 231 95 232 96
+                   M262 112 C248 104 236 112 238 128 C240 142 256 146 268 138
+                   M286 142 C294 104 300 70 300 46 C295 96 291 126 293 144 C300 128 313 120 321 126 C329 132 323 144 331 146
+                   M348 116 C344 128 344 140 352 142 C362 144 370 134 372 122 C372 132 374 142 384 140 C396 137 402 126 404 116
+                   M30 182 C140 212 300 208 405 160
+                   M398 152 C403 147 409 145 414 148
+                   M196 182 C198 180 201 180 202 182"/>
         </svg>
         <div class="slogan" id="slogan">
           <span class="slogan-base">Build something<br>cool<span class="serif-it" style="-webkit-text-stroke:0">。</span></span>
@@ -1797,50 +1787,77 @@ in vec2 vUv; out vec4 frag;
 
 #define PI 3.14159265
 
-/* ---------- ASCII face — the trail re-renders the portrait as type ----------
-   character cells live in PHOTO space, so the figure's own silhouette
-   (keyed against the studio backdrop) shapes the glyph field exactly;
-   no rectangle anywhere. Density follows luminance, cells shimmer, and
-   rain pulses stream down the columns. */
+/* ---------- digital-rain face (黑客帝国流) ----------
+   character cells live in PHOTO space and only exist inside the figure's
+   keyed silhouette — the rain is shaped exactly like the portrait.
+   Per-column streams: a bright head races down, glyphs churn behind it
+   and fade; the face's own luminance keeps the features readable. */
 float hashA(vec2 p){
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
   return fract((p3.x + p3.y) * p3.z);
 }
-// 3x5 bitmap glyphs, 6 density levels: ' ' . : + # @
-const int GLYPHS[6] = int[6](0, 1024, 1040, 9682, 21845, 32767);
-float glyphPx(int lvl, vec2 f){
-  int x = int(clamp(f.x, 0.0, 0.999) * 3.0);
-  int y = int(clamp(f.y, 0.0, 0.999) * 5.0);
-  return float((GLYPHS[lvl] >> (y * 3 + x)) & 1);
+/* figure silhouette: color distance from the studio backdrop, with a
+   torso prior so the jersey's near-white piping doesn't punch holes */
+float figureKey(vec3 pc, vec2 puv){
+  float k = smoothstep(0.045, 0.105, distance(pc, vec3(0.905, 0.897, 0.885)));
+  float halfW = mix(0.22, 0.50, smoothstep(0.52, 0.95, puv.y));
+  float torso = (1.0 - smoothstep(halfW - 0.05, halfW, abs(puv.x - 0.5)))
+              * smoothstep(0.50, 0.62, puv.y);
+  return max(k, torso);
 }
-vec4 renderAscii(vec2 uv, vec2 vel){
+// 4x6 bitmap glyphs — digits & katakana-ish shapes, churned per cell
+const int MGLYPH[10] = int[10](
+  6920598,   // 0
+  7479858,   // 1
+  2237583,   // 7
+  2442318,   // J
+  15798545,  // L
+  4518976,   // +
+  16287887,  // ko
+  4753817,   // ri
+  15803535,  // Z
+  61680      // =
+);
+float mglyph(int g, vec2 f){
+  int x = int(clamp(f.x, 0.0, 0.999) * 4.0);
+  int y = int(clamp(f.y, 0.0, 0.999) * 6.0);
+  return float((MGLYPH[g] >> (y * 4 + x)) & 1);
+}
+vec4 renderMatrix(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;
   s -= uPar * vec2(0.022, 0.013);                 // same parallax as the photo
   float h = 1.0;
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
-  puv += vel * vec2(0.05, -0.05);                 // characters smear with the fluid
+  puv += vel * vec2(0.05, -0.05);                 // the rain smears with the fluid
   if (any(lessThan(puv, vec2(0.))) || any(greaterThan(puv, vec2(1.)))) return vec4(0.);
-  // character grid in photo space — it tracks the head, not the screen
-  vec2 cell = vec2(0.026, 0.036);
+  vec3 pcFull = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, puv)).rgb;
+  float key = figureKey(pcFull, puv);
+  if (key < 0.02) return vec4(0.);
+  // cells track the head, not the screen
+  vec2 cell = vec2(0.024, 0.034);
   vec2 ci = floor(puv / cell);
   vec2 cf = fract(puv / cell);
   vec3 pc = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, (ci + 0.5) * cell)).rgb;
-  // silhouette key: a cell exists only where the photo differs from backdrop
-  float key = smoothstep(0.055, 0.12, distance(pc, vec3(0.905, 0.897, 0.885)));
-  if (key < 0.02) return vec4(0.);
   float lum = dot(pc, vec3(0.299, 0.587, 0.114));
-  float lvlF = clamp((1.0 - lum) * 6.5 + 0.25, 0.0, 5.0);   // darker → denser, skin stays readable
-  // shimmer + rain pulses streaming down the columns
-  float jit = hashA(vec2(ci.x * 7.13, ci.y * 3.71 + floor(uTime * 2.5))) - 0.5;
-  float rain = step(fract(ci.y * 0.045 + hashA(vec2(ci.x, 3.3)) * 7.0 - uTime * 0.22), 0.055) * 2.0;
-  int lvl = int(clamp(lvlF + jit * 1.7 + rain, 0.0, 5.0));
-  if (glyphPx(lvl, cf) < 0.5) return vec4(0.);
-  vec3 ink = vec3(0.13, 0.15, 0.10);
-  vec3 cc = (rain > 0.5 || hashA(ci * 1.31) < 0.13) ? uFg * 0.92 : ink;
-  return vec4(cc, key);
+  // per-column stream: head position + fading tail behind it
+  float colSeed = hashA(vec2(ci.x, 17.7));
+  float head = fract(uTime * (0.10 + colSeed * 0.16) + colSeed * 9.0);
+  float d = fract(head - puv.y);
+  float tail = 0.35 + colSeed * 0.3;
+  float inten = max(0.0, 1.0 - d / tail);
+  inten *= inten;
+  // glyph identity churns at a per-column rate
+  int g = int(mod(hashA(vec2(ci.x * 3.1, ci.y * 5.7 + floor(uTime * (2.5 + colSeed * 5.0)))) * 10.0, 10.0));
+  float gpx = mglyph(g, cf);
+  vec3 dark = vec3(0.045, 0.058, 0.034);
+  if (gpx < 0.5) return vec4(dark, key * 0.9);    // dark ground fills the silhouette
+  float bright = clamp(0.22 + lum * 0.5 + inten * 0.9, 0.0, 1.25);
+  vec3 c = uFg * bright;
+  if (d < 0.025) c = mix(uFg, vec3(0.97, 1.0, 0.88), 0.75) * 1.1;   // white-hot head
+  return vec4(c, key);
 }
 
 /* ---------- the photo head, fluid-smeared, like the reference's GL head ---------- */
@@ -1853,12 +1870,11 @@ vec4 renderPhoto(vec2 uv, vec2 vel){
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
   if (any(lessThan(puv, vec2(0.))) || any(greaterThan(puv, vec2(1.)))) return vec4(0.);
-  vec3 col = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, puv)).rgb;
-  col = (col - 0.5) * 1.07 + 0.5;                // a touch of contrast
-  col *= uBg / vec3(0.905, 0.897, 0.885);        // marry the studio backdrop to the paper
-  // soft oval falloff so the photo rectangle never reads as a rectangle
-  vec2 q = (puv - vec2(0.5, 0.46)) / vec2(0.50, 0.60);
-  float a = 1.0 - smoothstep(0.80, 1.0, length(q));
+  vec3 raw = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, puv)).rgb;
+  vec3 col = (raw - 0.5) * 1.07 + 0.5;           // a touch of contrast
+  // proper cut-out: the studio backdrop is keyed away, so the figure sits
+  // directly on the page — no pale halo
+  float a = figureKey(raw, puv);
   return vec4(col, a);
 }
 
@@ -1904,7 +1920,7 @@ void main(){
   if (uHasPhoto > 0.5){
     vec4 photo = renderPhoto(uv, vfield);
     color = mix(color, photo.rgb, photo.a * (1.0 - mask));
-    vec4 az = (mask > 0.003) ? renderAscii(uv, vfield) : vec4(0.);
+    vec4 az = (mask > 0.003) ? renderMatrix(uv, vfield) : vec4(0.);
     color = mix(color, az.rgb, az.a * mask);
   }
 
@@ -2472,7 +2488,7 @@ const heroSigObj = prepSig(heroSig);
 // signatures PLAY as timed handwriting once triggered — scroll-scrubbing
 // feels broken with a mouse wheel (3 ticks = the whole pin, sig just pops)
 let heroSigT0 = null;
-const SIG_MS = 1500;
+const SIG_MS = 2600;   // a star takes their time signing
 
 const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
 const XHS_NOTES = [
@@ -2555,27 +2571,27 @@ function pageLoop(now){
   if (heroTrack.offsetParent !== null){
     const hr = heroTrack.getBoundingClientRect();
     const pinP = reducedMotion ? 0 : clamp01(-hr.top / (hr.height - ih));
-    const pe = 1 - Math.pow(1 - pinP, 2);              // ease-out
-    // past 55% of the shrink the card is a still photograph: clock stops,
-    // fluid stops, mouse does nothing — scrolling back up resumes seamlessly
-    if (pinP > 0.55 && !heroFrozen){
+    // the 420svh ride in phases: shrink+tint over the first 45%, the
+    // signature writes through the middle, then the card freezes into a
+    // still photograph and you coast on it until the next section arrives
+    const pe = 1 - Math.pow(1 - clamp01(pinP / 0.45), 2);
+    if (pinP > 0.62 && !heroFrozen){
       heroFrozen = true; frozenT = (performance.now() - t0) / 1000;
-    } else if (pinP <= 0.55 && heroFrozen){
+    } else if (pinP <= 0.62 && heroFrozen){
       heroFrozen = false; t0 = performance.now() - frozenT * 1000;
     }
-    // 原站口径：缩到 ~45%，垫一块近黑深绿衬底，50% 进度前拉满灰度
     canvas.style.transform = `scale(${1 - 0.55 * pe})`;
     canvas.style.borderRadius = `${pe * 44}px`;
-    heroBack.style.opacity = clamp01(pinP * 2.2);
-    heroExitP = clamp01(pinP * 2.0);                   // → uDesat
-    heroUi.style.opacity = 1 - clamp01(pinP * 3.2);
-    heroSig.style.opacity = clamp01((pinP - 0.08) * 6);
-    if (pinP > 0.12 && heroSigT0 === null) heroSigT0 = now;
-    else if (pinP <= 0.04 && heroSigT0 !== null){ heroSigT0 = null; drawSig(heroSigObj, 0); }
+    heroBack.style.opacity = clamp01(pinP * 3.2);
+    heroExitP = clamp01(pinP * 2.6);                   // → uDesat (warm print)
+    heroUi.style.opacity = 1 - clamp01(pinP * 4.5);
+    heroSig.style.opacity = clamp01((pinP - 0.13) * 8);
+    if (pinP > 0.17 && heroSigT0 === null) heroSigT0 = now;
+    else if (pinP <= 0.06 && heroSigT0 !== null){ heroSigT0 = null; drawSig(heroSigObj, 0); }
     if (heroSigT0 !== null)
       drawSig(heroSigObj, reducedMotion ? 1 : (now - heroSigT0) / SIG_MS);
     // scroll cue hides as soon as the exit begins
-    if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.03);
+    if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.02);
     // subtle DOM parallax against the cursor
     plxX += ((tx / Math.max(1, innerWidth) - 0.5) - plxX) * 0.06;
     plxY += ((ty / Math.max(1, innerHeight) - 0.5) - plxY) * 0.06;
@@ -3133,8 +3149,6 @@ const plxEls = [...document.querySelectorAll('[data-plx]')].map(el => ({ el, f: 
 let plxX = 0, plxY = 0;
 
 const bootEl = document.getElementById('boot');
-const bootPct = document.getElementById('bootPct');
-const bootBtn = document.getElementById('bootBtn');
 let booted = false;
 function finishBoot(instant){
   if (booted) return;
@@ -3147,22 +3161,10 @@ function finishBoot(instant){
     else { bootEl.classList.add('gone'); setTimeout(() => bootEl.remove(), 1100); }
   }
 }
-if (reducedMotion || !bootEl){
-  finishBoot(true);
-} else {
-  let bp = 0;
-  const iv = setInterval(() => {
-    bp += (100 - bp) * 0.055 + 0.6;
-    if (bp >= 100){
-      bp = 100; clearInterval(iv);
-      bootPct.classList.add('full');
-      bootBtn.classList.add('ready');
-      document.getElementById('bootCap').textContent = 'engine ready — 点火';
-    }
-    bootPct.textContent = String(Math.floor(bp)).padStart(2, '0');
-  }, 30);
-  bootBtn.addEventListener('click', () => finishBoot(false));
-}
+// splash holds just long enough to register, then the curtain drops —
+// no counters, no buttons, 原站 style
+if (reducedMotion || !bootEl) finishBoot(true);
+else setTimeout(() => finishBoot(false), 1400);
 
 const lockPill = document.getElementById('lockPill');
 let fluidLock = false;
