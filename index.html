@@ -187,7 +187,7 @@
   /* ------- boot: fluorescent splash + the c_ monogram (原站式) ------- */
   .boot{
     position:fixed; inset:0; z-index:80;
-    background:var(--accent);
+    background:#f0ec00;   /* fluorescent yellow splash — warmer than the site lime, reads as the cover */
     display:grid; place-items:center;
     clip-path:inset(0);
     transition:clip-path .95s cubic-bezier(.76,0,.24,1);
@@ -359,6 +359,14 @@
     color:#f0f1e8;
   }
   .sec[data-theme="dark"] .eyebrow{ color:var(--dark-soft); }
+  .sec[data-theme="dark"] .fact-card{
+    border-color:rgba(240,241,232,.2);
+    background:rgba(255,255,255,.045);
+  }
+  .sec[data-theme="dark"] .fact-card .k{ color:var(--dark-soft); }
+  .sec[data-theme="dark"] .about-body b{ background:linear-gradient(transparent 62%, rgba(210,255,0,.35) 62%); }
+  .sec[data-theme="dark"] .squat-note{ color:var(--dark-soft); }
+  .sec[data-theme="dark"] .xhs-note{ color:var(--dark-soft); }
   .wrap{ max-width:var(--maxw); margin:0 auto; position:relative; }
   .eyebrow{
     font-size:clamp(11px,.95vw,14px); font-style:italic;
@@ -499,7 +507,7 @@
   .graph-info .s{ display:inline-block; margin-top:8px; font-size:10.5px; font-style:italic; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); }
   .graph-legend{
     display:flex; gap:18px; margin-top:14px;
-    font-size:11px; font-style:italic; color:var(--dark-soft); flex-wrap:wrap;
+    font-size:11px; font-style:italic; color:var(--ink-soft); flex-wrap:wrap;
   }
   .graph-legend i{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
 
@@ -591,6 +599,7 @@
   .topic-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2vw,26px); }
   .topic-card{
     position:relative; border:1px solid rgba(240,241,232,.16);
+    background:var(--dark);
     border-radius:5px; padding:clamp(22px,3vw,40px);
     min-height:clamp(220px,30vh,320px);
     display:flex; flex-direction:column; justify-content:flex-end;
@@ -1217,8 +1226,8 @@
     </div>
   </section>
 
-  <!-- ====== 01 · ABOUT ====== -->
-  <section class="sec" id="about">
+  <!-- ====== 01 · ABOUT — 深色宣言屏，承接 hero 退场的暗场，给深色足够篇幅 ====== -->
+  <section class="sec" data-theme="dark" id="about">
     <div class="wrap">
       <p class="eyebrow" data-rise>01 — 关于 · about</p>
       <h2 data-split>我叫 CHICHU，<br>一名 <span class="alt">18 岁</span>的 VIBE CODER<span class="serif-it">。</span></h2>
@@ -1279,8 +1288,8 @@
     </div>
   </section>
 
-  <!-- ====== 04 · PROJECT GRAPH (obsidian 风格星图 · 缩略版) ====== -->
-  <section class="sec" data-theme="dark" id="graph">
+  <!-- ====== 04 · PROJECT GRAPH — 浅色章节里嵌一块深色「屏幕」，不再整屏切深 ====== -->
+  <section class="sec" id="graph">
     <div class="wrap">
       <p class="eyebrow" data-rise>04 — 项目星图 · constellation</p>
       <h2 data-split>灵感不删除，<br><span class="alt">只是还没连上线</span><span class="serif-it">。</span></h2>
@@ -1352,8 +1361,8 @@
     </div>
   </section>
 
-  <!-- ====== 05 · TOPICS ====== -->
-  <section class="sec" data-theme="dark" id="topics">
+  <!-- ====== 05 · TOPICS — 浅色章节，卡片本身是深色面板（保留生成式纹理） ====== -->
+  <section class="sec" id="topics">
     <div class="wrap">
       <p class="eyebrow" data-rise>07 — 怪问题研究所 · weird questions</p>
       <h2 data-split>有些问题不挣钱，<br><span class="alt">但是好玩</span><span class="serif-it">。</span></h2>
@@ -1800,11 +1809,16 @@ float hashA(vec2 p){
 /* figure silhouette: color distance from the studio backdrop, with a
    torso prior so the jersey's near-white piping doesn't punch holes */
 float figureKey(vec3 pc, vec2 puv){
-  float k = smoothstep(0.045, 0.105, distance(pc, vec3(0.905, 0.897, 0.885)));
+  float k = smoothstep(0.05, 0.12, distance(pc, vec3(0.905, 0.897, 0.885)));
   float halfW = mix(0.22, 0.50, smoothstep(0.52, 0.95, puv.y));
   float torso = (1.0 - smoothstep(halfW - 0.05, halfW, abs(puv.x - 0.5)))
               * smoothstep(0.50, 0.62, puv.y);
-  return max(k, torso);
+  k = max(k, torso);
+  // hard frame guard: the crop's own edges (a faint studio vignette) must
+  // never read as figure — this is what kills the vertical strip on one side
+  float frame = smoothstep(0.0, 0.055, puv.x) * smoothstep(1.0, 0.945, puv.x)
+              * smoothstep(0.0, 0.045, puv.y);
+  return k * frame;
 }
 // 4x6 bitmap glyphs — digits & katakana-ish shapes, churned per cell
 const int MGLYPH[10] = int[10](
@@ -1828,7 +1842,7 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;
   s -= uPar * vec2(0.022, 0.013);                 // same parallax as the photo
-  float h = 1.0;
+  float h = 1.22;
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                 // the rain smears with the fluid
@@ -1836,8 +1850,8 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
   vec3 pcFull = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, puv)).rgb;
   float key = figureKey(pcFull, puv);
   if (key < 0.02) return vec4(0.);
-  // cells track the head, not the screen
-  vec2 cell = vec2(0.024, 0.034);
+  // cells track the head, not the screen — sparser, more like real rain
+  vec2 cell = vec2(0.040, 0.054);
   vec2 ci = floor(puv / cell);
   vec2 cf = fract(puv / cell);
   vec3 pc = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, (ci + 0.5) * cell)).rgb;
@@ -1865,7 +1879,7 @@ vec4 renderPhoto(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;        // min-dim units, y up
   s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
-  float h = 1.0;                                  // portrait height in min-dim units
+  float h = 1.22;                                  // portrait height in min-dim units
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
@@ -2016,7 +2030,7 @@ let noiseStale = true;
    reveals chichu's face instead of the SDF helmet. Crop window picks
    head + shoulders out of the full portrait. --- */
 const PHOTO_SRC = 'hero-photo.jpg';
-const PHOTO_CROP = [0.08, 0.10, 0.92, 0.88];   // x0, y0, x1, y1 — 头到肩，掐掉头顶的空气
+const PHOTO_CROP = [0.13, 0.05, 0.87, 0.72];   // x0,y0,x1,y1 — tighter on the head: bigger face, less chest (Norris framing)
 let photoTex = null, photoAspect = 1, photoReady = false;
 const photoImg = new Image();
 function uploadPhoto(){
@@ -2485,10 +2499,9 @@ const heroBack = document.getElementById('heroBack');
 const heroUi = heroTrack.querySelector('.ui');
 const heroSig = document.getElementById('heroSig');
 const heroSigObj = prepSig(heroSig);
-// signatures PLAY as timed handwriting once triggered — scroll-scrubbing
-// feels broken with a mouse wheel (3 ticks = the whole pin, sig just pops)
-let heroSigT0 = null;
-const SIG_MS = 2600;   // a star takes their time signing
+// signatures are SCROLL-SCRUBBED throughout: the 420svh pin is long enough
+// that a wheel tick only advances the strokes a little, and scrolling back
+// up un-writes them — exactly like the reference
 
 const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
 const XHS_NOTES = [
@@ -2574,22 +2587,30 @@ function pageLoop(now){
     // the 420svh ride in phases: shrink+tint over the first 45%, the
     // signature writes through the middle, then the card freezes into a
     // still photograph and you coast on it until the next section arrives
-    const pe = 1 - Math.pow(1 - clamp01(pinP / 0.45), 2);
-    if (pinP > 0.62 && !heroFrozen){
+    // phases over the long ride:
+    //  0.00–0.40  shrink to a square card on the darkening mat
+    //  0.14–0.60  signature writes (scrubbed — reverses when you scroll up)
+    //  0.40–0.74  the still card holds (frozen image, no more fluid/mouse)
+    //  0.74–1.00  the card rides up and out, handing off to the dark manifesto
+    const shrink = 1 - Math.pow(1 - clamp01(pinP / 0.40), 2);
+    const exit = clamp01((pinP - 0.74) / 0.24);
+    if (pinP > 0.42 && !heroFrozen){
       heroFrozen = true; frozenT = (performance.now() - t0) / 1000;
-    } else if (pinP <= 0.62 && heroFrozen){
+    } else if (pinP <= 0.40 && heroFrozen){
       heroFrozen = false; t0 = performance.now() - frozenT * 1000;
     }
-    canvas.style.transform = `scale(${1 - 0.55 * pe})`;
-    canvas.style.borderRadius = `${pe * 44}px`;
+    const S = 1 - 0.54 * shrink;                        // → ~0.46, the reference's card size
+    canvas.style.transform = `translateY(${(-exit * 130).toFixed(2)}vh) scale(${S.toFixed(4)})`;
+    canvas.style.borderRadius = '0px';                 // square corners, like the reference card
     heroBack.style.opacity = clamp01(pinP * 3.2);
     heroExitP = clamp01(pinP * 2.6);                   // → uDesat (warm print)
     heroUi.style.opacity = 1 - clamp01(pinP * 4.5);
-    heroSig.style.opacity = clamp01((pinP - 0.13) * 8);
-    if (pinP > 0.17 && heroSigT0 === null) heroSigT0 = now;
-    else if (pinP <= 0.06 && heroSigT0 !== null){ heroSigT0 = null; drawSig(heroSigObj, 0); }
-    if (heroSigT0 !== null)
-      drawSig(heroSigObj, reducedMotion ? 1 : (now - heroSigT0) / SIG_MS);
+    // signature: SCROLL-SCRUBBED, so scrolling back up un-writes the strokes;
+    // rides up and fades with the card during the exit phase
+    const sigP = clamp01((pinP - 0.14) / 0.46);
+    heroSig.style.opacity = clamp01((pinP - 0.10) * 8) * (1 - exit);
+    heroSig.style.transform = `translate(-50%, ${(-52 - exit * 120).toFixed(1)}%) rotate(-6deg)`;
+    drawSig(heroSigObj, reducedMotion ? 1 : sigP);
     // scroll cue hides as soon as the exit begins
     if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.02);
     // subtle DOM parallax against the cursor
@@ -2614,16 +2635,13 @@ function pageLoop(now){
     }
   }
 
-  // signatures: write themselves over ~1.5s once they scroll into view
+  // other signatures (e.g. the closing slogan): scrubbed by their position,
+  // writing as they rise into view, un-writing on scroll-up
   for (const s of sigs){
     const r = s.svg.getBoundingClientRect();
-    if (r.top > ih + 60){           // far below: reset so it can replay
-      if (s.t0){ s.t0 = null; drawSig(s, 0); }
-      continue;
-    }
-    if (r.bottom < -60) continue;
-    if (!s.t0 && r.top < ih * 0.88) s.t0 = now;
-    if (s.t0) drawSig(s, reducedMotion ? 1 : (now - s.t0) / SIG_MS);
+    if (r.bottom < -60 || r.top > ih + 80) continue;
+    const p = clamp01((ih * 0.9 - r.top) / (ih * 0.5));
+    drawSig(s, reducedMotion ? 1 : p);
   }
 
   // xhs deck: stacked pile fans out into a row as the section arrives
