@@ -58,7 +58,7 @@
      topographic pattern and a giant marquee scrolls across behind the card */
   .hero-back{
     position:fixed; inset:0; z-index:0;
-    background:#14180c;   /* deep green-black, with texture on top */
+    background:#282c20;   /* dark-green — the reference's actual stage colour (--color--dark-green) */
     opacity:0;
     pointer-events:none;
     overflow:hidden;
@@ -73,8 +73,8 @@
     display:inline-block; will-change:transform;
     font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
     font-size:clamp(90px,17vh,200px); line-height:1; letter-spacing:.01em;
-    text-transform:uppercase; color:transparent;
-    -webkit-text-stroke:1.6px rgba(240,241,232,.17);
+    text-transform:uppercase;
+    color:rgba(210,214,196,.20);   /* soft grey words, clearly readable on the dark stage */
   }
   .hero-sig{
     position:absolute; left:50%; top:50%; z-index:3;
@@ -1870,7 +1870,7 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;
   s -= uPar * vec2(0.022, 0.013);                 // same parallax as the photo
-  float h = 1.22;
+  float h = 1.0;
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                 // the rain smears with the fluid
@@ -1910,7 +1910,7 @@ vec4 renderPhoto(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;        // min-dim units, y up
   s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
-  float h = 1.22;                                  // portrait height in min-dim units
+  float h = 1.0;                                  // portrait height in min-dim units
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
@@ -1980,8 +1980,10 @@ void main(){
   if (uDesat > 0.001){
     float lum = dot(color, vec3(0.299, 0.587, 0.114));
     vec3 faceSepia = mix(vec3(0.24, 0.17, 0.11), vec3(0.96, 0.91, 0.78), pow(lum, 0.85));
-    vec3 bgDark = mix(vec3(0.052, 0.063, 0.043), vec3(0.090, 0.108, 0.068), blob);
-    bgDark = mix(bgDark, vec3(0.16, 0.20, 0.07), edge * 0.6);   // contour lines keep a faint glow
+    // card background = the reference's grey card (--dark-green-tint-1 #3b3c38),
+    // only a few shades above the #282c20 stage behind it — NOT black
+    vec3 bgDark = mix(vec3(0.205, 0.210, 0.196), vec3(0.255, 0.262, 0.240), blob);
+    bgDark = mix(bgDark, vec3(0.31, 0.33, 0.24), edge * 0.5);   // faint contour, a touch lighter
     vec3 exitCol = mix(bgDark, faceSepia, faceA);
     color = mix(color, exitCol, uDesat * 0.96);
   }
@@ -2072,7 +2074,7 @@ let noiseStale = true;
    reveals chichu's face instead of the SDF helmet. Crop window picks
    head + shoulders out of the full portrait. --- */
 const PHOTO_SRC = 'hero-photo.jpg';
-const PHOTO_CROP = [0.32, 0.04, 0.66, 0.82];   // 商务 chichu (landscape) — zoom the centred head   // x0,y0,x1,y1 — tighter on the head: bigger face, less chest (Norris framing)
+const PHOTO_CROP = [0.0, 0.0, 1.0, 1.0];   // no crop — keep 商务chichu's own person-to-background ratio (head stays natural size)
 let photoTex = null, photoAspect = 1, photoReady = false;
 const photoImg = new Image();
 function uploadPhoto(){
@@ -2642,7 +2644,7 @@ function pageLoop(now){
     } else if (pinP <= 0.40 && heroFrozen){
       heroFrozen = false; t0 = performance.now() - frozenT * 1000;
     }
-    const S = 1 - 0.54 * shrink;                        // → ~0.46, the reference's card size
+    const S = 1 - 0.64 * shrink;                        // → ~0.36, matching the reference's smaller card
     canvas.style.transform = `translateY(${(-exit * 130).toFixed(2)}vh) scale(${S.toFixed(4)})`;
     canvas.style.borderRadius = '0px';                 // square corners, like the reference card
     heroBack.style.opacity = clamp01(pinP * 3.2);
