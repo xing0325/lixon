@@ -54,11 +54,27 @@
     height:100svh;
     overflow:hidden;
   }
+  /* the dark stage the card shrinks onto — NOT lights-out: it keeps a
+     topographic pattern and a giant marquee scrolls across behind the card */
   .hero-back{
     position:fixed; inset:0; z-index:0;
-    background:#0d0f0a;   /* near-black green, much deeper than section dark */
+    background:#14180c;   /* deep green-black, with texture on top */
     opacity:0;
     pointer-events:none;
+    overflow:hidden;
+  }
+  .hb-topo{ position:absolute; inset:0; width:100%; height:100%; opacity:.55; }
+  .hb-topo path{ fill:none; stroke:#d2ff00; stroke-width:1.1; opacity:.10; }
+  .hb-marquee{
+    position:absolute; top:50%; left:0; width:100%;
+    transform:translateY(-50%); white-space:nowrap;
+  }
+  .hb-row{
+    display:inline-block; will-change:transform;
+    font-family:Impact,'Arial Narrow','Microsoft YaHei',sans-serif;
+    font-size:clamp(90px,17vh,200px); line-height:1; letter-spacing:.01em;
+    text-transform:uppercase; color:transparent;
+    -webkit-text-stroke:1.6px rgba(240,241,232,.17);
   }
   .hero-sig{
     position:absolute; left:50%; top:50%; z-index:3;
@@ -70,7 +86,7 @@
     pointer-events:none;
     filter:drop-shadow(0 6px 30px rgba(0,0,0,.35));
   }
-  .hero-sig path{ stroke-width:4.2; }
+  .hero-sig path{ stroke-width:6.6; }   /* a bolder, marker-pen autograph */
   .ui{
     position:absolute; inset:0;
     pointer-events:none;
@@ -1099,7 +1115,18 @@
   <div class="boot-cap">chichu · personal site</div>
 </div>
 
-<div class="hero-back" id="heroBack"></div>
+<div class="hero-back" id="heroBack">
+  <svg class="hb-topo" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-40 130 C220 70 420 200 660 130 S1060 70 1260 150"/>
+    <path d="M-40 250 C240 190 430 320 690 250 S1070 190 1260 270"/>
+    <path d="M-40 380 C200 320 460 450 700 380 S1090 320 1260 400"/>
+    <path d="M-40 510 C240 450 440 580 680 510 S1080 450 1260 530"/>
+    <path d="M-40 640 C220 580 460 700 700 640 S1080 580 1260 660"/>
+  </svg>
+  <div class="hb-marquee" id="hbMarquee" aria-hidden="true">
+    <div class="hb-row" id="hbRow"><span>BUILD SOMETHING COOL — 操作熵↓ — OPEN SOURCE — 好奇心驱动 — </span></div>
+  </div>
+</div>
 <canvas id="gl"></canvas>
 
 <div class="progress" id="progress"></div>
@@ -1785,6 +1812,7 @@ uniform sampler2D uVel, uNoise;
 uniform vec2  uRes;
 uniform float uTime, uReveal, uHelmetAlways;
 uniform float uDesat;          // hero-exit: scroll drains the color away
+uniform float uFreeze;         // 1 once the card is a still photograph (kills the rain)
 uniform sampler2D uPhoto;      // chichu 正脸 — fluid 冲刷的对象
 uniform float uHasPhoto;
 uniform float uPhotoAspect;    // cropped width / height
@@ -1922,6 +1950,9 @@ void main(){
   float speed = length(vfield);
   float mask = smoothstep(uMaskBand.x, uMaskBand.y, speed);
   mask = clamp(mask + uHelmetAlways, 0.0, 1.0);
+  // once the card freezes into a still photograph, the rain must NOT bake
+  // onto the face — kill the trail so the frozen frame is clean (reference)
+  mask *= (1.0 - uFreeze);
 
   /* paper world vs. inside-the-trail world */
   vec3 outside = mix(uBg, mix(uBg, uFg, uReveal), blob);
@@ -1931,22 +1962,29 @@ void main(){
   vec3 background = mix(outside, inside, mask);
 
   /* the portrait lives on the page permanently; inside the trail the
-     photo dissolves and its ASCII rendition takes over — same silhouette,
-     same parallax, characters instead of pixels */
+     photo dissolves and its ASCII rendition takes over */
   vec3 color = background;
+  float faceA = 0.0;
   if (uHasPhoto > 0.5){
     vec4 photo = renderPhoto(uv, vfield);
+    faceA = photo.a;
     color = mix(color, photo.rgb, photo.a * (1.0 - mask));
     vec4 az = (mask > 0.003) ? renderMatrix(uv, vfield) : vec4(0.);
     color = mix(color, az.rgb, az.a * mask);
   }
 
-  /* hero exit: a warm SEPIA duotone — vintage print, not a cold grayscale.
-     Shadows fall to warm brown, highlights lift to cream; nothing goes to
-     pure black or white, so it never reads as a funeral portrait. */
-  float lum = dot(color, vec3(0.299, 0.587, 0.114));
-  vec3 sepia = mix(vec3(0.23, 0.16, 0.11), vec3(0.96, 0.91, 0.78), pow(lum, 0.85));
-  color = mix(color, sepia, uDesat * 0.9);
+  /* hero exit: TWO different colour maps, like the reference card —
+       · the portrait → warm sepia (vintage print, never funeral gray)
+       · everything else → a dark green-black that KEEPS its pattern
+         (the blob/contour texture survives, it's not lights-out) */
+  if (uDesat > 0.001){
+    float lum = dot(color, vec3(0.299, 0.587, 0.114));
+    vec3 faceSepia = mix(vec3(0.24, 0.17, 0.11), vec3(0.96, 0.91, 0.78), pow(lum, 0.85));
+    vec3 bgDark = mix(vec3(0.052, 0.063, 0.043), vec3(0.090, 0.108, 0.068), blob);
+    bgDark = mix(bgDark, vec3(0.16, 0.20, 0.07), edge * 0.6);   // contour lines keep a faint glow
+    vec3 exitCol = mix(bgDark, faceSepia, faceA);
+    color = mix(color, exitCol, uDesat * 0.96);
+  }
 
   /* paper grain */
   color -= (hash12(vUv * uRes + fract(uTime) * 100.0) - 0.5) * 0.035;
@@ -2277,6 +2315,7 @@ function renderFrame(now){
   gl.uniform1f(p.u.uReveal, eased);
   gl.uniform1f(p.u.uHelmetAlways, showHelmetAlways ? 1 : 0);
   gl.uniform1f(p.u.uDesat, heroExitP);
+  gl.uniform1f(p.u.uFreeze, heroFrozen ? 1 : 0);
   gl.uniform2f(p.u.uMaskBand, CONF.maskLow, CONF.maskHigh);
   // helmet orientation on the CPU: one mat3 upload instead of per-fragment
   // sin/cos. Sway freezes under reduced motion.
@@ -2609,12 +2648,17 @@ function pageLoop(now){
     heroBack.style.opacity = clamp01(pinP * 3.2);
     heroExitP = clamp01(pinP * 2.6);                   // → uDesat (warm print)
     heroUi.style.opacity = 1 - clamp01(pinP * 4.5);
-    // signature: SCROLL-SCRUBBED, so scrolling back up un-writes the strokes;
-    // rides up and fades with the card during the exit phase
+    // signature: SCROLL-SCRUBBED (scroll up un-writes). It rides up on the
+    // SAME -exit*130vh as the card, so the two leave as one layer — no drift.
     const sigP = clamp01((pinP - 0.14) / 0.46);
-    heroSig.style.opacity = clamp01((pinP - 0.10) * 8) * (1 - exit);
-    heroSig.style.transform = `translate(-50%, ${(-52 - exit * 120).toFixed(1)}%) rotate(-6deg)`;
+    heroSig.style.opacity = clamp01((pinP - 0.10) * 8);
+    heroSig.style.transform = `translate(-50%, -52%) translateY(${(-exit * 130).toFixed(2)}vh) rotate(-6deg)`;
     drawSig(heroSigObj, reducedMotion ? 1 : sigP);
+    // giant marquee scrolls across the dark stage behind the card
+    if (hbRow && hbSegW){
+      hbX = (hbX + 0.6 * dt / 16.7) % hbSegW;
+      hbRow.style.transform = `translateX(${-hbX.toFixed(1)}px)`;
+    }
     // scroll cue hides as soon as the exit begins
     if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.02);
     // subtle DOM parallax against the cursor
@@ -3169,6 +3213,18 @@ menuPanel.querySelectorAll('[data-menu-anchor]').forEach(a =>
 const scrollCue = document.getElementById('scrollCue');
 const plxEls = [...document.querySelectorAll('[data-plx]')].map(el => ({ el, f: +el.dataset.plx }));
 let plxX = 0, plxY = 0;
+
+// hero-stage marquee: clone the phrase into a long track so it loops
+// seamlessly; we translate within one segment width and modulo
+const hbRow = document.getElementById('hbRow');
+let hbX = 0, hbSegW = 0;
+if (hbRow){
+  const seg = hbRow.firstElementChild;
+  for (let i = 0; i < 7; i++) hbRow.appendChild(seg.cloneNode(true));
+  hbRow.style.display = 'inline-flex';
+  const measure = () => { hbSegW = seg.getBoundingClientRect().width || 1; };
+  measure(); addEventListener('resize', measure);
+}
 
 const bootEl = document.getElementById('boot');
 let booted = false;
