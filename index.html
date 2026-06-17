@@ -1851,7 +1851,7 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
   float key = figureKey(pcFull, puv);
   if (key < 0.02) return vec4(0.);
   // cells track the head, not the screen — sparser, more like real rain
-  vec2 cell = vec2(0.040, 0.054);
+  vec2 cell = vec2(0.046, 0.066);
   vec2 ci = floor(puv / cell);
   vec2 cf = fract(puv / cell);
   vec3 pc = texture(uPhoto, mix(uPhotoCrop.xy, uPhotoCrop.zw, (ci + 0.5) * cell)).rgb;
@@ -1865,7 +1865,10 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
   inten *= inten;
   // glyph identity churns at a per-column rate
   int g = int(mod(hashA(vec2(ci.x * 3.1, ci.y * 5.7 + floor(uTime * (2.5 + colSeed * 5.0)))) * 10.0, 10.0));
-  float gpx = mglyph(g, cf);
+  // inset each glyph into its cell with a generous gutter, so the falling
+  // digits stay separate islands instead of merging into vertical bars
+  vec2 gf = (cf - vec2(0.18, 0.14)) / vec2(0.62, 0.66);
+  float gpx = (gf.x < 0.0 || gf.x > 1.0 || gf.y < 0.0 || gf.y > 1.0) ? 0.0 : mglyph(g, gf);
   vec3 dark = vec3(0.045, 0.058, 0.034);
   if (gpx < 0.5) return vec4(dark, key * 0.9);    // dark ground fills the silhouette
   float bright = clamp(0.22 + lum * 0.5 + inten * 0.9, 0.0, 1.25);
@@ -1938,11 +1941,12 @@ void main(){
     color = mix(color, az.rgb, az.a * mask);
   }
 
-  /* hero exit: fade toward a warm old-print monochrome (NOT neutral gray —
-     the reference goes yellowish, and the backdrop shifts with it) */
+  /* hero exit: a warm SEPIA duotone — vintage print, not a cold grayscale.
+     Shadows fall to warm brown, highlights lift to cream; nothing goes to
+     pure black or white, so it never reads as a funeral portrait. */
   float lum = dot(color, vec3(0.299, 0.587, 0.114));
-  vec3 mono = lum * vec3(1.10, 1.03, 0.84) + vec3(0.05, 0.04, 0.01);
-  color = mix(color, mono, uDesat);
+  vec3 sepia = mix(vec3(0.23, 0.16, 0.11), vec3(0.96, 0.91, 0.78), pow(lum, 0.85));
+  color = mix(color, sepia, uDesat * 0.9);
 
   /* paper grain */
   color -= (hash12(vUv * uRes + fract(uTime) * 100.0) - 0.5) * 0.035;
