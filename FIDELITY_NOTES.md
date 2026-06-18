@@ -24,7 +24,7 @@
 - [x] 字号节奏：h2 lh.886、去 scaleY 拉伸、eyebrow 去斜体、hero 152px
 - [x] 菜单按钮 → .btn-w 语言 (lime, radius .54rem, wght800 wdth86)
 - [x] nav padding 1.25rem + 状态文字去斜体
-- [ ] 章节间距/容器宽度对齐原站节奏
+- [x] 蹲蹲提交按钮 lime 化 + body 段落行高 1.95->1.72 Mona500
 - [ ] body 段落行高/字重微调（可读性 vs 原站 1.25）
 - [ ] 签名改潇洒（笔画+路径）
 - [ ] hero/退场最终校准（待截图通道恢复后眼检）

@@ -477,10 +477,11 @@
     gap:clamp(28px,4vw,72px); align-items:start;
   }
   .about-body p{
-    font-size:clamp(15px,1.35vw,19px); line-height:1.95;
-    margin-bottom:1.4em; max-width:62ch;
+    font-size:clamp(15px,1.3vw,19px); line-height:1.72;
+    font-variation-settings:"wght" 460,"wdth" 100; letter-spacing:-.005em;
+    margin-bottom:1.3em; max-width:60ch;
   }
-  .about-body b{ background:linear-gradient(transparent 62%, var(--accent) 62%); font-weight:600; }
+  .about-body b{ background:linear-gradient(transparent 60%, var(--accent) 60%); font-variation-settings:"wght" 680,"wdth" 100; }
   .about-aside{ position:sticky; top:96px; display:flex; flex-direction:column; gap:14px; }
   .fact-card{
     border:1px solid rgba(35,38,31,.18);
@@ -564,15 +565,19 @@
   }
   .squat-mail.show{ display:flex; }
   .squat-mail input{
-    font:inherit; font-size:13px; padding:9px 14px;
-    border:1px solid rgba(35,38,31,.4); border-radius:3px;
+    font:inherit; font-size:13px; padding:11px 14px;
+    border:1px solid rgba(40,44,32,.35); border-radius:.4rem;
     background:transparent; min-width:min(300px,60vw);
   }
   .squat-mail button{
-    font:inherit; font-size:12.5px; font-style:italic; cursor:pointer;
-    border:none; border-radius:3px; padding:10px 16px;
-    background:var(--ink); color:var(--paper);
+    font-family:'Mona Sans Variable',Arial,sans-serif; cursor:pointer;
+    font-variation-settings:"wght" 800,"wdth" 86; font-size:13px;
+    text-transform:uppercase; letter-spacing:.02em;
+    border:1px solid var(--accent); border-radius:.54rem; padding:11px 18px;
+    background:var(--accent); color:var(--accent-ink);
+    transition:transform .35s var(--ease);
   }
+  .squat-mail button:hover{ transform:translateY(-1px); }
   .squat-note{ margin-top:10px; font-size:11.5px; font-style:italic; color:var(--ink-soft); }
 
   /* --- workflow cards --- */
