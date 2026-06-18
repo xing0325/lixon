@@ -2595,7 +2595,7 @@ const heroSigObj = prepSig(heroSig);
 // that a wheel tick only advances the strokes a little, and scrolling back
 // up un-writes them — exactly like the reference
 
-const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
+let XHS_PROFILE = 'https://www.xiaohongshu.com/user/profile/626e17a00000000021028b6e';   // chichu 主页
 const XHS_NOTES = [
   { tag:'#施工日志', t:'用 Claude 把 landonorris.com 的流体头盔搬回了家', d:'今天', g:['#c5e016','#86a009'], w:'FLUID' },
   { tag:'#上线了',   t:'棋界融合：国象 × 将棋的 9×9 缝合实验',           d:'本周', g:['#282c20','#4a5240'], w:'CHESS' },
@@ -2615,14 +2615,17 @@ function buildXhs(notes){
     const wrap = document.createElement('div');
     wrap.className = 'xhs-wrap';
     wrap.style.zIndex = 10 - Math.abs(i - (notes.length - 1) / 2) * 2;
+    const pic = nt.cover
+      ? `<div class="xhs-pic" style="background:#222 url('${nt.cover}') center/cover"></div>`
+      : `<div class="xhs-pic" style="background:linear-gradient(145deg,${nt.g[0]},${nt.g[1]})"><b>${nt.w}</b></div>`;
     wrap.innerHTML =
-      `<div class="xhs-card">` +
-      `<div class="xhs-pic" style="background:linear-gradient(145deg,${nt.g[0]},${nt.g[1]})"><b>${nt.w}</b></div>` +
+      `<div class="xhs-card">` + pic +
       `<div class="xhs-t">${nt.t}</div>` +
       `<div class="xhs-meta"><span class="tag">${nt.tag}</span><span>${nt.d}</span></div>` +
       `</div>`;
     wrap.addEventListener('click', () => {
-      if (XHS_PROFILE) open(XHS_PROFILE, '_blank');
+      const url = nt.url || XHS_PROFILE;
+      if (url) open(url, '_blank');
       else {
         const tEl = wrap.querySelector('.xhs-t'), old = tEl.textContent;
         tEl.textContent = '主页链接还没填——催 chichu 去';
@@ -2648,15 +2651,35 @@ const ALBUM = [
 ];
 const albumPin = document.getElementById('albumPin');
 const albumRow = document.getElementById('albumRow');
-if (albumRow) ALBUM.forEach(a => {
-  const card = document.createElement('div');
-  card.className = 'album-card';
-  card.innerHTML =
-    `<div class="album-top"><span>${a.tag}</span><span>${a.d}</span></div>` +
-    `<div class="album-cover" style="background:linear-gradient(150deg,${a.g[0]},${a.g[1]})"><b>${a.w}</b></div>` +
-    `<div class="album-line">${a.line}</div>`;
-  albumRow.appendChild(card);
-});
+function buildAlbum(notes){
+  if (!albumRow) return;
+  albumRow.textContent = '';
+  notes.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'album-card';
+    const cover = a.cover
+      ? `<div class="album-cover" style="background:#222 url('${a.cover}') center/cover"></div>`
+      : `<div class="album-cover" style="background:linear-gradient(150deg,${a.g[0]},${a.g[1]})"><b>${a.w}</b></div>`;
+    card.innerHTML =
+      `<div class="album-top"><span>${a.tag}</span><span>${a.d}</span></div>` + cover +
+      `<div class="album-line">${a.line}</div>`;
+    if (a.url) { card.style.cursor = 'pointer'; card.addEventListener('click', () => open(a.url, '_blank')); }
+    albumRow.appendChild(card);
+  });
+}
+buildAlbum(ALBUM);
+
+// xhs.json — drop next to index.html to replace the snapshot with real notes.
+// Produce it from the user's OpenCLI:
+//   opencli xiaohongshu user 626e17a00000000021028b6e --limit 12 -f json   (titles+urls)
+//   opencli xiaohongshu download <note> ...                                (covers -> assets/xhs/)
+// then shape it as: { profile, album:[{tag,d,line,cover,url}], notes:[{tag,t,d,cover,url}] }
+fetch('xhs.json').then(r => r.ok ? r.json() : null).then(j => {
+  if (!j) return;
+  if (j.profile) XHS_PROFILE = j.profile;
+  if (Array.isArray(j.album) && j.album.length) buildAlbum(j.album);
+  if (Array.isArray(j.notes) && j.notes.length) buildXhs(j.notes);
+}).catch(() => {});
 
 /* --- 8g. shared page rAF (separate from the GL loop) --- */
 let lastPage = performance.now();

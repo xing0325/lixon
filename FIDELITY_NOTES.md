@@ -42,3 +42,5 @@
 - [x] 修真 bug：allocate 首帧 rect~0 → 画布塌 1×1 黑 hero；回退 innerWidth 根治
 - [x] 46 处合成假斜体 italic→upright Mona（原站不用斜体，靠字重/字号分层）
 - [x] 84 处硬编码旧色 → 原站精确令牌
+- [x] 小红书预备：album/socials 支持真封面图 + xhs.json 自动加载（OpenCLI 抓到落盘即渲染）+ 真主页链接已填
+- [x] 全量 node --check 内联 JS 无语法错误；6 个旧色 0 残留；CSS 658 闭括号完整
