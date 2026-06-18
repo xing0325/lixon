@@ -415,14 +415,14 @@
   .rl{ display:block; overflow:hidden; }
   .rl > .rl-in{
     display:block; transform:translateY(115%);
-    transition:transform 1.05s var(--ease);
-    transition-delay:calc(var(--i,0) * 90ms);
+    transition:transform .8s var(--ease);
+    transition-delay:calc(var(--i,0) * 55ms);   /* fast cascade, like the reference (stagger ~.02-.05) */
   }
   .in .rl > .rl-in, .rl.in > .rl-in{ transform:translateY(0); }
   [data-rise]{
-    opacity:0; transform:translateY(26px);
-    transition:opacity .9s var(--ease), transform .9s var(--ease);
-    transition-delay:calc(var(--i,0) * 90ms);
+    opacity:0; transform:translateY(24px);
+    transition:opacity .7s var(--ease), transform .7s var(--ease);
+    transition-delay:calc(var(--i,0) * 55ms);
   }
   [data-rise].in{ opacity:1; transform:none; }
   @media (prefers-reduced-motion:reduce){
