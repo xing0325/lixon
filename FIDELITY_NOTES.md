@@ -36,3 +36,9 @@
 
 ## 已知障碍
 - 预览 screenshot 通道反复超时 → 用 getComputedStyle + canvas readPixels 数值验证
+
+## 夜间追加完成
+- [x] 全页 11 section + 3 子页健康审计（明暗叙事/色板/Mona 全对，无破版）
+- [x] 修真 bug：allocate 首帧 rect~0 → 画布塌 1×1 黑 hero；回退 innerWidth 根治
+- [x] 46 处合成假斜体 italic→upright Mona（原站不用斜体，靠字重/字号分层）
+- [x] 84 处硬编码旧色 → 原站精确令牌
