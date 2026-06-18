@@ -368,7 +368,9 @@
     position:relative;
     background:var(--paper);
     color:var(--ink);
-    padding:clamp(72px,11vw,150px) clamp(16px,4vw,48px);
+    /* the reference breathes — its sections run 8–18rem of vertical padding;
+       ours were cramped at ~150px max */
+    padding:clamp(96px,14vw,208px) clamp(18px,4vw,52px);
     overflow:hidden;
   }
   .sec[data-theme="dark"]{
