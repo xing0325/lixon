@@ -13,8 +13,8 @@
      original implementation · zero dependencies
      ============================================================ */
   :root{
-    --ink:#23261f;
-    --ink-soft:#5a5f52;
+    --ink:#282c20;
+    --ink-soft:#5c6150;
     --paper:#f8f8f3;
     --accent:#d2ff00;
     --accent-ink:#50593f;
@@ -212,9 +212,9 @@
   .boot.gone{ clip-path:inset(0 0 100% 0); pointer-events:none; }
   .boot::after{
     content:''; position:absolute; left:0; right:0; bottom:0; height:5px;
-    background:#11140d;
+    background:#111112;
   }
-  .boot-logo{ width:clamp(110px,16vw,180px); color:#11140d; }
+  .boot-logo{ width:clamp(110px,16vw,180px); color:#111112; }
   .boot-logo svg{ display:block; width:100%; height:auto; overflow:visible; }
   .boot-logo .bl-c{
     stroke:currentColor; stroke-width:15;
@@ -228,7 +228,7 @@
   .boot-cap{
     position:absolute; left:50%; bottom:30px; transform:translateX(-50%);
     font-size:10.5px; font-style:italic; letter-spacing:.3em; text-transform:uppercase;
-    color:#11140d; opacity:.7;
+    color:#111112; opacity:.7;
   }
   @media (prefers-reduced-motion:reduce){ .boot{ display:none; } }
 
@@ -242,7 +242,7 @@
   body.booted .scroll-cue{ animation:hintIn .8s ease 2.4s forwards; }
   .scroll-cue i{
     width:1.5px; height:38px; position:relative;
-    background:rgba(35,38,31,.25); overflow:hidden;
+    background:rgba(40,44,32,.25); overflow:hidden;
   }
   .scroll-cue i::after{
     content:''; position:absolute; left:0; top:-40%;
@@ -299,8 +299,8 @@
      ============================================================ */
   :root{
     --ease:cubic-bezier(.19,1,.22,1);
-    --dark:#1a1d14;
-    --dark-soft:#a8ad97;
+    --dark:#282c20;
+    --dark-soft:#b4b8a5;
     --maxw:1280px;
   }
   ::selection{ background:var(--accent); color:var(--dark); }
@@ -373,11 +373,11 @@
   }
   .sec[data-theme="dark"]{
     background:var(--dark);
-    color:#f0f1e8;
+    color:#f4f4ed;
   }
   .sec[data-theme="dark"] .eyebrow{ color:var(--dark-soft); }
   .sec[data-theme="dark"] .fact-card{
-    border-color:rgba(240,241,232,.2);
+    border-color:rgba(244,244,237,.2);
     background:rgba(255,255,255,.045);
   }
   .sec[data-theme="dark"] .fact-card .k{ color:var(--dark-soft); }
@@ -406,7 +406,7 @@
      the element's own color, which is transparent → invisible glyphs */
   .sec h2 .alt{ -webkit-text-stroke:1.8px var(--ink); color:transparent; }
   .sec[data-theme="dark"] h2 .alt,
-  .sec[data-theme="dark"] h1 .alt{ -webkit-text-stroke-color:#f0f1e8; }
+  .sec[data-theme="dark"] h1 .alt{ -webkit-text-stroke-color:#f4f4ed; }
   .serif-it{ font-family:'Brier','Mona Sans Variable',serif; font-style:italic; text-transform:none; letter-spacing:0; }
 
   /* --- split-line reveal (the master move of the whole site) --- */
@@ -432,11 +432,11 @@
   .sec-pulse{ padding:0; }
   .pulse-strip{
     display:grid; grid-template-columns:repeat(4,1fr);
-    border-bottom:1px solid rgba(240,241,232,.14);
+    border-bottom:1px solid rgba(244,244,237,.14);
   }
   .pulse-cell{
     padding:clamp(18px,2.6vw,34px) clamp(14px,2vw,28px);
-    border-right:1px solid rgba(240,241,232,.14);
+    border-right:1px solid rgba(244,244,237,.14);
     min-width:0;
   }
   .pulse-cell:last-child{ border-right:none; }
@@ -462,13 +462,13 @@
   }
   .mq-row + .mq-row{ margin-top:10px; }
   .mq-chunk{ display:flex; flex-shrink:0; padding-right:.6em; }
-  .mq-chunk .o{ -webkit-text-stroke:1.6px #f0f1e8; color:transparent; }
+  .mq-chunk .o{ -webkit-text-stroke:1.6px #f4f4ed; color:transparent; }
   .mq-chunk .lime{ color:var(--accent); }
   .mq-chunk span{ padding-right:.6em; }
   .hermes-note{
     padding:16px clamp(14px,2vw,28px) 22px;
     font-size:11.5px; font-style:italic; color:var(--dark-soft);
-    border-top:1px solid rgba(240,241,232,.14);
+    border-top:1px solid rgba(244,244,237,.14);
   }
 
   /* --- about --- */
@@ -484,12 +484,12 @@
   .about-body b{ background:linear-gradient(transparent 60%, var(--accent) 60%); font-variation-settings:"wght" 680,"wdth" 100; }
   .about-aside{ position:sticky; top:96px; display:flex; flex-direction:column; gap:14px; }
   .fact-card{
-    border:1px solid rgba(35,38,31,.18);
+    border:1px solid rgba(40,44,32,.18);
     padding:18px 20px; border-radius:4px;
     background:rgba(255,255,255,.45);
     transition:transform .6s var(--ease), box-shadow .6s var(--ease);
   }
-  .fact-card:hover{ transform:translateY(-4px); box-shadow:0 14px 30px -18px rgba(35,38,31,.35); }
+  .fact-card:hover{ transform:translateY(-4px); box-shadow:0 14px 30px -18px rgba(40,44,32,.35); }
   .fact-card .k{
     font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
     font-style:italic; color:var(--ink-soft); margin-bottom:8px;
@@ -499,7 +499,7 @@
   /* --- project graph (dark) --- */
   .graph-stage{
     position:relative;
-    border:1px solid rgba(240,241,232,.16);
+    border:1px solid rgba(244,244,237,.16);
     border-radius:6px;
     height:clamp(420px,58vh,640px);
     overflow:hidden;
@@ -511,7 +511,7 @@
   .graph-info{
     position:absolute; right:14px; bottom:14px; z-index:2;
     width:min(290px, 70vw);
-    border:1px solid rgba(240,241,232,.2);
+    border:1px solid rgba(244,244,237,.2);
     background:rgba(26,29,20,.88);
     backdrop-filter:blur(6px);
     padding:14px 16px; border-radius:4px;
@@ -535,10 +535,10 @@
     grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) auto auto;
     gap:clamp(10px,2vw,26px); align-items:center;
     padding:clamp(16px,2.2vw,26px) 6px;
-    border-bottom:1px solid rgba(35,38,31,.16);
+    border-bottom:1px solid rgba(40,44,32,.16);
     transition:background .4s var(--ease), padding-left .4s var(--ease);
   }
-  .up-row:first-of-type{ border-top:1px solid rgba(35,38,31,.16); }
+  .up-row:first-of-type{ border-top:1px solid rgba(40,44,32,.16); }
   .up-row:hover{ background:rgba(210,255,0,.10); padding-left:16px; }
   .up-name{
     font-family:'Mona Sans Variable',Arial,sans-serif;
@@ -587,7 +587,7 @@
   }
   .wf-card{
     position:relative;
-    border:1px solid rgba(35,38,31,.18);
+    border:1px solid rgba(40,44,32,.18);
     border-radius:5px; padding:clamp(20px,2.6vw,34px);
     background:rgba(255,255,255,.5);
     overflow:hidden;
@@ -599,7 +599,7 @@
     opacity:0; transition:opacity .6s var(--ease);
     pointer-events:none;
   }
-  .wf-card:hover{ transform:translateY(-6px); box-shadow:0 24px 44px -26px rgba(35,38,31,.4); }
+  .wf-card:hover{ transform:translateY(-6px); box-shadow:0 24px 44px -26px rgba(40,44,32,.4); }
   .wf-card:hover::before{ opacity:1; }
   .wf-num{
     font-family:'Mona Sans Variable',Arial,sans-serif; font-size:13px;
@@ -614,13 +614,13 @@
   .wf-tag{
     display:inline-block; margin-top:14px; margin-right:8px;
     font-size:10.5px; font-style:italic; letter-spacing:.12em; text-transform:uppercase;
-    border:1px solid rgba(35,38,31,.3); border-radius:99px; padding:4px 10px;
+    border:1px solid rgba(40,44,32,.3); border-radius:99px; padding:4px 10px;
   }
 
   /* --- topics (dark) --- */
   .topic-grid{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2vw,26px); }
   .topic-card{
-    position:relative; border:1px solid rgba(240,241,232,.16);
+    position:relative; border:1px solid rgba(244,244,237,.16);
     background:var(--dark);
     border-radius:5px; padding:clamp(22px,3vw,40px);
     min-height:clamp(220px,30vh,320px);
@@ -644,11 +644,11 @@
     pointer-events:auto;
     display:flex; align-items:baseline; justify-content:space-between;
     gap:18px; text-decoration:none; color:inherit;
-    border-bottom:1px solid rgba(35,38,31,.16);
+    border-bottom:1px solid rgba(40,44,32,.16);
     padding:clamp(14px,2vw,24px) 6px;
     transition:padding-left .45s var(--ease), background .45s var(--ease);
   }
-  .c-link:first-of-type{ border-top:1px solid rgba(35,38,31,.16); }
+  .c-link:first-of-type{ border-top:1px solid rgba(40,44,32,.16); }
   .c-link:hover{ padding-left:20px; background:rgba(210,255,0,.12); }
   .c-link .n{
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
@@ -684,11 +684,11 @@
     width:clamp(198px,21vw,256px);
     aspect-ratio:3/4.15;
     background:#fffdf6;
-    border:1px solid rgba(35,38,31,.16);
+    border:1px solid rgba(40,44,32,.16);
     border-radius:10px;
     padding:11px;
     display:flex; flex-direction:column; gap:10px;
-    box-shadow:0 18px 42px -28px rgba(35,38,31,.5);
+    box-shadow:0 18px 42px -28px rgba(40,44,32,.5);
     transform:translate(-50%,-50%);
     transition:transform .5s var(--ease), box-shadow .5s var(--ease);
     cursor:pointer;
@@ -696,14 +696,14 @@
   .xhs-wrap:hover{ z-index:6; }
   .xhs-wrap:hover .xhs-card{
     transform:translate(-50%,-54%) scale(1.05) rotate(.001deg);
-    box-shadow:0 34px 64px -30px rgba(35,38,31,.6);
+    box-shadow:0 34px 64px -30px rgba(40,44,32,.6);
   }
   .xhs-pic{
     flex:1; border-radius:6px; position:relative; overflow:hidden;
   }
   .xhs-pic::after{
     content:''; position:absolute; inset:0;
-    background-image:radial-gradient(rgba(35,38,31,.22) 1px, transparent 1.4px);
+    background-image:radial-gradient(rgba(40,44,32,.22) 1px, transparent 1.4px);
     background-size:9px 9px;
     mix-blend-mode:multiply;
   }
@@ -763,7 +763,7 @@
     transform:translateY(-102%);
   }
   .pt .a{ background:var(--accent); transition:transform .6s cubic-bezier(.76,0,.24,1); }
-  .pt .b{ background:#11140d; transition:transform .6s cubic-bezier(.76,0,.24,1) .1s; }
+  .pt .b{ background:#111112; transition:transform .6s cubic-bezier(.76,0,.24,1) .1s; }
   .pt.cover .a, .pt.cover .b{ transform:translateY(0); }
   .pt.leave .a{ transform:translateY(102%); transition-delay:.1s; }
   .pt.leave .b{ transform:translateY(102%); transition-delay:0s; }
@@ -788,7 +788,7 @@
   /* fullscreen menu panel */
   .menu-panel{
     position:fixed; inset:0; z-index:60;
-    background:#11140d; color:#f0f1e8;
+    background:#111112; color:#f4f4ed;
     clip-path:inset(0 0 100% 0);
     transition:clip-path .85s cubic-bezier(.76,0,.24,1), visibility 0s .85s;
     pointer-events:none;
@@ -817,7 +817,7 @@
   }
   .menu-page small{
     font-family:'Brier','Mona Sans Variable',serif; font-style:italic;
-    font-size:.3em; color:#a8ad97; letter-spacing:.1em;
+    font-size:.3em; color:#b4b8a5; letter-spacing:.1em;
     transition:color .4s var(--ease);
   }
   .menu-page:hover{ color:var(--accent); transform:translateX(12px); }
@@ -838,7 +838,7 @@
     font-size:12.5px; font-style:italic;
   }
   .menu-side a{
-    color:#a8ad97; text-decoration:none; padding:3px 0;
+    color:#b4b8a5; text-decoration:none; padding:3px 0;
     transition:color .3s var(--ease);
   }
   .menu-side a:hover{ color:var(--accent); }
@@ -860,7 +860,7 @@
   .hs-row{ display:flex; align-items:center; gap:8px; font-style:italic; letter-spacing:.12em; text-transform:uppercase; }
   .hs-row .status-dot{ flex-shrink:0; }
   .hs-tokens{ display:flex; gap:6px; margin-top:11px; }
-  .hs-tok{ flex:1; border:1px solid rgba(35,38,31,.16); border-radius:5px; padding:7px 8px; min-width:0; }
+  .hs-tok{ flex:1; border:1px solid rgba(40,44,32,.16); border-radius:5px; padding:7px 8px; min-width:0; }
   .hs-tok b{
     display:block; font-family:'Mona Sans Variable',Arial,sans-serif; font-weight:400;
     font-size:16px; letter-spacing:.03em; white-space:nowrap;
@@ -871,7 +871,7 @@
   /* --- horizontal album track (xhs 近期更新长廊) --- */
   /* overflow:visible — .sec's overflow:hidden would break position:sticky;
      the row itself is clipped by .album-pin */
-  .s-album{ padding:0; height:300svh; background:#11140d; overflow:visible; }
+  .s-album{ padding:0; height:300svh; background:#111112; overflow:visible; }
   .album-pin{
     position:sticky; top:0; height:100svh; overflow:hidden;
     display:flex; align-items:center;
@@ -915,7 +915,7 @@
     display:flex; flex-direction:column; justify-content:flex-end; gap:16px;
     text-decoration:none; color:inherit; overflow:hidden; cursor:pointer;
   }
-  .door + .door{ border-left:1px solid rgba(35,38,31,.16); }
+  .door + .door{ border-left:1px solid rgba(40,44,32,.16); }
   .door::before{
     content:''; position:absolute; inset:0;
     background:radial-gradient(ellipse at 50% 110%, var(--door-tint, rgba(210,255,0,.5)), transparent 62%);
@@ -963,8 +963,8 @@
   /* --- on-track: stat band + repo wall + 战绩表 --- */
   .stat-grid{
     display:grid; grid-template-columns:repeat(4,1fr);
-    gap:1px; background:rgba(35,38,31,.16);
-    border:1px solid rgba(35,38,31,.16); border-radius:8px; overflow:hidden;
+    gap:1px; background:rgba(40,44,32,.16);
+    border:1px solid rgba(40,44,32,.16); border-radius:8px; overflow:hidden;
   }
   .stat-cell{ background:var(--paper); padding:clamp(18px,2.4vw,34px) clamp(14px,2vw,28px); }
   .stat-v{ font-family:'Mona Sans Variable',Arial,sans-serif; font-size:clamp(34px,4.6vw,64px); letter-spacing:.02em; }
@@ -977,7 +977,7 @@
   }
   .repo-tile{
     position:relative; aspect-ratio:1/1.06; border-radius:9px; overflow:hidden;
-    border:1px solid rgba(35,38,31,.16); cursor:pointer;
+    border:1px solid rgba(40,44,32,.16); cursor:pointer;
   }
   .repo-cover{ position:absolute; inset:0; display:grid; place-items:center; }
   .repo-cover::after{
@@ -1013,7 +1013,7 @@
   .repo-over .meta{ display:flex; flex-wrap:wrap; gap:6px; }
   .repo-over .meta span{
     font-size:10px; font-style:italic; letter-spacing:.1em; text-transform:uppercase;
-    border:1px solid rgba(35,38,31,.3); border-radius:99px; padding:3px 9px;
+    border:1px solid rgba(40,44,32,.3); border-radius:99px; padding:3px 9px;
   }
   .repo-over .lk{ font-size:12px; font-style:italic; color:inherit; }
 
@@ -1035,7 +1035,7 @@
   /* --- calendar / dashboard --- */
   .tok-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,1.8vw,24px); }
   .tok-card{
-    border:1px solid rgba(35,38,31,.18); border-radius:9px;
+    border:1px solid rgba(40,44,32,.18); border-radius:9px;
     background:rgba(255,255,255,.5); padding:clamp(16px,2vw,26px);
   }
   .tok-k{ font-size:10.5px; font-style:italic; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
@@ -1045,15 +1045,15 @@
   }
   .tok-v small{ font-family:'Brier','Mona Sans Variable',serif; font-style:italic; font-size:.42em; color:var(--ink-soft); }
   .tok-spark{ display:flex; gap:4px; align-items:flex-end; height:44px; margin-top:14px; }
-  .tok-spark i{ flex:1; background:var(--accent); border:1px solid rgba(35,38,31,.25); border-bottom:none; border-radius:3px 3px 0 0; min-height:3px; }
+  .tok-spark i{ flex:1; background:var(--accent); border:1px solid rgba(40,44,32,.25); border-bottom:none; border-radius:3px 3px 0 0; min-height:3px; }
   .use-row{
     display:grid; grid-template-columns:minmax(90px,150px) 1fr 76px;
     gap:clamp(10px,2vw,20px); align-items:center;
-    padding:13px 4px; border-bottom:1px solid rgba(35,38,31,.14);
+    padding:13px 4px; border-bottom:1px solid rgba(40,44,32,.14);
   }
-  .use-row:first-of-type{ border-top:1px solid rgba(35,38,31,.14); }
+  .use-row:first-of-type{ border-top:1px solid rgba(40,44,32,.14); }
   .use-name{ font-family:'Mona Sans Variable',Arial,sans-serif; font-size:clamp(15px,1.5vw,21px); letter-spacing:.03em; text-transform:uppercase; }
-  .use-bar{ height:10px; border-radius:99px; background:rgba(35,38,31,.08); overflow:hidden; }
+  .use-bar{ height:10px; border-radius:99px; background:rgba(40,44,32,.08); overflow:hidden; }
   .use-bar i{ display:block; height:100%; width:0; background:var(--ink); border-radius:99px; transition:width 1.3s var(--ease) .15s; }
   .use-row.in .use-bar i{ width:var(--w,0%); }
   .use-min{ font-size:11.5px; font-style:italic; color:var(--ink-soft); text-align:right; }
@@ -1093,7 +1093,7 @@
     .menu-inner{ flex-direction:column; justify-content:flex-end; }
     .menu-side{ align-items:flex-start; text-align:left; }
     .doors{ grid-template-columns:1fr; }
-    .door + .door{ border-left:none; border-top:1px solid rgba(35,38,31,.16); }
+    .door + .door{ border-left:none; border-top:1px solid rgba(40,44,32,.16); }
     .door{ min-height:62svh; }
     .stat-grid{ grid-template-columns:1fr 1fr; }
     .tok-grid{ grid-template-columns:1fr; }
@@ -1358,7 +1358,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
       </div>
       <div class="graph-legend" data-rise>
         <span><i style="background:#d2ff00"></i>正在更新</span>
-        <span><i style="background:#f0f1e8"></i>已上线</span>
+        <span><i style="background:#f4f4ed"></i>已上线</span>
         <span><i style="background:#6b7060"></i>蛰伏中</span>
         <span style="opacity:.7">— 大点是项目，小点是它的分支动态 · 鼠标可以拨弄它们</span>
       </div>
@@ -1532,7 +1532,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     <div class="wrap">
       <p class="eyebrow" data-rise>全部战绩 · all results</p>
       <h2 data-split>从灵感到上线<span class="serif-it">，</span><br>一行一个<span class="alt">回合</span><span class="serif-it">。</span></h2>
-      <div id="resultRows" style="--row-line:rgba(240,241,232,.18)"><!-- rows injected --></div>
+      <div id="resultRows" style="--row-line:rgba(244,244,237,.18)"><!-- rows injected --></div>
     </div>
   </section>
 </div>
@@ -1555,11 +1555,11 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
       <h2 data-split>生活也要有<br><span class="alt">出片率</span><span class="serif-it">。</span></h2>
       <div class="photo-grid">
         <div class="photo-frame" data-rise style="--i:0;background:linear-gradient(160deg,#c5e016,#5a6b08)"><span>照片施工位 · 工位全景</span><span class="photo-cap">桌面 · 2026</span></div>
-        <div class="photo-frame" data-rise style="--i:1;background:linear-gradient(160deg,#23261f,#5a5f52)"><span>照片施工位 · 剧本杀夜</span><span class="photo-cap">剧本杀 · 21 本</span></div>
+        <div class="photo-frame" data-rise style="--i:1;background:linear-gradient(160deg,#282c20,#5c6150)"><span>照片施工位 · 剧本杀夜</span><span class="photo-cap">剧本杀 · 21 本</span></div>
         <div class="photo-frame" data-rise style="--i:2;background:linear-gradient(160deg,#16b3c7,#0e3f47)"><span>照片施工位 · Cardputer</span><span class="photo-cap">硬件 · M5</span></div>
         <div class="photo-frame" data-rise style="--i:0;background:linear-gradient(160deg,#ff7847,#8a3414)"><span>照片施工位 · 笔记系统</span><span class="photo-cap">第二大脑</span></div>
-        <div class="photo-frame" data-rise style="--i:1;background:linear-gradient(160deg,#5a5f52,#1a1d14)"><span>照片施工位 · 街拍</span><span class="photo-cap">城市 · 随手</span></div>
-        <div class="photo-frame" data-rise style="--i:2;background:linear-gradient(160deg,#d2ff00,#1a1d14)"><span>照片施工位 · 自由位</span><span class="photo-cap">to be shot</span></div>
+        <div class="photo-frame" data-rise style="--i:1;background:linear-gradient(160deg,#5c6150,#282c20)"><span>照片施工位 · 街拍</span><span class="photo-cap">城市 · 随手</span></div>
+        <div class="photo-frame" data-rise style="--i:2;background:linear-gradient(160deg,#d2ff00,#282c20)"><span>照片施工位 · 自由位</span><span class="photo-cap">to be shot</span></div>
       </div>
       <p class="squat-note" style="margin-top:26px">※ 等你的生活照原图，发我即换；构图比例 3:3.7 竖幅最合适。</p>
     </div>
@@ -1569,7 +1569,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     <div class="wrap">
       <p class="eyebrow" data-rise>随笔 · essays</p>
       <h2 data-split>写代码写不下的<span class="serif-it">，</span><br>写成<span class="alt">字</span><span class="serif-it">。</span></h2>
-      <div class="contact-links" id="essayRows" style="color:#f0f1e8"><!-- rows injected --></div>
+      <div class="contact-links" id="essayRows" style="color:#f4f4ed"><!-- rows injected --></div>
       <p class="squat-note" style="margin-top:20px;color:var(--dark-soft)">※ 文章正文页还没做——先占位，你把存稿给我就能上。</p>
     </div>
   </section>
@@ -1648,7 +1648,7 @@ const PALETTES = [
     name:'lime',
     bg:'#efefe5', fg:'#d2ff00', outline:'#c8cbbd',
     curBg:'#dde1d2', curFg:'#c8cbbd', curOutline:'#b4b8a5',
-    shell:'#c5e016', stripe:'#f5f2e6', visor:'#1c2017', trim:'#23261f',
+    shell:'#c5e016', stripe:'#f5f2e6', visor:'#1c2017', trim:'#282c20',
     cssInk:'#282c20', cssSoft:'#5c6150', cssPaper:'#efefe5',
   },
   { // 01 — zima: same structure, my blue
@@ -1967,11 +1967,16 @@ void main(){
   /* background noise: threshold + iso-contour outline, AA'd at full res */
   float n = texture(uNoise, uv).r * 2.0 - 1.0;
   float w = fwidth(n);
-  const float TH = 0.02;
+  // sparse lime ISLANDS (high threshold) instead of one giant lime mass —
+  // the reference keeps the cream clean and lets the fluid trail bring the lime
+  const float TH = 0.42;
   float blob = smoothstep(TH - w * 1.6, TH + w * 1.6, n);
-  // derivative-scaled contour: a fixed-width band in n-units turns into fat
-  // halos wherever the field flattens out — this stays ~2px on screen
-  float edge = 1.0 - smoothstep(w * 1.8, w * 3.6, abs(n - TH));
+  // topographic CONTOUR LINES across the whole field (multiple iso-levels),
+  // like the reference paper (and chichu's own studio backdrop)
+  float nf = n * 5.0;
+  float dl = min(fract(nf), 1.0 - fract(nf));
+  float topo = (1.0 - smoothstep(0.0, fwidth(nf) * 1.4, dl)) * 0.5;
+  float edge = (1.0 - smoothstep(w * 1.8, w * 3.6, abs(n - TH))) + topo;
 
   /* liquid mask from the velocity field */
   vec2 vfield = texture(uVel, uv).xy;
@@ -2579,10 +2584,10 @@ const heroSigObj = prepSig(heroSig);
 const XHS_PROFILE = '';   // TODO(chichu): 小红书主页链接，填了卡片就能点过去
 const XHS_NOTES = [
   { tag:'#施工日志', t:'用 Claude 把 landonorris.com 的流体头盔搬回了家', d:'今天', g:['#c5e016','#86a009'], w:'FLUID' },
-  { tag:'#上线了',   t:'棋界融合：国象 × 将棋的 9×9 缝合实验',           d:'本周', g:['#23261f','#4a5240'], w:'CHESS' },
+  { tag:'#上线了',   t:'棋界融合：国象 × 将棋的 9×9 缝合实验',           d:'本周', g:['#282c20','#4a5240'], w:'CHESS' },
   { tag:'#dogfood',  t:'打字爽——给中文打字一点 juice',                  d:'本周', g:['#ff7847','#ffb347'], w:'DAZI' },
   { tag:'#硬件',     t:'Cardputer 掌机开箱 + 第一行固件点灯',            d:'上月', g:['#16b3c7','#0e7a88'], w:'M5' },
-  { tag:'#工作流',   t:'sessionss：把大项目拆进并行会话',                d:'上月', g:['#5a5f52','#23261f'], w:'FLOW' },
+  { tag:'#工作流',   t:'sessionss：把大项目拆进并行会话',                d:'上月', g:['#5c6150','#282c20'], w:'FLOW' },
 ];
 const xhsStage = document.getElementById('xhsStage');
 const xhsCards = [];
@@ -2621,10 +2626,10 @@ const sloganFill = sloganEl ? sloganEl.querySelector('.slogan-fill') : null;
 // horizontal album: 近期小红书更新（封面 + 我的口吻一行）
 const ALBUM = [
   { tag:'#施工日志', d:'今天', w:'FLUID',  g:['#c5e016','#86a009'], line:'把 F1 官网的流体头盔搬回家，顺手修掉 17 个审查发现。' },
-  { tag:'#上线了',   d:'本周', w:'CHESS',  g:['#23261f','#4a5240'], line:'国象和将棋生了个孩子：9×9，规则已锁，先手没必胜。' },
+  { tag:'#上线了',   d:'本周', w:'CHESS',  g:['#282c20','#4a5240'], line:'国象和将棋生了个孩子：9×9，规则已锁，先手没必胜。' },
   { tag:'#dogfood',  d:'本周', w:'DAZI',   g:['#ff7847','#ffb347'], line:'打字也要有 juice——每一击都给你即时反馈。' },
   { tag:'#硬件',     d:'上月', w:'M5',     g:['#16b3c7','#0e7a88'], line:'口袋终端机 Cardputer：fn 键唤醒的坑，我替你踩平了。' },
-  { tag:'#工作流',   d:'上月', w:'FLOW',   g:['#5a5f52','#23261f'], line:'一个人同时推五个项目的秘密：sessionss 并行会话。' },
+  { tag:'#工作流',   d:'上月', w:'FLOW',   g:['#5c6150','#282c20'], line:'一个人同时推五个项目的秘密：sessionss 并行会话。' },
   { tag:'#剧本杀',   d:'上月', w:'OCR',    g:['#8a3414','#d2691e'], line:'21 本剧本、1845 页，OCR 蒸馏出一部 59 万字故事圣经。' },
 ];
 const albumPin = document.getElementById('albumPin');
@@ -2705,11 +2710,11 @@ function pageLoop(now){
       const p = reducedMotion ? 1 : clamp01(-ar.top / (ar.height - ih));
       const travel = albumRow.scrollWidth - innerWidth + innerWidth * 0.12;
       albumRow.style.transform = `translateX(${-p * Math.max(0, travel)}px)`;
-      // color morph #11140d → paper
+      // color morph #111112 → paper
       const mixc = (a, b) => Math.round(a + (b - a) * p);
       albumPin.parentElement.style.background =
         `rgb(${mixc(17,248)},${mixc(20,248)},${mixc(13,243)})`;
-      albumPin.style.color = p > 0.55 ? 'var(--ink)' : '#f0f1e8';
+      albumPin.style.color = p > 0.55 ? 'var(--ink)' : '#f4f4ed';
     }
   }
 
@@ -2783,7 +2788,7 @@ const NODES = [
 ];
 const EDGES = [['zima','cook'],['cook','sess'],['zima','sess'],['chess','liumang'],['dazi','zima'],
                ['kindle','remix'],['card','pen'],['mofa','chess'],['ody','sess'],['kindle','zima']];
-const GCOL = { updating:'#d2ff00', live:'#f0f1e8', dormant:'#6b7060' };
+const GCOL = { updating:'#d2ff00', live:'#f4f4ed', dormant:'#6b7060' };
 const gCanvas = document.getElementById('graphCanvas');
 const gInfo = document.getElementById('graphInfo');
 if (gCanvas){
@@ -2826,7 +2831,7 @@ if (gCanvas){
     gtx.lineWidth = 1;
     for (const [a, b] of EDGES){
       const pa = pos[a], pb = pos[b];
-      gtx.strokeStyle = 'rgba(240,241,232,0.13)';
+      gtx.strokeStyle = 'rgba(244,244,237,0.13)';
       gtx.beginPath(); gtx.moveTo(pa[0], pa[1]); gtx.lineTo(pb[0], pb[1]); gtx.stroke();
     }
     // satellites
@@ -2834,9 +2839,9 @@ if (gCanvas){
       const p = pos[s.p.id];
       const x = p[0] + Math.cos(t * s.sp * 2 + s.a) * s.dist;
       const y = p[1] + Math.sin(t * s.sp * 2 + s.a) * s.dist * 0.7;
-      gtx.fillStyle = 'rgba(240,241,232,0.35)';
+      gtx.fillStyle = 'rgba(244,244,237,0.35)';
       gtx.beginPath(); gtx.arc(x, y, 1.6, 0, 6.29); gtx.fill();
-      gtx.strokeStyle = 'rgba(240,241,232,0.05)';
+      gtx.strokeStyle = 'rgba(244,244,237,0.05)';
       gtx.beginPath(); gtx.moveTo(p[0], p[1]); gtx.lineTo(x, y); gtx.stroke();
     }
     // nodes
@@ -2854,7 +2859,7 @@ if (gCanvas){
         gtx.beginPath(); gtx.arc(x, y, nd.r + 6 + Math.sin(t * 2 + nd.x * 10) * 2, 0, 6.29); gtx.stroke();
         gtx.lineWidth = 1;
       }
-      gtx.fillStyle = 'rgba(240,241,232,' + (isHover ? 1 : 0.62) + ')';
+      gtx.fillStyle = 'rgba(244,244,237,' + (isHover ? 1 : 0.62) + ')';
       gtx.font = (isHover ? '600 ' : '') + '11px Georgia, serif';
       gtx.textAlign = 'center';
       gtx.fillText(nd.n, x, y + nd.r + 16);
@@ -2939,10 +2944,10 @@ document.querySelectorAll('[data-topic-bg]').forEach(cv => {
             ctx2.lineWidth = 0.5 + ((i * j) % 3);
             ctx2.beginPath(); ctx2.moveTo(pts[i][0], pts[i][1]); ctx2.lineTo(pts[j][0], pts[j][1]); ctx2.stroke();
           }
-      pts.forEach(p => { ctx2.fillStyle = 'rgba(240,241,232,0.3)'; ctx2.beginPath(); ctx2.arc(p[0], p[1], 4, 0, 6.29); ctx2.fill(); });
+      pts.forEach(p => { ctx2.fillStyle = 'rgba(244,244,237,0.3)'; ctx2.beginPath(); ctx2.arc(p[0], p[1], 4, 0, 6.29); ctx2.fill(); });
     } else {
       // balance: two mirrored dot triangles tipping on a fulcrum
-      ctx2.fillStyle = 'rgba(240,241,232,0.16)';
+      ctx2.fillStyle = 'rgba(244,244,237,0.16)';
       const cx2 = r.width / 2, cy2 = r.height * 0.52;
       for (let row = 0; row < 6; row++)
         for (let col = 0; col <= row; col++){
@@ -3001,18 +3006,18 @@ window.VIBE_DASH = {
 /* --- 9a. on-track: repo wall + 战绩表 --- */
 const REPOS = [
   { n:'齐马蓝 · 本站',    w:'ZIMA',  g:['#c5e016','#86a009'], d:'流体显形 hero + 全站动效，单文件零依赖。你正泡在里面。', tech:['webgl2','zero-dep'], s:'updating', y:'2026', url:'' },
-  { n:'棋界融合',         w:'CHESS', g:['#23261f','#4a5240'], d:'国际象棋 × 将棋 9×9 融合棋，规则锁定，已上线对战。', tech:['game','railway'], s:'live', y:'2026', url:'https://chess-shogi-production.up.railway.app' },
+  { n:'棋界融合',         w:'CHESS', g:['#282c20','#4a5240'], d:'国际象棋 × 将棋 9×9 融合棋，规则锁定，已上线对战。', tech:['game','railway'], s:'live', y:'2026', url:'https://chess-shogi-production.up.railway.app' },
   { n:'打字爽',           w:'DAZI',  g:['#ff7847','#ffb347'], d:'中文打字练习站：Monkeytype 手感 + 强反馈 + 自定义文章。', tech:['web','dogfood'], s:'updating', y:'2026', url:'' },
   { n:'嬤法大逃杀',       w:'MOFA',  g:['#8a3a8a','#4a1d4a'], d:'多人混战实验小游戏，已部署可玩。', tech:['game'], s:'live', y:'2026', url:'https://mofazhusha-production.up.railway.app' },
   { n:'kindle-station',  w:'KNDL',  g:['#16b3c7','#0e7a88'], d:'EPUB 上传 → AI 魔改 → 转发 Kindle；bookmarklet 抓高亮同步。', tech:['web','epub'], s:'updating', y:'2026', url:'' },
-  { n:'odysseus 汉化',    w:'ODY',   g:['#5a5f52','#23261f'], d:'自托管 AI 工作台的完整中文本地化。', tech:['i18n','开源'], s:'live', y:'2026', url:'https://github.com/xing0325/odysseus-zh-CN' },
+  { n:'odysseus 汉化',    w:'ODY',   g:['#5c6150','#282c20'], d:'自托管 AI 工作台的完整中文本地化。', tech:['i18n','开源'], s:'live', y:'2026', url:'https://github.com/xing0325/odysseus-zh-CN' },
   { n:'动效食谱',         w:'COOK',  g:['#d2ff00','#5a6b08'], d:'65 个高端 web 动效 demo，逆向自 lando 官网，全部自包含。', tech:['css','webgl'], s:'live', y:'2026', url:'https://github.com/xing0325/web-anim-cookbook' },
-  { n:'官网拆解',         w:'TEAR',  g:['#1a1d14','#969d86'], d:'landonorris.com 全站拆解：11 demo + 17 块拆解笔记。', tech:['teardown'], s:'live', y:'2026', url:'https://github.com/xing0325/landonorris-teardown' },
+  { n:'官网拆解',         w:'TEAR',  g:['#282c20','#969d86'], d:'landonorris.com 全站拆解：11 demo + 17 块拆解笔记。', tech:['teardown'], s:'live', y:'2026', url:'https://github.com/xing0325/landonorris-teardown' },
   { n:'cardputer 掌机',   w:'M5',    g:['#0e7a88','#16b3c7'], d:'M5Stack 掌上终端固件折腾，ADV 板的坑一个个填。', tech:['硬件','c++'], s:'updating', y:'2026', url:'' },
   { n:'vibe 笔',          w:'PEN',   g:['#6b7060','#3a3f33'], d:'笔形外设 DIY。蛰伏中，等互动模块学完回来定 BOM。可蹲。', tech:['硬件'], s:'dormant', y:'2026', url:'' },
   { n:'剧本杀宇宙',       w:'OCR',   g:['#8a3414','#d2691e'], d:'21 本剧本 OCR 蒸馏成 59 万字故事圣经，改写续写进行中。', tech:['nlp','创作'], s:'dormant', y:'2026', url:'' },
-  { n:'sessionss',       w:'FLOW',  g:['#23261f','#5a5f52'], d:'把大项目拆进并行 session 的 skill，工作流陈列室 01 号。', tech:['skill'], s:'live', y:'2026', url:'' },
-  { n:'账号迁移手册',     w:'MIGR',  g:['#4a5240','#1a1d14'], d:'Claude 桌面端换账号迁移 session 的踩坑手册。', tech:['docs'], s:'live', y:'2026', url:'https://github.com/xing0325/claude-account-switch-migration' },
+  { n:'sessionss',       w:'FLOW',  g:['#282c20','#5c6150'], d:'把大项目拆进并行 session 的 skill，工作流陈列室 01 号。', tech:['skill'], s:'live', y:'2026', url:'' },
+  { n:'账号迁移手册',     w:'MIGR',  g:['#4a5240','#282c20'], d:'Claude 桌面端换账号迁移 session 的踩坑手册。', tech:['docs'], s:'live', y:'2026', url:'https://github.com/xing0325/claude-account-switch-migration' },
 ];
 const S_LABEL = { updating:'● 正在更新', live:'● 已上线', dormant:'● 蛰伏 · 可蹲' };
 const repoGrid = document.getElementById('repoGrid');
@@ -3034,8 +3039,8 @@ const resultRows = document.getElementById('resultRows');
 if (resultRows) REPOS.forEach((r, i) => {
   const row = document.createElement('div');
   row.className = 'up-row'; row.setAttribute('data-rise', ''); row.style.setProperty('--i', i % 4);
-  row.style.borderBottom = '1px solid rgba(240,241,232,.16)';
-  if (i === 0) row.style.borderTop = '1px solid rgba(240,241,232,.16)';
+  row.style.borderBottom = '1px solid rgba(244,244,237,.16)';
+  if (i === 0) row.style.borderTop = '1px solid rgba(244,244,237,.16)';
   row.innerHTML =
     `<div class="up-name">${r.n}</div>` +
     `<div class="up-msg" style="color:var(--dark-soft)">${r.d}</div>` +
@@ -3055,8 +3060,8 @@ const essayRows = document.getElementById('essayRows');
 if (essayRows) ESSAYS.forEach((s, i) => {
   const a = document.createElement('a');
   a.className = 'c-link'; a.href = '#'; a.setAttribute('data-rise', ''); a.style.setProperty('--i', i);
-  a.style.borderBottom = '1px solid rgba(240,241,232,.18)';
-  if (i === 0) a.style.borderTop = '1px solid rgba(240,241,232,.18)';
+  a.style.borderBottom = '1px solid rgba(244,244,237,.18)';
+  if (i === 0) a.style.borderTop = '1px solid rgba(244,244,237,.18)';
   a.innerHTML = `<span class="n" style="font-size:clamp(20px,3vw,40px)">${s.t}</span><span class="h" style="color:var(--dark-soft)">${s.d}</span><span class="arrow">↗</span>`;
   a.addEventListener('click', e => e.preventDefault());
   essayRows.appendChild(a);
