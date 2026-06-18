@@ -44,3 +44,17 @@
 - [x] 84 处硬编码旧色 → 原站精确令牌
 - [x] 小红书预备：album/socials 支持真封面图 + xhs.json 自动加载（OpenCLI 抓到落盘即渲染）+ 真主页链接已填
 - [x] 全量 node --check 内联 JS 无语法错误；6 个旧色 0 残留；CSS 658 闭括号完整
+
+## 待应用（需预览恢复后眼检校准 — 源码已研究出精确值）
+- 章节内节奏：eyebrow→h2 gap、h2→正文 gap 对照原站 --gap(1.25rem) 体系再校
+- 按钮/卡片圆角：原站 radius--small 1rem / .54rem；我方卡片现 4-5px 偏紧，待统一
+- marquee 速度：原站 speed 30/40 + scroll-speed 5/10 + duplicate 3/4 + 方向 left/right（PULSE 大字带可对齐）
+- 链接 hover：原站 .text-clip-w clip-path polygon + 逐字符滚动；我方 nav-link 已有 i/dup 滚动，正文链接可补
+- GL 场景在章节交界 morph（头盔→传送带→背景流体）——原站最贵的一招，我方暂以分段 canvas 替代
+- hero 退场最终眼检：缩放 0.36/灰卡 #3b3c38/暗垫 #282c20/marquee 浅灰/签名同步——数值已对，待视觉确认
+- 数字雨密度/字形、噪声 lime 岛数量——待眼检微调
+
+## 验证状态
+- 已数值验证（getComputedStyle / readPixels，预览可见时）：字体加载、11+3 页色板/字号、卡片退场色、噪声覆盖、画布尺寸
+- 阻断：预览窗口今夜变 hidden(0×0) → 截图 + canvas + 布局型 getComputedStyle 全部失效；非布局 CSS(颜色/字体)仍可查
+- 用户晨间需做：①把预览窗口唤到前台 + 硬刷新(Ctrl+Shift+R 重载内嵌字体) 眼检 ②OpenCLI 连扩展后抓小红书
