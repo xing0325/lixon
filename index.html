@@ -127,20 +127,18 @@
 
   .name-block{ line-height:.84; }
   .name-block .eyebrow{
-    font-size:clamp(11px,.95vw,14px);
-    font-style:italic;
-    letter-spacing:.22em;
+    font-size:clamp(10px,.82vw,13px);
+    font-variation-settings:"wght" 700,"wdth" 100;
+    letter-spacing:.14em;
     text-transform:uppercase;
     color:var(--ink-soft);
-    margin:0 0 clamp(8px,1vw,14px) 6px;
+    margin:0 0 clamp(8px,1vw,14px) 4px;
   }
   .name-block h1{
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     font-weight:400;
-    font-size:clamp(64px,13.5vw,210px);
-    letter-spacing:.005em;
+    font-size:clamp(60px,11vw,152px);   /* the reference's impact scale (~7.9rem), not stretched */
     text-transform:uppercase;
-    transform:scaleY(1.12);
     transform-origin:bottom left;
   }
   .name-block h1 .alt{
@@ -388,8 +386,9 @@
   .sec[data-theme="dark"] .xhs-note{ color:var(--dark-soft); }
   .wrap{ max-width:var(--maxw); margin:0 auto; position:relative; }
   .eyebrow{
-    font-size:clamp(11px,.95vw,14px); font-style:italic;
-    letter-spacing:.24em; text-transform:uppercase;
+    font-size:clamp(10px,.78vw,12px);
+    font-variation-settings:"wght" 700,"wdth" 100;
+    letter-spacing:.14em; text-transform:uppercase;
     color:var(--ink-soft); margin-bottom:clamp(20px,3vw,44px);
     display:flex; align-items:center; gap:14px;
   }
@@ -399,9 +398,8 @@
   .sec h2{
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     font-weight:400; text-transform:uppercase;
-    font-size:clamp(30px,4.2vw,62px);
-    line-height:.98; letter-spacing:.005em;
-    transform:scaleY(1.08); transform-origin:bottom left;
+    font-size:clamp(32px,4.4vw,66px);
+    line-height:.886;   /* the reference's title leading */
     margin-bottom:clamp(22px,3vw,42px);
   }
   /* NB: stroke color must be explicit — `currentColor` here would resolve to
@@ -731,7 +729,7 @@
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     font-size:clamp(46px,9.4vw,156px);
     line-height:.98; text-transform:uppercase; letter-spacing:.005em;
-    transform:scaleY(1.1); transform-origin:bottom left;
+    transform:scaleY(1); transform-origin:bottom left;
     user-select:none;
   }
   .slogan-base{ display:block; -webkit-text-stroke:1.8px var(--ink); color:transparent; }
@@ -931,7 +929,7 @@
     position:relative;
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif; font-weight:400;
     font-size:clamp(52px,7.6vw,128px); line-height:.92;
-    text-transform:uppercase; transform:scaleY(1.08); transform-origin:bottom left;
+    text-transform:uppercase; transform:scaleY(1); transform-origin:bottom left;
   }
   .door h3 em{ display:block; font-family:'Brier','Mona Sans Variable',serif; font-style:italic; text-transform:none; font-size:.36em; letter-spacing:.06em; margin-top:8px; }
   .door p{ position:relative; max-width:42ch; font-size:13.5px; font-style:italic; color:var(--ink-soft); line-height:1.8; }
@@ -947,7 +945,7 @@
   .p-hero h1{
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif; font-weight:400;
     font-size:clamp(54px,11vw,180px); line-height:.95;
-    text-transform:uppercase; transform:scaleY(1.1); transform-origin:bottom left;
+    text-transform:uppercase; transform:scaleY(1); transform-origin:bottom left;
   }
   .p-hero h1 .alt{ -webkit-text-stroke:2.2px var(--ink); color:transparent; }
   .p-hero .p-sub{
