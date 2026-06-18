@@ -2407,6 +2407,15 @@ const queueAllocate = () => {
   resizeTimer = setTimeout(() => allocate(), 150);
 };
 addEventListener('resize', queueAllocate);
+// the canvas can start at 0px (first paint / iframe / slow boot) and only get
+// its real box a frame later — re-allocate the moment its size actually changes
+if (window.ResizeObserver){
+  let roInit = false;
+  new ResizeObserver(() => {
+    if (roInit && canvas.getBoundingClientRect().width > 2) allocate(true);
+    roInit = true;
+  }).observe(canvas);
+}
 // DPR can change without a resize (window dragged between monitors with
 // different OS scaling) — watch it directly, re-arming after each flip
 (function watchDPR(){
