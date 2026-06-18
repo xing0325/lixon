@@ -318,7 +318,7 @@
     position:fixed; top:0; left:0; right:0;
     z-index:65;   /* above the menu panel (60) so the close button stays reachable */
     display:flex; align-items:center; justify-content:space-between;
-    padding:14px clamp(16px,2.5vw,32px);
+    padding:20px clamp(16px,2.5vw,32px);   /* --gap 1.25rem, like the reference nav */
     pointer-events:none;
     color:var(--ink);
     transition:color .5s var(--ease);
@@ -335,8 +335,8 @@
   .nav-right{ display:flex; align-items:center; gap:clamp(10px,1.6vw,22px); }
   .nav-status{
     display:flex; align-items:center; gap:7px;
-    font-size:11px; font-style:italic; letter-spacing:.12em;
-    text-transform:uppercase; pointer-events:auto;
+    font-size:10.5px; font-variation-settings:"wght" 600,"wdth" 100;
+    letter-spacing:.1em; text-transform:uppercase; pointer-events:auto;
   }
   .status-dot{
     width:8px; height:8px; border-radius:50%;
@@ -766,14 +766,16 @@
   /* menu button (top right) */
   .menu-btn{
     pointer-events:auto; cursor:pointer;
-    background:none; color:inherit; font:inherit;
-    border:1px solid currentColor; border-radius:99px;
-    font-size:11.5px; font-style:italic; letter-spacing:.16em;
-    text-transform:uppercase; padding:8px 18px;
+    background:var(--accent); color:var(--accent-ink);
+    font-family:'Mona Sans Variable',Arial,sans-serif;
+    font-variation-settings:"wght" 800,"wdth" 86;
+    border:1px solid var(--accent); border-radius:.54rem;   /* the reference's .btn-w */
+    font-size:13px; letter-spacing:.02em;
+    text-transform:uppercase; padding:11px 20px;
     position:relative; overflow:hidden;
-    transition:background .4s var(--ease), color .4s var(--ease);
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease);
   }
-  .menu-btn:hover{ background:var(--accent); color:#11140d; border-color:var(--accent); }
+  .menu-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px -10px rgba(40,44,32,.5); }
   .menu-btn i{ display:block; font-style:inherit; transition:transform .5s var(--ease); }
   .menu-btn i.dup{ position:absolute; left:0; right:0; top:100%; }
   .menu-btn.open i{ transform:translateY(-100%); }
