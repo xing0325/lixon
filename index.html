@@ -1898,7 +1898,7 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;
   s -= uPar * vec2(0.022, 0.013);                 // same parallax as the photo
-  float h = 1.0;
+  float h = 0.68;
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                 // the rain smears with the fluid
@@ -1938,7 +1938,7 @@ vec4 renderPhoto(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
   vec2 s = (uv - vec2(0.5, 0.45)) * axis;        // min-dim units, y up
   s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
-  float h = 1.0;                                  // portrait height in min-dim units
+  float h = 0.68;                                  // portrait height in min-dim units
   float w = h * uPhotoAspect;
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
