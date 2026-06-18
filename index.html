@@ -2144,11 +2144,16 @@ function allocate(force){
   // canvas stays layout-viewport sized
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.min(devicePixelRatio || 1, CONF.maxDPR);
-  const W = Math.max(1, Math.round(rect.width  * dpr));
-  const H = Math.max(1, Math.round(rect.height * dpr));
+  // fall back to the viewport if the box hasn't been laid out yet (rect ~0 at
+  // first paint) — otherwise the backing store collapses to 1x1 and the hero
+  // renders black until the next resize
+  const cw = rect.width  > 2 ? rect.width  : innerWidth;
+  const ch = rect.height > 2 ? rect.height : innerHeight;
+  const W = Math.max(1, Math.round(cw * dpr));
+  const H = Math.max(1, Math.round(ch * dpr));
   if (!force && vel && W === canvas.width && H === canvas.height) return;
-  viewW = rect.width  || innerWidth;
-  viewH = rect.height || innerHeight;
+  viewW = cw;
+  viewH = ch;
   canvas.width  = W;
   canvas.height = H;
   simW = Math.max(64, Math.round(W * CONF.simScale));
