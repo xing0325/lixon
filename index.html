@@ -932,7 +932,7 @@
 
   /* the moving track: flex row of columns + spacers, ported metrics */
   .album-track{
-    --gap:1.25rem; --spacer:31.51vh;
+    --gap:1.25rem; --spacer:25vh;
     display:flex; align-items:stretch; flex:none;
     height:100svh; box-sizing:border-box;
     padding-left:75vw; padding-right:var(--gap);
@@ -2756,25 +2756,25 @@ const ALBUM = [
 ];
 // 尺寸三档 (w×h vh)，照搬原站 .horizontal-item-img-w.is-home*
 const ALB_TIERS = {
-  sm1:[21.98,20.96], sm2:[21.38,26.48], sm3:[20.74,20.74],
-  md1:[27,33.46], md2:[29.3,29.3], md3:[31.75,28.75], md4:[27.42,24.91], md5:[31.69,30.9],
-  lg1:[65.48,59.48], lg2:[60.95,60.95]
+  sm1:[24.5,23.5], sm2:[24,30], sm3:[23.5,23.5],
+  md1:[27.5,34], md2:[29.5,29.5], md3:[31,28], md4:[27.5,25], md5:[31.5,30.5],
+  lg1:[50,45.5], lg2:[47,47]
 };
 // 原站列/间距/错位序列（基础模板）。col.s=该列后间距; item: tier 或 callout, mt/mb='auto'|vh, left=vh
 const ALB_TEMPLATE = [
-  { s:'full', items:[ {tier:'md1'}, {tier:'md2', mt:'auto', mb:8.42, left:14.42} ] },
+  { s:'full', items:[ {tier:'md1'}, {tier:'md2', mt:'auto', mb:4.2, left:7} ] },
   { s:'full', items:[ {callout:0}, {tier:'lg1', mt:'auto'} ] },
-  { s:'half', items:[ {tier:'md3', left:-15.76}, {tier:'sm1', mt:'auto', mb:8.17} ] },
+  { s:'half', items:[ {tier:'md3', left:-8}, {tier:'sm1', mt:'auto', mb:4} ] },
   { s:'',     items:[ {tier:'sm2', mt:'auto', mb:1.17} ] },
-  { s:'half', items:[ {tier:'sm3', mb:'auto', mt:8} ] },
+  { s:'half', items:[ {tier:'sm3', mb:'auto', mt:4} ] },
   { s:'full', items:[ {tier:'lg2', mt:2}, {callout:1} ] },
-  { s:'',     items:[ {tier:'md5', mt:14.92}, {tier:'md4', mt:'auto', mb:2.5, left:-15.76} ] }
+  { s:'',     items:[ {tier:'md5', mt:7}, {tier:'md4', mt:'auto', mb:2.5, left:-8} ] }
 ];
 // 续列模式（笔记多于模板时循环铺开，保持错落词汇）
 const ALB_EXTRA = [
-  { s:'half', items:[ {tier:'md2'}, {tier:'sm3', mt:'auto', mb:6} ] },
+  { s:'half', items:[ {tier:'md2'}, {tier:'sm3', mt:'auto', mb:3} ] },
   { s:'full', items:[ {tier:'lg1', mt:'auto'} ] },
-  { s:'half', items:[ {tier:'sm1', mt:8}, {tier:'md5', mt:'auto'} ] },
+  { s:'half', items:[ {tier:'sm1', mt:4}, {tier:'md5', mt:'auto'} ] },
   { s:'',     items:[ {tier:'md3', mt:'auto', mb:2} ] }
 ];
 // 引言 callout —— chichu 调性代笔（真签名待矢量化；可改）
