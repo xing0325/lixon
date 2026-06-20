@@ -32,12 +32,15 @@ const PLATFORMS = {
   obsidian: { label: 'Obsidian', desc: '个人笔记库：学习、规划、读书与随想' },
 };
 
-// canonical discipline names + synonym folding
+// canonical discipline names + synonym folding (finer Obsidian clusters: 旅行/阅读 kept distinct)
 const DISC_FOLD = {
-  '游戏开发': '游戏', '棋类': '游戏', '游戏帝国': '游戏', '旅行': '游学', '露营': '游学',
-  '仪式': '成长', '思维': '成长', '思辨': '成长', '哲学': '成长', '写作': '成长', '学习方法': '成长', '学习': '成长',
-  '课程设计': '教育', '采访': '教育', '活动策划': '教育', '做事课': '教育',
-  '资源': '工具脚本', '影评': '电影', '战略': '商业', '品牌': '商业',
+  '游戏开发': '游戏', '棋类': '游戏', '游戏帝国': '游戏',
+  '露营': '旅行', '游学': '旅行',
+  '思维': '阅读', '读书': '阅读',
+  '课程设计': '教育', '采访': '教育', '活动策划': '教育',
+  '仪式': '成长', '思辨': '成长', '哲学': '成长', '写作': '成长', '学习方法': '成长', '学习': '成长',
+  '战略': '商业', '品牌': '商业', '做事课': '商业',
+  '资源': '工具脚本', '影评': '电影',
   '会议记录': null,          // doc-type tag, not a discipline
 };
 const fold = d => (d in DISC_FOLD ? DISC_FOLD[d] : d);
@@ -80,9 +83,19 @@ const TOPICAL_BRIDGES = [
   ['ob:游戏帝国', 'cl:project_chess_shogi'],                     // 做游戏的雄心
 ];
 
-// the 大谷翔平 81-grid mandala → compact to a hub + 8 core themes
+// the 大谷翔平 81-grid mandala → hub + 8 themes, each with a few real action cells
 const OHTANI_HUB = '大谷翔平 81 宫格目标管理';
 const OHTANI_THEMES = ['信用', '待人', '时间管理', '做事', '示范', '学习', '生活', '保持奖学金'];
+const OHTANI_ACTIONS = {
+  '信用': ['提前半小时到', '事事有回应件件有着落', '承诺要做到'],
+  '待人': ['鼓励夸奖同学', '表达感谢', '帮助同学'],
+  '时间管理': ['有清晰任务计划', '不刷短视频', '闲暇听播客'],
+  '做事': ['眼里有活', '主动承担责任', '挑战自己上限'],
+  '示范': ['上课积极回答', '过好自己的生活'],
+  '学习': ['保持阅读量', '做复盘并分享', '保持输出'],
+  '生活': ['不熬夜早起', '健康饮食', '整理宿舍'],
+  '保持奖学金': ['珍惜机会', '不违反社区公约'],
+};
 
 // short descriptions for the 22 Obsidian notes (no good frontmatter desc exists)
 const OBS_DESC = {
@@ -108,6 +121,57 @@ const OBS_DESC = {
   '2025秋 日本游学规划': '日本游学城市清单与行程投票',
   '替潘昱辰写的作文': '以「容忍度光谱」回应反抗与忍耐之辩',
   '2025秋 成人礼': '随想：跳出视角看世界须靠吸收视角外之物',
+};
+
+// per-note Obsidian disciplines (read off each note's content — finer than keyword guessing)
+const OBS_TAGS = {
+  '数学学习': ['学习方法', '成长'], '数列': ['数学'],
+  '会议：如何构建品牌，如何制定战略': ['品牌', '战略'], '游戏帝国': ['游戏开发', '商业'],
+  '暑假突击计划': ['学习', '成长'], '随想集': ['成长', '哲学'],
+  '《7号房的故事》影评': ['影评'], '2025秋 露营周规划': ['露营', '旅行'],
+  '资源大合集': ['电影'], '线下活动': ['活动策划', '教育'],
+  '游戏《The Witness》': ['游戏开发'], '游戏《BRAID》': ['游戏开发'], '《BRAID》游戏画面': ['游戏开发'],
+  '2025秋 百万设计师': ['设计', '游戏开发'], '王琦的采访大纲': ['采访', '教育'],
+  '2025秋 贩冰冰计划': ['商业', '做事课'], '2025秋 课程反馈': ['教育', '课程设计'],
+  '2025秋 给青少年的普世阅读指南': ['阅读', '教育'], '《失败的逻辑》读书笔记': ['阅读', '思维'],
+  '2025秋 日本游学规划': ['旅行', '游学'], '替潘昱辰写的作文': ['写作', '思辨'],
+  '2025秋 成人礼': ['成长', '仪式'],
+};
+
+// accurate GitHub repo descriptions — read off each repo (gh descriptions are thin/missing)
+const GH_DESC = {
+  'lixon': '复刻 landonorris.com 流体头盔首屏的零依赖单文件 hero（流体+SDF 全程序化）',
+  'jingqi-share': 'chichu「在惊奇分享」一年 build in public 单页站，含可缩放答辩画板',
+  'chichu-visual-talk-notes': '替代 PPT 的静态分享站 V2，更贴近原始笔记叙述并补灵感素材',
+  'chichu-visual-talk': '替代 PPT 的静态可视化演讲站，可 GitHub Pages 部署',
+  'chichu_habit': '记录整理 chichu 习惯的仓库，由各 session 的 Claude 提取推送',
+  'chess-shogi': '国象 × 将棋 9×9 融合在线对战，含规则引擎与联机大厅',
+  'xiaohongshu-preview': '小红书图文工作台：AI 用 HTML/CSS 写卡片，预览排版并一键导出 PNG',
+  'odysseus-zh-CN': 'PewDiePie 自托管 AI 工作台 Odysseus 的中文汉化覆盖层（油猴/补丁）',
+  'warhol-factory': '安迪·沃霍尔「银色工厂」互动致敬站，亲手丝网印刷/混墨/试镜',
+  'zima-blue': '「齐马蓝」chichu 个人站：单页下潜长滚动，GSAP 纯静态',
+  'mofazhusha': '嬷法大逃杀：Minecraft 风课堂签到游戏化系统，实时多人',
+  'zima': 'chichu 个人站「齐马蓝」，随滚动下潜的 Astro + three.js 站',
+  'chichu-feishu-habits': 'chichu 个人站（齐马蓝主题），Next.js + R3F 水面 Hero',
+  'vibe-coding-class': '给 Vibe Coder 的 GitHub 协作互动教学，30 分钟通关 issue→PR',
+  'siemens-training': '对标西门子 SITRAIN 的工业培训演示站，纯静态双主题',
+  'qiantaici-decoder': '潜台词解码器，依恋类型互动作业，可嵌入 Notion',
+  'claude-account-switch-migration': 'Claude Code 换账号后找回旧 session 的迁移指南',
+  'late-penalty': '迟到惩罚转盘，随机抽惩罚的网页小工具',
+  'dazi-juice': '中文打字练习网页，Monkeytype 风 + 强反馈 + 导入文章',
+  'curi-online': '好奇学院线上版，10 人协作的 Next.js + Supabase 平台',
+  'kiidschool': '钥匙玩校 2026 夏令营招生 H5 落地页',
+  'china-truth-graph': '中国近现代禁书与异见者知识图谱，166 节点可视化',
+  'sessionss': 'Claude Code 多 session 并行开发同一网站的脚手架，一行命令生成 worktree 与分工',
+  'credit-score': '学习社区信用积分管理系统，多角色加减分与排行，FastAPI + SQLite',
+  'bypass-pet': 'Windows 像素桌宠，单击切换 Claude bypass 模式，搏击俱乐部双形态',
+  'claude-bypass-hook': 'PreToolUse hook，用哨兵文件强行打开 bypass 权限，绕过 settings.json 失效 bug',
+  'web-anim-cookbook': '逆向 landonorris.com 的高级 web 动效配方集，单文件零依赖打开即跑',
+  'landonorris-teardown': 'landonorris.com 官网全站逆向拆解报告，含可交互 demo 与组件表',
+  'allow-floating-ball': 'Windows 悬浮球，自动点击 Claude Desktop 的 MCP 授权弹窗',
+  'mom-2026': '2026 母亲节写给妈妈的一封信，单页 HTML',
+  'calling-suishoji': '个人随手记应用，AI 自动分类，日历与日记，周总结月洞察',
+  'private-insight-officer': '让 AI 通读 Obsidian 笔记，产出跨时间成长图谱与深度洞察',
 };
 
 // ─────────────────────────── helpers ───────────────────────────
@@ -156,13 +220,13 @@ for (const r of gh) {
   const ageD = (now - Date.parse(r.pushedAt)) / DAY;
   const status = ageD < 21 ? 'updating' : ageD < 120 ? 'live' : 'dormant';
   const node = addNode({
-    id, label: r.name, desc: r.description || '', platform: 'github',
+    id, label: r.name, desc: GH_DESC[r.name] || r.description || '', platform: 'github',
     cat: SKILL_REPOS.has(r.name) ? 'skill' : 'project',
     status, lang, private: !!r.isPrivate,
     url: (r.homepageUrl && /^https?:/.test(r.homepageUrl)) ? r.homepageUrl : r.url,
     repoUrl: r.url, stars: r.stargazerCount || 0,
   });
-  tagDisciplines(node, [], (r.description || ''));
+  tagDisciplines(node, [], (GH_DESC[r.name] || r.description || ''));
   addEdge('hub:github', id, 'struct');
   // language sub-layer (技能·工具)
   if (lang) { addNode({ id: langId(lang), label: lang, desc: '技术栈', platform: 'core', cat: 'skill', status: null, isLang: true }); addEdge(id, langId(lang), 'lang'); }
@@ -196,14 +260,17 @@ const memFiles = fs.readdirSync(MEM_DIR).filter(f => f.endsWith('.md') && f !== 
 const memIds = new Set(memFiles.map(f => f.replace(/\.md$/, '')));
 const memLinks = [];   // [fromId, rawTarget]
 
+// process notes / tiny gotchas — too granular & a bit embarrassing to publish
+const CLAUDE_SKIP = new Set(['github_workflow', 'sandboxie_box_naming']);
 for (const f of memFiles) {
   const id = f.replace(/\.md$/, '');
-  if (CRED_SKIP.has(id)) continue;
+  if (CRED_SKIP.has(id) || CLAUDE_SKIP.has(id)) continue;
   const body = fs.readFileSync(path.join(MEM_DIR, f), 'utf8');
   const typeM = body.match(/\btype:\s*(user|feedback|project|reference)\b/);
   const type = typeM ? typeM[1] : 'reference';
+  if (type === 'feedback') continue;   // drop the AI-collaboration micro-prefs (the "small stuff")
   const idx = memIndex[id] || {};
-  const cat = type === 'project' ? 'project' : type === 'feedback' ? 'memory' : type === 'user' ? 'memory' : 'memory';
+  const cat = type === 'project' ? 'project' : type === 'user' ? 'identity' : 'reference';
   const node = addNode({
     id: 'cl:' + id, label: idx.label || id, desc: idx.hook || '', platform: 'claude',
     cat, mtype: type, status: type === 'project' ? 'live' : null,
@@ -237,7 +304,7 @@ for (const f of obsFiles.filter(f => f.endsWith('.md'))) {
   const tm = body.match(/tags:\s*\[?([^\]\n]+)\]?/);
   if (tm) tm[1].split(/[,，\s]+/).forEach(t => t && tags.push(t.replace(/['"#]/g, '')));
   const node = addNode({ id: 'ob:' + title, label: title.replace(/^2025秋\s*/, ''), desc, platform: 'obsidian', cat: 'note', status: null });
-  tagDisciplines(node, tags, body.slice(0, 400));
+  tagDisciplines(node, OBS_TAGS[title] || tags, body.slice(0, 400));
   addEdge('hub:obsidian', 'ob:' + title, 'struct');
   // non-image [[links]]
   for (const m of body.matchAll(/(!?)\[\[([^\]\|]+?)(?:\|[^\]]*)?\]\]/g))
@@ -251,7 +318,10 @@ for (const f of obsFiles.filter(f => f.endsWith('.canvas'))) {
     const hub = 'ob:' + OHTANI_HUB;
     addNode({ id: hub, label: OHTANI_HUB, desc: '把目标拆成中心 + 8 区 × 8 行动的曼陀罗计划法', platform: 'obsidian', cat: 'note', status: null, disc: ['成长'] });
     addEdge('hub:obsidian', hub, 'struct');
-    for (const t of OHTANI_THEMES) { const tid = hub + ':' + t; addNode({ id: tid, label: t, desc: 'Ohtani 81 宫格 · ' + t, platform: 'obsidian', cat: 'note', status: null, disc: ['成长'], small: true }); addEdge(hub, tid, 'intra'); }
+    for (const t of OHTANI_THEMES) { const tid = hub + ':' + t;
+      addNode({ id: tid, label: t, desc: OHTANI_HUB + ' · ' + t + ' 区', platform: 'obsidian', cat: 'note', status: null, disc: ['成长'] }); addEdge(hub, tid, 'intra');
+      for (const act of (OHTANI_ACTIONS[t] || [])) { const aid = tid + ':' + act;
+        addNode({ id: aid, label: act, desc: OHTANI_HUB + ' · ' + t, platform: 'obsidian', cat: 'note', status: null, disc: ['成长'], small: true }); addEdge(tid, aid, 'intra'); } }
     continue;
   }
   // generic canvas (e.g. Jonathan Blow talk): keep text nodes, link by edges, hang notes off it
