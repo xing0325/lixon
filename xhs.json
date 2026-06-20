@@ -1,0 +1,23 @@
+{
+  "_comment": "由 opencli xiaohongshu creator-notes + user 626e17a00000000021028b6e 拉取（账号 数字病人Lixon）。封面已下载到 assets/xhs/<id>.webp。重新拉取覆盖即可刷新。",
+  "profile": {
+    "name": "数字病人Lixon",
+    "followers": 97,
+    "bio": "一个成都的休学生，好奇心学习者。vibe coding 中，不定时发布游戏设计进度。创作是本能，而不是负担。",
+    "url": "https://www.xiaohongshu.com/user/profile/626e17a00000000021028b6e"
+  },
+  "album": [
+    { "tag": "#银饰DIY",   "d": "2026.06.17", "w": "SILVER",   "g": ["#c9d6c0", "#7d8a6e"], "cover": "assets/xhs/6a325e02000000000f01e6ad.webp", "line": "高三暑假，用 AI 建模做银饰。",            "url": "https://www.xiaohongshu.com/explore/6a325e02000000000f01e6ad" },
+    { "tag": "#开源汉化",  "d": "2026.06.11", "w": "ODY",      "g": ["#16b3c7", "#0e5a66"], "cover": "assets/xhs/6a2ac8e8000000001c027c0f.webp", "line": "把自托管 AI 工作台 Odysseus 汉化了。",   "url": "https://www.xiaohongshu.com/explore/6a2ac8e8000000001c027c0f" },
+    { "tag": "#工作流",    "d": "2026.06.07", "w": "OBSIDIAN", "g": ["#a78bfa", "#5b3fb0"], "cover": "assets/xhs/6a25546b000000002202bb3b.webp", "line": "Obsidian 画板实时改图，直接喂给 AI。",   "url": "https://www.xiaohongshu.com/explore/6a25546b000000002202bb3b" },
+    { "tag": "#随笔",      "d": "2026.06.06", "w": "ESSAY",    "g": ["#5c6150", "#282c20"], "cover": "assets/xhs/6a231e2100000000220292e0.webp", "line": "创伤、洗澡，和灵感是怎么来的。",          "url": "https://www.xiaohongshu.com/explore/6a231e2100000000220292e0" },
+    { "tag": "#个人网站",  "d": "2026.06.06", "w": "ZIMA",     "g": ["#3aa6e0", "#0d4a78"], "cover": "assets/xhs/6a22f2fd0000000035032ecb.webp", "line": "把视频当提示词，做了齐马蓝主题个人站。", "url": "https://www.xiaohongshu.com/explore/6a22f2fd0000000035032ecb" },
+    { "tag": "#硬件",      "d": "2026.06.04", "w": "M5",       "g": ["#ff7847", "#a8341a"], "cover": "assets/xhs/6a214332000000002202281c.webp", "line": "六一礼物：口袋终端机 Cardputer ADV。",  "url": "https://www.xiaohongshu.com/explore/6a214332000000002202281c" },
+    { "tag": "#里程碑",    "d": "2026.05.26", "w": "STAR",     "g": ["#d2ff00", "#86a009"], "cover": "assets/xhs/6a1495780000000035022ab0.webp", "line": "18 岁休学 vibe coder，拿到第一个 Star。", "url": "https://www.xiaohongshu.com/explore/6a1495780000000035022ab0" },
+    { "tag": "#工作流",    "d": "2026.05.20", "w": "FLOW",     "g": ["#5c6150", "#2a2e22"], "cover": "assets/xhs/6a0db0c0000000003502fe48.webp", "line": "一个休学生做 vibe coding 自媒体的工作流。", "url": "https://www.xiaohongshu.com/explore/6a0db0c0000000003502fe48" },
+    { "tag": "#vibe日常",  "d": "2026.05.08", "w": "NIGHT",    "g": ["#3b3c38", "#16171a"], "cover": "assets/xhs/69fcef1b0000000035027f21.webp", "line": "舍友睡了，打着手电继续 coding。",        "url": "https://www.xiaohongshu.com/explore/69fcef1b0000000035027f21" },
+    { "tag": "#随笔",      "d": "2026.05.06", "w": "ADULT",    "g": ["#e0a93a", "#8a5a14"], "cover": "assets/xhs/69fb58e400000000220272c8.webp", "line": "「做题区」成为一个合格大人的解决方案。", "url": "https://www.xiaohongshu.com/explore/69fb58e400000000220272c8" },
+    { "tag": "#提示词",    "d": "2026.05.06", "w": "CANVAS",   "g": ["#a78bfa", "#3f2f80"], "cover": "assets/xhs/69face780000000035026ba4.webp", "line": "一种全新的提示词：画板。",                "url": "https://www.xiaohongshu.com/explore/69face780000000035026ba4" },
+    { "tag": "#vibe日常",  "d": "2026.04.22", "w": "MANUS",    "g": ["#16b3c7", "#0e5a66"], "cover": "assets/xhs/69e84857000000002302549d.webp", "line": "在 manus 的 5 个号之间打游击，真累人。", "url": "https://www.xiaohongshu.com/explore/69e84857000000002302549d" }
+  ]
+}

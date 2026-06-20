@@ -1,2 +1,11 @@
 hero-photo.png
 vibe-dash.json
+
+# Lando/itsoffbrand proprietary Rive asset — kept locally so the dev server runs the
+# real transition, but NOT committed/redistributed. Re-fetch on deploy if wanted:
+#   curl -o assets/page-transition.riv https://assets.itsoffbrand.io/lando/rive/page-transition.riv
+assets/page-transition.riv
+
+# Tyler Durden cutout (Fight Club / copyrighted) — local only; the hero cloak layer
+# reads it over localhost; not committed/redistributed.
+tyler.png

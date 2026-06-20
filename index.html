@@ -70,15 +70,18 @@
   .hb-topo path{ fill:none; stroke:#d2ff00; stroke-width:1.1; opacity:.10; }
   .hb-marquee{
     position:absolute; top:50%; left:0; width:100%;
-    transform:translateY(-50%); white-space:nowrap;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:.04em; align-items:flex-start;
+    will-change:transform;
   }
   .hb-row{
-    display:inline-block; will-change:transform;
+    display:inline-flex; white-space:nowrap; will-change:transform;
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
-    font-size:clamp(90px,17vh,200px); line-height:1; letter-spacing:.01em;
+    font-size:clamp(74px,15vh,178px); line-height:.92; letter-spacing:.004em;
     text-transform:uppercase;
-    color:rgba(210,214,196,.20);   /* soft grey words, clearly readable on the dark stage */
   }
+  .hb-row-1{ color:#d2ff00; }                       /* bright lime — the reference's stage is loud, not a dim grey */
+  .hb-row-2{ color:#f4f4ed; }                       /* bright cream/white */
   .hero-sig{
     position:absolute; left:50%; top:50%; z-index:3;
     /* sized to blanket the shrunken card (card ends at ~45vw wide) */
@@ -89,7 +92,10 @@
     pointer-events:none;
     filter:drop-shadow(0 6px 30px rgba(0,0,0,.35));
   }
-  .hero-sig path{ stroke-width:6.6; }   /* a bolder, marker-pen autograph */
+  /* ID beats the later `.sig path{stroke-width:3.4}` — equal specificity + source
+     order silently kept the hero autograph at 3.4 (the old 6.6 here never won),
+     which is why it read thin. fat marker now, like the reference's Rive scrawl. */
+  #heroSig path{ stroke-width:12; }
   .ui{
     position:absolute; inset:0;
     pointer-events:none;
@@ -360,6 +366,11 @@
   }
   .nav-link i{ display:block; font-style:inherit; transition:transform .55s var(--ease); }
   .nav-link i.dup{ position:absolute; left:0; top:100%; }
+
+  /* ── hero 极简化（原站口径）：只留 品牌 / DASHBOARD+菜单 / next-hackathon，其余文字隐去。
+     Hermes 节点与退场签名仍接线，只是不可见——先视觉卸掉，回头确认布局后再硬删 + 清 JS ── */
+  .wordmark, .est, .name-block, .colophon, #hint, .scroll-cue, .nav-status{ display:none !important; }
+  .nav-mark{ opacity:1 !important; font-variation-settings:"wght" 860,"wdth" 80; font-size:clamp(34px,3.8vw,52px); letter-spacing:-.02em; line-height:1; }
   .nav-link:hover i{ transform:translateY(-100%); }
 
   /* --- generic section scaffolding --- */
@@ -770,22 +781,61 @@
   .pt.leave .a{ transform:translateY(102%); transition-delay:.1s; }
   .pt.leave .b{ transform:translateY(102%); transition-delay:0s; }
 
+  /* real Rive page-transition overlay — the reference's .transition-w (lime field + page-transition.riv).
+     Falls back to the lime CSS wipe (entrance) / .pt slabs (nav) when the runtime/asset can't load. */
+  .rtx{ position:fixed; inset:0; z-index:90; background:#d2ff00; display:block; }
+  .rtx > canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .rtx.wipe{ clip-path:inset(0 0 100% 0); transition:clip-path .9s cubic-bezier(.76,0,.24,1); pointer-events:none; }
+  @media (prefers-reduced-motion:reduce){ .rtx{ display:none !important; } }
+
   /* menu button (top right) */
   .menu-btn{
     pointer-events:auto; cursor:pointer;
-    background:var(--accent); color:var(--accent-ink);
+    background:#111112; color:#f4f4ed;
     font-family:'Mona Sans Variable',Arial,sans-serif;
     font-variation-settings:"wght" 800,"wdth" 86;
-    border:1px solid var(--accent); border-radius:.54rem;   /* the reference's .btn-w */
+    border:1px solid #111112; border-radius:.74rem;   /* reference hamburger: black square */
     font-size:13px; letter-spacing:.02em;
     text-transform:uppercase; padding:11px 20px;
     position:relative; overflow:hidden;
     transition:transform .4s var(--ease), box-shadow .4s var(--ease);
   }
   .menu-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px -10px rgba(40,44,32,.5); }
-  .menu-btn i{ display:block; font-style:inherit; transition:transform .5s var(--ease); }
-  .menu-btn i.dup{ position:absolute; left:0; right:0; top:100%; }
-  .menu-btn.open i{ transform:translateY(-100%); }
+  /* button text-roll — clip to ONE line via .roll so no half-letter peeks. (the old
+     i.dup top:100% referenced the padded button height, not the text line → that bug) */
+  .dash-btn .roll, .menu-btn .roll{ display:block; position:relative; overflow:hidden; }
+  .dash-btn .roll i, .menu-btn .roll i{ display:block; font-style:normal; transition:transform .45s var(--ease); }
+  .dash-btn .roll i:last-child, .menu-btn .roll i:last-child{ position:absolute; left:0; top:0; width:100%; transform:translateY(100%); }
+  .dash-btn:hover .roll i:first-child{ transform:translateY(-100%); }
+  .dash-btn:hover .roll i:last-child{ transform:translateY(0); }
+  .menu-btn.open .roll i:first-child{ transform:translateY(-100%); }
+  .menu-btn.open .roll i:last-child{ transform:translateY(0); }
+  body.menu-open .menu-btn{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }   /* close stays visible on the dark menu */
+
+  /* dashboard CTA — the reference's lime STORE-button slot; click → 仪表盘 (#/calendar) */
+  .dash-btn{
+    pointer-events:auto; cursor:pointer; text-decoration:none; display:block;
+    background:var(--accent); color:var(--accent-ink);
+    font-family:'Mona Sans Variable',Arial,sans-serif;
+    font-variation-settings:"wght" 800,"wdth" 86;
+    border:1px solid var(--accent); border-radius:.54rem;
+    font-size:13px; letter-spacing:.02em; text-transform:uppercase;
+    padding:11px 20px; position:relative; overflow:hidden;
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .dash-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px -10px rgba(40,44,32,.5); }
+  /* (text-roll handled by the shared .roll rules in the menu-btn block above) */
+
+  /* next hackathon — the reference's bottom-left next-race slot (track + helmet symbols) */
+  .next-hack{ display:flex; align-items:flex-end; gap:14px; pointer-events:auto; }
+  .nh-icons{ display:flex; align-items:flex-end; gap:9px; color:var(--accent); }
+  .nh-track{ width:56px; height:auto; }
+  .nh-track path{ fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .nh-helmet{ width:32px; height:auto; }
+  .nh-body{ display:flex; flex-direction:column; gap:3px; line-height:1.04; }
+  .nh-label{ font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); }
+  .nh-name{ font-variation-settings:"wght" 760,"wdth" 92; font-size:clamp(20px,2.6vw,30px); color:var(--ink); text-transform:uppercase; line-height:1; }
+  .nh-meta{ font-size:11px; letter-spacing:.04em; color:var(--ink-soft); }
 
   /* fullscreen menu panel */
   .menu-panel{
@@ -870,44 +920,68 @@
   .hs-tok i{ font-size:9.5px; letter-spacing:.08em; color:var(--ink-soft); }
   .hs-cap{ margin-top:9px; font-size:9.5px; font-style:normal; color:var(--ink-soft); letter-spacing:.08em; }
 
-  /* --- horizontal album track (xhs 近期更新长廊) --- */
-  /* overflow:visible — .sec's overflow:hidden would break position:sticky;
-     the row itself is clipped by .album-pin */
-  .s-album{ padding:0; height:300svh; background:#111112; overflow:visible; }
-  .album-pin{
-    position:sticky; top:0; height:100svh; overflow:hidden;
-    display:flex; align-items:center;
-  }
-  .album-head{ position:absolute; top:clamp(56px,9vh,110px); left:clamp(16px,4vw,48px); z-index:2; }
+  /* --- horizontal album track — 原站 is-horizontal-track 像素级移植 --- */
+  /* overflow:visible so .sec's overflow:hidden doesn't break sticky;
+     the track is clipped by .album-pin. .s-album height is set by JS to fit
+     the real track width (long content → long scroll). */
+  .s-album{ padding:0; background:#23271c; overflow:visible; }
+  .album-pin{ position:sticky; top:0; height:100svh; overflow:hidden; color:#f4f4ed; }
+  .album-head{ position:absolute; top:clamp(56px,9vh,110px); left:clamp(16px,4vw,48px); z-index:3; color:inherit; pointer-events:none; }
   .album-head .eyebrow{ color:inherit; opacity:.7; margin-bottom:10px; }
-  .album-head h2{ margin-bottom:0; font-size:clamp(28px,3.6vw,54px); }
-  .album-row{
-    display:flex; align-items:center; gap:clamp(20px,3.4vw,52px);
-    padding-left:58vw; will-change:transform;
+  .album-head h2{ margin-bottom:0; color:inherit; font-size:clamp(28px,3.6vw,54px); }
+
+  /* the moving track: flex row of columns + spacers, ported metrics */
+  .album-track{
+    --gap:1.25rem; --spacer:31.51vh;
+    display:flex; align-items:stretch; flex:none;
+    height:100svh; box-sizing:border-box;
+    padding-left:75vw; padding-right:var(--gap);
+    padding-top:7vh; padding-bottom:calc(var(--gap)*2);
+    will-change:transform;
   }
-  .album-card{ flex-shrink:0; width:clamp(230px,28vw,400px); }
+  .album-col{
+    display:flex; flex-flow:column; flex:none; height:100%;
+    justify-content:flex-start; align-items:flex-start;
+    gap:clamp(1.4rem,4vh,3.2rem);
+  }
+  .album-spacer{ flex:none; width:var(--spacer); }
+  .album-spacer.half{ width:calc(var(--spacer)*.5); }
+  .album-spacer.quarter{ width:calc(var(--spacer)*.25); }
+
+  .album-item{ position:relative; display:flex; flex-flow:column; gap:.7rem; flex:none; }
   .album-top{
     display:flex; justify-content:space-between; gap:10px;
-    font-size:10.5px; font-style:normal; letter-spacing:.08em; text-transform:uppercase;
-    margin-bottom:10px; opacity:.75;
+    font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
+    font-size:.625rem; font-weight:400; letter-spacing:0; line-height:1;
+    text-transform:uppercase; opacity:.82;
   }
   .album-cover{
-    aspect-ratio:3/4; border-radius:10px; position:relative; overflow:hidden;
-    box-shadow:0 24px 50px -30px rgba(0,0,0,.6);
+    position:relative; overflow:hidden; border-radius:0; flex:none;
+    background:#1b1d18; box-shadow:0 24px 50px -30px rgba(0,0,0,.55);
   }
-  .album-cover::after{
+  .album-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .album-cover.ph::after{   /* halftone only on gradient placeholders */
     content:''; position:absolute; inset:0;
-    background-image:radial-gradient(rgba(20,22,15,.25) 1px, transparent 1.4px);
-    background-size:10px 10px; mix-blend-mode:multiply;
+    background-image:radial-gradient(rgba(20,22,15,.22) 1px, transparent 1.4px);
+    background-size:10px 10px; mix-blend-mode:multiply; pointer-events:none;
   }
   .album-cover b{
     position:absolute; left:14px; bottom:10px;
     font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif; font-weight:400;
-    font-size:clamp(30px,3.4vw,46px); letter-spacing:.02em;
+    font-size:clamp(24px,2.8vw,42px); letter-spacing:.02em;
     color:rgba(255,255,255,.94); text-transform:uppercase;
   }
-  .album-line{ margin-top:12px; font-size:13.5px; font-style:normal; line-height:1.7; }
-  .album-pin, .album-pin .eyebrow::after{ transition:color .25s linear; }
+  .album-line{ font-size:13px; line-height:1.55; max-width:30ch; opacity:.9; }
+
+  /* interstitial handwriting callout (原站 .horizontal-item-text) */
+  .album-callout{ display:flex; flex-flow:column; gap:1.1rem; flex:none; max-width:30rem; align-self:center; }
+  .album-callout .q{
+    font-family:'Brier','Mona Sans Variable',serif; font-weight:400; font-style:normal;
+    font-size:clamp(1.25rem,1.6vw,1.6rem); line-height:.946; letter-spacing:.05rem; color:inherit;
+  }
+  .album-callout .q .hl{ color:var(--lime,#d2ff00); }
+  .album-callout .album-sig{ width:clamp(120px,12vw,180px); height:auto; opacity:.95; }
+  .album-pin{ transition:color .25s linear; }
 
   /* --- on/off track doors --- */
   .doors{ display:grid; grid-template-columns:1fr 1fr; }
@@ -1134,16 +1208,9 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
 </head>
 <body data-page="home">
 
-<!-- 开屏：荧光黄纯色 + c_ 字标（开口圆环 = chichu 的 c，闪烁光标 = 永远在输入）-->
-<div class="boot" id="boot">
-  <div class="boot-logo" aria-label="chichu logo">
-    <svg viewBox="0 0 120 120" aria-hidden="true">
-      <path class="bl-c" d="M86 34 A36 36 0 1 0 86 86" fill="none"/>
-      <rect class="bl-cur" x="72" y="86" width="28" height="13" rx="3"/>
-    </svg>
-  </div>
-  <div class="boot-cap">chichu · personal site</div>
-</div>
+<!-- 开屏 / 翻页转场：满屏柠檬绿 + 原站 page-transition.riv 矢量动画（运行时加载真资源）。
+     运行时/资源加载不出来时，#rtx 自己做柠檬绿擦除（入场）、.pt 双色板（翻页）兜底。 -->
+<div class="rtx" id="rtx" aria-hidden="true"><canvas id="rtxCanvas"></canvas></div>
 
 <div class="hero-back" id="heroBack">
   <svg class="hb-topo" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -1154,7 +1221,8 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     <path d="M-40 640 C220 580 460 700 700 640 S1080 580 1260 660"/>
   </svg>
   <div class="hb-marquee" id="hbMarquee" aria-hidden="true">
-    <div class="hb-row" id="hbRow"><span>BUILD SOMETHING COOL — 操作熵↓ — OPEN SOURCE — 好奇心驱动 — </span></div>
+    <div class="hb-row hb-row-1" id="hbRow"><span>BUILD SOMETHING COOL — 操作熵↓ — OPEN SOURCE — 好奇心驱动 — </span></div>
+    <div class="hb-row hb-row-2" id="hbRow2"><span>LIXON — VIBE CODING — BUILD IN PUBLIC — 蹲蹲 — </span></div>
   </div>
 </div>
 <canvas id="gl"></canvas>
@@ -1162,14 +1230,15 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
 <div class="progress" id="progress"></div>
 
 <nav class="site-nav" id="siteNav">
-  <a class="nav-mark" href="#top">DX·0325</a>
+  <a class="nav-mark" href="#top">LIXON</a>
   <div class="nav-right">
     <div class="nav-status" id="navStatus" data-hermes="status" title="由 Hermes 探测，当前为占位">
       <span class="status-dot"></span>
       <span data-hermes="status-label">probing…</span>
     </div>
+    <a class="dash-btn" href="#/calendar" id="dashBtn" aria-label="每日 vibe coder 仪表盘"><span class="roll"><i>DASHBOARD</i><i>DASHBOARD</i></span></a>
     <button class="menu-btn" id="menuBtn" aria-label="菜单">
-      <i>menu</i><i class="dup">close</i>
+      <span class="roll"><i>menu</i><i>close</i></span>
     </button>
   </div>
 </nav>
@@ -1206,6 +1275,17 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     <div class="est reveal-up d2" data-plx="-6"><b>EST·2026</b><br>齐马蓝 · 施工中</div>
   </div>
   <div class="row bottom">
+    <div class="next-hack reveal-up d2" data-plx="10">
+      <div class="nh-icons" aria-hidden="true">
+        <svg class="nh-track" viewBox="0 0 200 26"><path d="M2 20 H38 L50 6 H86 L94 20 H120 L132 6 H160 L170 20 H198 V20"/></svg>
+        <svg class="nh-helmet" viewBox="0 0 48 44" fill="none"><path d="M6 28 C6 14 16 6 26 6 C37 6 42 15 42 24 L42 30 C42 33 40 35 37 35 L30 35 L27 40 L16 40 C10 40 6 35 6 30 Z" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M13 25 L38 22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="nh-body">
+        <span class="nh-label">NEXT HACKATHON</span>
+        <span class="nh-name">AdventureX</span>
+        <span class="nh-meta">2025 · 即将参战</span>
+      </div>
+    </div>
     <div class="name-block" data-plx="12">
       <div class="hero-status reveal-up d2">
         <svg class="hs-circuit" viewBox="0 0 200 26" aria-hidden="true">
@@ -1234,16 +1314,13 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
 <button class="lock-pill" id="lockPill">tap to lock</button>
 <!-- 转场签名：钉住阶段由滚动进度描画，盖在变灰收缩的画布上 -->
 <svg class="sig hero-sig" id="heroSig" viewBox="0 0 420 220" aria-hidden="true">
-  <path d="M118 78 C92 26 28 20 22 78 C17 124 62 154 110 139 C140 130 152 108 150 90
-           M160 142 C170 100 178 64 178 40 C172 92 168 122 170 142 C178 124 192 116 200 122 C208 128 202 142 210 144
-           M224 118 C222 128 220 138 222 144
-           M228 100 C229 97 231 95 232 96
-           M262 112 C248 104 236 112 238 128 C240 142 256 146 268 138
-           M286 142 C294 104 300 70 300 46 C295 96 291 126 293 144 C300 128 313 120 321 126 C329 132 323 144 331 146
-           M348 116 C344 128 344 140 352 142 C362 144 370 134 372 122 C372 132 374 142 384 140 C396 137 402 126 404 116
-           M30 182 C140 212 300 208 405 160
-           M398 152 C403 147 409 145 414 148
-           M196 182 C198 180 201 180 202 182"/>
+  <path d="M62 32 C54 76 46 118 48 156 C80 166 120 166 150 150 C158 146 163 142 166 137
+           M158 34 C166 78 160 120 148 160
+           M178 34 C202 78 228 118 256 162
+           M262 36 C236 80 208 120 180 160
+           M326 48 C292 46 270 88 282 126 C291 158 330 162 346 132 C357 110 351 74 322 60
+           M356 162 C357 116 354 70 360 34 C382 80 404 120 420 160 C421 112 417 70 420 32
+           M6 196 C150 248 344 232 460 166 C492 152 478 114 446 136"/>
 </svg>
 </div>
 </header>
@@ -1320,7 +1397,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
         <p class="eyebrow">02 — 近期更新 · recent notes</p>
         <h2 style="transform:none">小红书施工日志<span class="serif-it">，</span>横着看<span class="serif-it">。</span></h2>
       </div>
-      <div class="album-row" id="albumRow"><!-- cards injected --></div>
+      <div class="album-track" id="albumTrack"><!-- columns injected --></div>
     </div>
   </section>
 
@@ -1621,6 +1698,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
 <div class="cursor" id="cursor"></div>
 <div class="nogl" id="nogl"><p>这台设备的浏览器不支持 WebGL2 浮点渲染，<br>流体引擎点不着火。换个现代浏览器再来。</p></div>
 
+<script src="assets/rive.min.js"></script>
 <script>
 'use strict';
 /* ============================================================
@@ -1898,10 +1976,11 @@ float mglyph(int g, vec2 f){
 }
 vec4 renderMatrix(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
-  vec2 s = (uv - vec2(0.5, 0.45)) * axis;
-  s -= uPar * vec2(0.022, 0.013);                 // same parallax as the photo
-  float h = 0.68;
+  float h = 1.0;                                   // portrait height (min-dim units); bigger = wider shoulders
   float w = h * uPhotoAspect;
+  float yc = h / (2.0 * axis.y);                   // bottom-anchored: crop bottom sits on the screen's bottom edge
+  vec2 s = (uv - vec2(0.5, yc)) * axis;
+  s -= uPar * vec2(0.022, 0.013);                 // same parallax as the photo
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                 // the rain smears with the fluid
   if (any(lessThan(puv, vec2(0.))) || any(greaterThan(puv, vec2(1.)))) return vec4(0.);
@@ -1938,10 +2017,11 @@ vec4 renderMatrix(vec2 uv, vec2 vel){
 /* ---------- the photo head, fluid-smeared, like the reference's GL head ---------- */
 vec4 renderPhoto(vec2 uv, vec2 vel){
   vec2 axis = uRes / min(uRes.x, uRes.y);
-  vec2 s = (uv - vec2(0.5, 0.45)) * axis;        // min-dim units, y up
-  s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
-  float h = 0.68;                                  // portrait height in min-dim units
+  float h = 1.0;                                  // portrait height in min-dim units (was 0.68); bigger = wider shoulders
   float w = h * uPhotoAspect;
+  float yc = h / (2.0 * axis.y);                  // bottom-anchored: image bottom (upper chest) flush to the screen bottom
+  vec2 s = (uv - vec2(0.5, yc)) * axis;           // min-dim units, y up
+  s -= uPar * vec2(0.022, 0.013);                // parallax: the head leans with the cursor
   vec2 puv = vec2(s.x / w + 0.5, 0.5 - s.y / h);
   puv += vel * vec2(0.05, -0.05);                // liquid smear by the velocity field
   if (any(lessThan(puv, vec2(0.))) || any(greaterThan(puv, vec2(1.)))) return vec4(0.);
@@ -2189,6 +2269,7 @@ const pointer = {
 };
 function onMove(cx, cy){
   if (fluidLock) return;        // tap-to-lock: autopilot owns the brush
+  if (heroExitP > 0.012) return;   // exit underway → ignore the cursor (no face-deform), like the reference
   pointer.x = cx / viewW;
   pointer.y = 1 - cy / viewH;
   pointer.lastMove = performance.now();
@@ -2202,6 +2283,15 @@ addEventListener('pointermove', e => onMove(e.clientX, e.clientY), { passive:tru
 addEventListener('touchmove',  e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive:true });
 
 function updatePointer(now, t, elapsedMs){
+  // once the scroll-driven exit begins, the hero is a shrinking still card —
+  // like the reference it stops responding to the cursor, so the face never
+  // deforms under the mouse. freeze the brush: no velocity, no autopilot.
+  if (heroExitP > 0.012){
+    pointer.vx = 0; pointer.vy = 0;
+    pointer.px = pointer.x; pointer.py = pointer.y;
+    pointer.auto = 0;
+    return;
+  }
   const idleFor = now - pointer.lastMove;
   const wantAuto = (idleFor > CONF.idleAfter) ? 1 : 0;
   pointer.auto += (wantAuto - pointer.auto) * 0.022;   // ease in/out of autopilot
@@ -2642,7 +2732,8 @@ buildXhs(XHS_NOTES);
 const sloganEl = document.getElementById('slogan');
 const sloganFill = sloganEl ? sloganEl.querySelector('.slogan-fill') : null;
 
-// horizontal album: 近期小红书更新（封面 + 我的口吻一行）
+// horizontal album: 近期小红书更新 — 原站 is-horizontal-track 像素级移植（B 可扩展模板）
+// 占位快照（无封面时显示渐变方块）；真数据从 xhs.json 进来后整列重排。
 const ALBUM = [
   { tag:'#施工日志', d:'今天', w:'FLUID',  g:['#c5e016','#86a009'], line:'把 F1 官网的流体头盔搬回家，顺手修掉 17 个审查发现。' },
   { tag:'#上线了',   d:'本周', w:'CHESS',  g:['#282c20','#4a5240'], line:'国象和将棋生了个孩子：9×9，规则已锁，先手没必胜。' },
@@ -2651,31 +2742,112 @@ const ALBUM = [
   { tag:'#工作流',   d:'上月', w:'FLOW',   g:['#5c6150','#282c20'], line:'一个人同时推五个项目的秘密：sessionss 并行会话。' },
   { tag:'#剧本杀',   d:'上月', w:'OCR',    g:['#8a3414','#d2691e'], line:'21 本剧本、1845 页，OCR 蒸馏出一部 59 万字故事圣经。' },
 ];
+// 尺寸三档 (w×h vh)，照搬原站 .horizontal-item-img-w.is-home*
+const ALB_TIERS = {
+  sm1:[21.98,20.96], sm2:[21.38,26.48], sm3:[20.74,20.74],
+  md1:[27,33.46], md2:[29.3,29.3], md3:[31.75,28.75], md4:[27.42,24.91], md5:[31.69,30.9],
+  lg1:[65.48,59.48], lg2:[60.95,60.95]
+};
+// 原站列/间距/错位序列（基础模板）。col.s=该列后间距; item: tier 或 callout, mt/mb='auto'|vh, left=vh
+const ALB_TEMPLATE = [
+  { s:'full', items:[ {tier:'md1'}, {tier:'md2', mt:'auto', mb:8.42, left:14.42} ] },
+  { s:'full', items:[ {callout:0}, {tier:'lg1', mt:'auto'} ] },
+  { s:'half', items:[ {tier:'md3', left:-15.76}, {tier:'sm1', mt:'auto', mb:8.17} ] },
+  { s:'',     items:[ {tier:'sm2', mt:'auto', mb:1.17} ] },
+  { s:'half', items:[ {tier:'sm3', mb:'auto', mt:8} ] },
+  { s:'full', items:[ {tier:'lg2', mt:2}, {callout:1} ] },
+  { s:'',     items:[ {tier:'md5', mt:14.92}, {tier:'md4', mt:'auto', mb:2.5, left:-15.76} ] }
+];
+// 续列模式（笔记多于模板时循环铺开，保持错落词汇）
+const ALB_EXTRA = [
+  { s:'half', items:[ {tier:'md2'}, {tier:'sm3', mt:'auto', mb:6} ] },
+  { s:'full', items:[ {tier:'lg1', mt:'auto'} ] },
+  { s:'half', items:[ {tier:'sm1', mt:8}, {tier:'md5', mt:'auto'} ] },
+  { s:'',     items:[ {tier:'md3', mt:'auto', mb:2} ] }
+];
+// 引言 callout —— chichu 调性代笔（真签名待矢量化；可改）
+const ALB_CALLOUTS = [
+  { q:'重要的不是<span class="hl">起点</span>有多好，是<span class="hl">每天</span>都还在 build。' },
+  { q:'好奇心是我唯一的<span class="hl">第一动力</span>，剩下的都交给操作熵。' }
+];
+
 const albumPin = document.getElementById('albumPin');
-const albumRow = document.getElementById('albumRow');
+const albumSection = document.getElementById('album');
+const albumTrack = document.getElementById('albumTrack');
+const albumHead = albumPin ? albumPin.querySelector('.album-head') : null;
+let albumCur = 0, albumTarget = 0;
+
+function albImg(note, tier){
+  const d = ALB_TIERS[tier] || ALB_TIERS.md2, w = d[0], h = d[1];
+  const el = document.createElement('div');
+  el.className = 'album-item t-' + tier;
+  const top = `<div class="album-top"><span>${note.tag || '#施工日志'}</span><span>${note.d || ''}</span></div>`;
+  const cover = note.cover
+    ? `<div class="album-cover" style="width:${w}vh;height:${h}vh"><img src="${note.cover}" alt="" loading="lazy"></div>`
+    : `<div class="album-cover ph" style="width:${w}vh;height:${h}vh;background:linear-gradient(150deg,${(note.g&&note.g[0])||'#3b3c38'},${(note.g&&note.g[1])||'#282c20'})"><b>${note.w || 'NOTE'}</b></div>`;
+  const line = note.line ? `<div class="album-line">${note.line}</div>` : '';
+  el.innerHTML = top + cover + line;
+  if (note.url){ el.style.cursor = 'pointer'; el.addEventListener('click', () => open(note.url, '_blank')); }
+  return el;
+}
+function albCallout(idx){
+  const c = ALB_CALLOUTS[idx] || ALB_CALLOUTS[0];
+  const el = document.createElement('div');
+  el.className = 'album-callout';
+  el.innerHTML = `<div class="q">${c.q}</div>` +
+    `<svg class="album-sig" data-todo="真签名待矢量化" viewBox="0 0 200 58" fill="none" stroke="var(--lime,#d2ff00)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 40 C 28 6, 44 8, 38 34 C 35 50, 55 48, 62 28 C 68 12, 78 44, 92 34 C 110 22, 128 48, 158 16 M118 40 L188 28"/></svg>`;
+  return el;
+}
+function albStagger(el, it){
+  if (it.mt != null) el.style.marginTop = it.mt === 'auto' ? 'auto' : it.mt + 'vh';
+  if (it.mb != null) el.style.marginBottom = it.mb === 'auto' ? 'auto' : it.mb + 'vh';
+  if (it.left != null) el.style.left = it.left + 'vh';
+}
 function buildAlbum(notes){
-  if (!albumRow) return;
-  albumRow.textContent = '';
-  notes.forEach(a => {
-    const card = document.createElement('div');
-    card.className = 'album-card';
-    const cover = a.cover
-      ? `<div class="album-cover" style="background:#222 url('${a.cover}') center/cover"></div>`
-      : `<div class="album-cover" style="background:linear-gradient(150deg,${a.g[0]},${a.g[1]})"><b>${a.w}</b></div>`;
-    card.innerHTML =
-      `<div class="album-top"><span>${a.tag}</span><span>${a.d}</span></div>` + cover +
-      `<div class="album-line">${a.line}</div>`;
-    if (a.url) { card.style.cursor = 'pointer'; card.addEventListener('click', () => open(a.url, '_blank')); }
-    albumRow.appendChild(card);
-  });
+  if (!albumTrack) return;
+  albumTrack.textContent = '';
+  notes = (notes || []).slice();
+  const seq = ALB_TEMPLATE.slice();
+  const imgCount = cols => cols.reduce((n,c) => n + c.items.filter(i => i.tier).length, 0);
+  let guard = 0;
+  while (imgCount(seq) < notes.length && guard++ < 60) seq.push(ALB_EXTRA[(seq.length - ALB_TEMPLATE.length) % ALB_EXTRA.length]);
+  let ni = 0;
+  for (const col of seq){
+    const need = col.items.filter(i => i.tier).length;
+    if (need && ni >= notes.length) break;            // 没图可填了，停在这
+    const colEl = document.createElement('div');
+    colEl.className = 'album-col';
+    for (const it of col.items){
+      let el = null;
+      if (it.tier){ if (ni >= notes.length) continue; el = albImg(notes[ni++], it.tier); }
+      else if (it.callout != null){ el = albCallout(it.callout); }
+      if (!el) continue;
+      albStagger(el, it);
+      colEl.appendChild(el);
+    }
+    if (!colEl.children.length) continue;
+    albumTrack.appendChild(colEl);
+    const sp = document.createElement('div');
+    sp.className = 'album-spacer' + (col.s === 'full' ? '' : ' ' + (col.s || 'half'));
+    albumTrack.appendChild(sp);
+  }
+  sizeAlbum();
+}
+function sizeAlbum(){
+  if (!albumTrack || !albumSection) return;
+  const travel = Math.max(0, albumTrack.scrollWidth - innerWidth);
+  albumSection.style.height = (innerHeight + travel) + 'px';
 }
 buildAlbum(ALBUM);
+addEventListener('resize', sizeAlbum, { passive:true });
 
 // xhs.json — drop next to index.html to replace the snapshot with real notes.
-// Produce it from the user's OpenCLI:
-//   opencli xiaohongshu user 626e17a00000000021028b6e --limit 12 -f json   (titles+urls)
-//   opencli xiaohongshu download <note> ...                                (covers -> assets/xhs/)
+// Produce it from the user's OpenCLI (Chrome bridge extension + logged into xhs):
+//   opencli xiaohongshu creator-notes -f json            (own account: titles/dates/covers)
+//   opencli xiaohongshu user 626e17a00000000021028b6e -f json   (or public profile notes)
+//   opencli xiaohongshu download <note-id> ...           (covers -> assets/xhs/)
 // then shape it as: { profile, album:[{tag,d,line,cover,url}], notes:[{tag,t,d,cover,url}] }
+// album[] feeds the horizontal wall (covers shown at natural ratio in vh tiers).
 fetch('xhs.json').then(r => r.ok ? r.json() : null).then(j => {
   if (!j) return;
   if (j.profile) XHS_PROFILE = j.profile;
@@ -2719,7 +2891,11 @@ function pageLoop(now){
     const S = 1 - 0.64 * shrink;                        // → ~0.36, matching the reference's smaller card
     canvas.style.transform = `translateY(${(-exit * 130).toFixed(2)}vh) scale(${S.toFixed(4)})`;
     canvas.style.borderRadius = '0px';                 // square corners, like the reference card
-    heroBack.style.opacity = clamp01(pinP * 3.2);
+    // the reference's stage is DARK from the first instant of the exit. the mat
+    // sits behind the full-screen canvas at rest, so ramping it to full opacity
+    // almost immediately (was *3.2 — far too slow, so the cream page showed
+    // through the shrinking border) puts the dark green there from frame one.
+    heroBack.style.opacity = clamp01(pinP * 60);
     heroExitP = clamp01(pinP * 2.6);                   // → uDesat (warm print)
     heroUi.style.opacity = 1 - clamp01(pinP * 4.5);
     // signature: SCROLL-SCRUBBED (scroll up un-writes). It rides up on the
@@ -2728,11 +2904,14 @@ function pageLoop(now){
     heroSig.style.opacity = clamp01((pinP - 0.10) * 8);
     heroSig.style.transform = `translate(-50%, -52%) translateY(${(-exit * 130).toFixed(2)}vh) rotate(-6deg)`;
     drawSig(heroSigObj, reducedMotion ? 1 : sigP);
-    // giant marquee scrolls across the dark stage behind the card
-    if (hbRow && hbSegW){
-      hbX = (hbX + 0.6 * dt / 16.7) % hbSegW;
-      hbRow.style.transform = `translateX(${-hbX.toFixed(1)}px)`;
+    // two bright marquee rows scroll across the dark stage (opposite ways) AND ride
+    // up with the card on exit — the text leaves bound to the card, like the reference
+    for (const r of hbRows){
+      r.x = (r.x + 0.6 * dt / 16.7) % r.w;
+      const tx = r.dir < 0 ? -r.x : (r.x - r.w);   // dir<0 drifts left, dir>0 drifts right
+      r.row.style.transform = `translateX(${tx.toFixed(1)}px)`;
     }
+    if (hbMarquee) hbMarquee.style.transform = `translateY(-50%) translateY(${(-exit * 130).toFixed(2)}vh)`;
     // scroll cue hides as soon as the exit begins
     if (scrollCue) scrollCue.classList.toggle('bye', pinP > 0.02);
     // subtle DOM parallax against the cursor
@@ -2742,18 +2921,23 @@ function pageLoop(now){
       pl.el.style.translate = `${(-plxX * pl.f).toFixed(1)}px ${(-plxY * pl.f).toFixed(1)}px`;
   }
 
-  // horizontal album: scroll → sideways travel + dark-to-paper color morph
-  if (albumPin && albumPin.offsetParent !== null){
-    const ar = albumPin.parentElement.getBoundingClientRect();
+  // horizontal album: scroll → smoothed sideways travel + 暗绿→纸 color morph
+  if (albumPin && albumTrack && albumSection && albumPin.offsetParent !== null){
+    const ar = albumSection.getBoundingClientRect();
     if (!(ar.bottom < -100 || ar.top > ih + 100)){
       const p = reducedMotion ? 1 : clamp01(-ar.top / (ar.height - ih));
-      const travel = albumRow.scrollWidth - innerWidth + innerWidth * 0.12;
-      albumRow.style.transform = `translateX(${-p * Math.max(0, travel)}px)`;
-      // color morph #111112 → paper
-      const mixc = (a, b) => Math.round(a + (b - a) * p);
-      albumPin.parentElement.style.background =
-        `rgb(${mixc(17,248)},${mixc(20,248)},${mixc(13,243)})`;
-      albumPin.style.color = p > 0.55 ? 'var(--ink)' : '#f4f4ed';
+      const maxTravel = Math.max(0, albumTrack.scrollWidth - innerWidth);
+      albumTarget = p * maxTravel;
+      albumCur += (albumTarget - albumCur) * 0.085;        // lerp → 惯性滑行/过冲
+      if (reducedMotion || Math.abs(albumTarget - albumCur) < 0.2) albumCur = albumTarget;
+      albumTrack.style.transform = `translate3d(${-albumCur}px,0,0)`;
+      // intro 标题在墙开动后淡出，让照片成焦点（原站墙上无大标题）
+      if (albumHead) albumHead.style.opacity = clamp01(1 - p / 0.1);
+      // color morph 暗绿 #282c20 → 纸 #efefe5；ease-in 让暗墙多留一会儿、临近结尾才开到纸白
+      const cp = Math.pow(p, 1.6);
+      const mixc = (a, b) => Math.round(a + (b - a) * cp);
+      albumSection.style.background = `rgb(${mixc(40,239)},${mixc(44,239)},${mixc(32,229)})`;
+      albumPin.style.color = cp > 0.5 ? 'var(--ink)' : '#f4f4ed';
     }
   }
 
@@ -3216,6 +3400,73 @@ function tickCountdown(){
 }
 tickCountdown(); setInterval(tickCountdown, 1000);
 
+/* --- 9c2. real Rive page-transition overlay (reference asset; CSS/.pt fallback) --- */
+const RTX = (() => {
+  const overlay = document.getElementById('rtx');
+  const canvas  = overlay && overlay.querySelector('canvas');
+  const R = window.rive;
+  const have = !!(R && R.Rive && overlay && canvas) && !reducedMotion;
+  const S = { ready:false, failed:!have, inst:null, initial:null, out:null, in:null };
+  // the .riv drives the LOOK; these only gate the DOM swap / overlay hide — tune after eyeballing
+  const T = { introHold:2200, cover:720, reveal:780, safety:5000 };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const hide = () => { if (overlay) overlay.style.display = 'none'; };
+  const show = () => { if (overlay){ overlay.style.display = 'block'; if (S.inst) requestAnimationFrame(() => { try { S.inst.resizeDrawingSurfaceToCanvas(); } catch (_) {} }); } };
+  const setV = (i, v) => { try { if (i) i.value = v; } catch (_) {} };
+  if (have) {
+    try {
+      if (R.RuntimeLoader && R.RuntimeLoader.setWasmUrl) R.RuntimeLoader.setWasmUrl('assets/rive.wasm');
+      const inst = new R.Rive({
+        src:'assets/page-transition.riv', canvas,
+        artboard:'page-transition', stateMachines:'page-transition', autoplay:true,
+        layout: new R.Layout({ fit:R.Fit.Cover, alignment:R.Alignment.Center }),
+        onLoad: () => {
+          try { inst.resizeDrawingSurfaceToCanvas(); } catch (_) {}
+          const ins = inst.stateMachineInputs('page-transition') || [];
+          const by = n => ins.find(i => i.name === n) || null;
+          S.initial = by('initial'); S.out = by('transition-out'); S.in = by('transition-in');
+          S.ready = true;
+          window.__RTX_INPUTS = ins.map(i => ({ name:i.name, type:i.type }));
+        },
+        onLoadError: e => { S.failed = true; hide(); window.__RTX_ERR = 'load:' + (e && e.message || e); },
+        onStateChange: e => { try { window.__RTX_STATES = (window.__RTX_STATES || []).concat(e.data || []).slice(-50); } catch (_) {} },
+      });
+      S.inst = inst;
+      window.__RTX = inst;
+      const rsz = () => { try { inst.resizeDrawingSurfaceToCanvas(); } catch (_) {} };
+      addEventListener('resize', rsz, { passive:true });
+      // the surface measures 0 while the tab is hidden / pre-layout — re-measure when it
+      // becomes visible or the canvas box first gets a real size, else it stays blank
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) rsz(); });
+      try { new ResizeObserver(rsz).observe(canvas); } catch (_) {}
+    } catch (e) { S.failed = true; hide(); window.__RTX_ERR = 'ctor:' + e; }
+  }
+  return {
+    get active() { return S.ready && !S.failed; },
+    get failed() { return S.failed; },
+    // entrance: overlay is already covering (lime); play the .riv intro, then uncover
+    async intro() {
+      if (!S.ready) return false;
+      show(); setV(S.initial, true);
+      await Promise.race([wait(T.introHold), wait(T.safety)]);
+      setV(S.initial, false); hide();
+      return true;
+    },
+    // page nav: cover (transition-out) -> swap DOM -> reveal (transition-in) -> uncover
+    async navigate(swapFn) {
+      if (!S.ready) { await swapFn(); return false; }
+      show();
+      setV(S.in, false); setV(S.initial, false); setV(S.out, true);
+      await Promise.race([wait(T.cover), wait(T.safety)]);
+      await swapFn();
+      setV(S.out, false); setV(S.in, true);
+      await Promise.race([wait(T.reveal), wait(T.safety)]);
+      hide(); setV(S.in, false);
+      return true;
+    },
+  };
+})();
+
 /* --- 9d. router: hash routes + curtain transition --- */
 const PAGE_EL = {
   'home': document.getElementById('pageHome'),
@@ -3229,20 +3480,27 @@ const waitMs = ms => new Promise(r => setTimeout(r, ms));
 async function goto(route){
   if (route === curRoute || transitioning || !PAGE_EL[route]) return;
   transitioning = true;
-  pt.classList.add('cover');
-  await waitMs(760);
-  PAGE_EL[curRoute].hidden = true;
-  PAGE_EL[route].hidden = false;
-  document.body.dataset.page = route;
-  curRoute = route;
-  scrollTo(0, 0);
-  scrollTick();
-  pt.classList.add('leave');
-  await waitMs(760);
-  pt.querySelectorAll('i').forEach(i => { i.style.transition = 'none'; });
-  pt.classList.remove('cover', 'leave');
-  void pt.offsetWidth;
-  pt.querySelectorAll('i').forEach(i => { i.style.transition = ''; });
+  const swap = async () => {
+    PAGE_EL[curRoute].hidden = true;
+    PAGE_EL[route].hidden = false;
+    document.body.dataset.page = route;
+    curRoute = route;
+    scrollTo(0, 0);
+    scrollTick();
+  };
+  if (RTX.active){
+    await RTX.navigate(swap);                 // real Rive cover -> reveal
+  } else {
+    pt.classList.add('cover');                // fallback: lime + dark slabs
+    await waitMs(760);
+    await swap();
+    pt.classList.add('leave');
+    await waitMs(760);
+    pt.querySelectorAll('i').forEach(i => { i.style.transition = 'none'; });
+    pt.classList.remove('cover', 'leave');
+    void pt.offsetWidth;
+    pt.querySelectorAll('i').forEach(i => { i.style.transition = ''; });
+  }
   transitioning = false;
 }
 const routeOf = h => { const m = (h || '').match(/^#\/(on-track|off-track|calendar)/); return m ? m[1] : 'home'; };
@@ -3288,35 +3546,46 @@ const scrollCue = document.getElementById('scrollCue');
 const plxEls = [...document.querySelectorAll('[data-plx]')].map(el => ({ el, f: +el.dataset.plx }));
 let plxX = 0, plxY = 0;
 
-// hero-stage marquee: clone the phrase into a long track so it loops
-// seamlessly; we translate within one segment width and modulo
-const hbRow = document.getElementById('hbRow');
-let hbX = 0, hbSegW = 0;
-if (hbRow){
-  const seg = hbRow.firstElementChild;
-  for (let i = 0; i < 7; i++) hbRow.appendChild(seg.cloneNode(true));
-  hbRow.style.display = 'inline-flex';
-  const measure = () => { hbSegW = seg.getBoundingClientRect().width || 1; };
-  measure(); addEventListener('resize', measure);
-}
+// hero-stage marquee: TWO bright rows. clone each phrase into a long track so it
+// loops seamlessly; row 0 drifts left, row 1 drifts right, both ride up on exit
+const hbMarquee = document.getElementById('hbMarquee');
+const hbRows = [...document.querySelectorAll('.hb-row')].map((row, i) => {
+  const seg = row.firstElementChild;
+  for (let k = 0; k < 7; k++) row.appendChild(seg.cloneNode(true));
+  return { row, seg, x: 0, w: 1, dir: i === 0 ? -1 : 1 };
+});
+const measureHb = () => hbRows.forEach(r => { r.w = r.seg.getBoundingClientRect().width || 1; });
+measureHb(); addEventListener('resize', measureHb);
 
-const bootEl = document.getElementById('boot');
+const rtxOverlay = document.getElementById('rtx');
 let booted = false;
-function finishBoot(instant){
+function finishBoot(){
   if (booted) return;
   booted = true;
   document.body.classList.add('booted');
-  // replay the fluid intro curtain from the moment of ignition
+  // (re)start the fluid intro curtain from the moment of reveal
   t0 = performance.now(); lastFrame = t0; simAcc = 0;
-  if (bootEl){
-    if (instant) bootEl.remove();
-    else { bootEl.classList.add('gone'); setTimeout(() => bootEl.remove(), 1100); }
-  }
 }
-// splash holds just long enough to register, then the curtain drops —
-// no counters, no buttons, 原站 style
-if (reducedMotion || !bootEl) finishBoot(true);
-else setTimeout(() => finishBoot(false), 1400);
+// lime cover wipes up to reveal the hero — the Rive-less fallback path
+function cssWipeReveal(){
+  if (rtxOverlay){ rtxOverlay.classList.add('wipe'); setTimeout(() => { rtxOverlay.style.display = 'none'; }, 1000); }
+  finishBoot();
+}
+// entrance: prefer the real Rive intro (page-transition.riv `initial`); fall back to the lime wipe.
+if (reducedMotion){
+  if (rtxOverlay) rtxOverlay.style.display = 'none';
+  finishBoot();
+} else if (!RTX.failed && typeof window.rive !== 'undefined'){
+  let waited = 0;
+  (function tryIntro(){
+    if (RTX.active){ RTX.intro().then(finishBoot); }
+    else if (RTX.failed){ cssWipeReveal(); }
+    else if (waited < 4500){ waited += 120; setTimeout(tryIntro, 120); }
+    else { cssWipeReveal(); }
+  })();
+} else {
+  setTimeout(cssWipeReveal, 1400);
+}
 
 const lockPill = document.getElementById('lockPill');
 let fluidLock = false;
