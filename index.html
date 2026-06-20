@@ -68,6 +68,14 @@
   }
   .hb-topo{ position:absolute; inset:0; width:100%; height:100%; opacity:.55; }
   .hb-topo path{ fill:none; stroke:#d2ff00; stroke-width:1.1; opacity:.10; }
+  /* 等高线贯穿全站：双层固定浮层——multiply 深线(浅章节显形) + screen lime 线(深章节显形)，波形连续贯穿 */
+  #site-topo{ position:fixed; inset:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+  #site-topo .topo-d, #site-topo .topo-l{ position:absolute; inset:0; width:100%; height:100%; }
+  #site-topo svg{ width:100%; height:100%; display:block; }
+  #site-topo .topo-d{ mix-blend-mode:multiply; opacity:.55; }
+  #site-topo .topo-d path{ fill:none; stroke:#363b2a; stroke-width:1.2; vector-effect:non-scaling-stroke; }
+  #site-topo .topo-l{ mix-blend-mode:screen; opacity:.5; }
+  #site-topo .topo-l path{ fill:none; stroke:#d2ff00; stroke-width:1.2; vector-effect:non-scaling-stroke; opacity:.55; }
   .hb-marquee{
     position:absolute; top:50%; left:0; width:100%;
     transform:translateY(-50%);
@@ -1224,6 +1232,10 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
      运行时/资源加载不出来时，#rtx 自己做柠檬绿擦除（入场）、.pt 双色板（翻页）兜底。 -->
 <div class="rtx" id="rtx" aria-hidden="true"><canvas id="rtxCanvas"></canvas></div>
 
+<div id="site-topo" aria-hidden="true">
+  <div class="topo-d"><svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice"><path d="M-40 80 C300 20 560 160 820 90 S1240 30 1480 110"/><path d="M-40 185 C320 125 540 255 800 185 S1260 125 1480 205"/><path d="M-40 290 C280 230 580 365 840 290 S1240 230 1480 310"/><path d="M-40 400 C320 340 560 470 820 400 S1260 340 1480 420"/><path d="M-40 510 C300 450 580 595 840 510 S1240 450 1480 530"/><path d="M-40 620 C320 560 540 700 800 620 S1260 560 1480 640"/><path d="M-40 730 C280 670 580 815 840 730 S1240 670 1480 750"/><path d="M-40 840 C320 780 560 920 820 840 S1260 780 1480 860"/></svg></div>
+  <div class="topo-l"><svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice"><path d="M-40 80 C300 20 560 160 820 90 S1240 30 1480 110"/><path d="M-40 185 C320 125 540 255 800 185 S1260 125 1480 205"/><path d="M-40 290 C280 230 580 365 840 290 S1240 230 1480 310"/><path d="M-40 400 C320 340 560 470 820 400 S1260 340 1480 420"/><path d="M-40 510 C300 450 580 595 840 510 S1240 450 1480 530"/><path d="M-40 620 C320 560 540 700 800 620 S1260 560 1480 640"/><path d="M-40 730 C280 670 580 815 840 730 S1240 670 1480 750"/><path d="M-40 840 C320 780 560 920 820 840 S1260 780 1480 860"/></svg></div>
+</div>
 <div class="hero-back" id="heroBack">
   <svg class="hb-topo" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <path d="M-40 130 C220 70 420 200 660 130 S1060 70 1260 150"/>
