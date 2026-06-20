@@ -9,3 +9,8 @@ assets/page-transition.riv
 # Tyler Durden cutout (Fight Club / copyrighted) — local only; the hero cloak layer
 # reads it over localhost; not committed/redistributed.
 tyler.png
+
+# knowledge-graph build scratch (derived / screenshots / headless harness)
+_graph_test.html
+tools/_shot*.png
+tools/graph-data.json

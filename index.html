@@ -509,38 +509,66 @@
   }
   .fact-card .v{ font-size:14.5px; line-height:1.75; }
 
-  /* --- project graph (dark) --- */
-  .graph-stage{
-    position:relative;
-    border:1px solid rgba(244,244,237,.16);
-    border-radius:6px;
-    height:clamp(420px,58vh,640px);
-    overflow:hidden;
+  /* --- knowledge graph · full-screen pinned, scroll-grown --- */
+  .s-graph{ position:relative; height:360svh; background:var(--paper); overflow:visible; padding:0; }
+  .graph-pin{
+    position:sticky; top:0; height:100svh; overflow:hidden; color:#eef0e6;
     background:
-      radial-gradient(ellipse at 30% 20%, rgba(210,255,0,.05), transparent 50%),
+      radial-gradient(120% 80% at 50% -10%, rgba(210,255,0,.05), transparent 55%),
+      radial-gradient(90% 90% at 50% 120%, rgba(167,139,250,.05), transparent 60%),
       var(--dark);
   }
-  #graphCanvas{ position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; }
-  .graph-info{
-    position:absolute; right:14px; bottom:14px; z-index:2;
-    width:min(290px, 70vw);
-    border:1px solid rgba(244,244,237,.2);
-    background:rgba(26,29,20,.88);
-    backdrop-filter:blur(6px);
-    padding:14px 16px; border-radius:4px;
-    pointer-events:none;
-    opacity:0; transform:translateY(8px);
-    transition:opacity .45s var(--ease), transform .45s var(--ease);
+  .graph-pin:fullscreen{ width:100vw; height:100vh; }
+  #graphCanvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+
+  /* intro headline — fades as the graph starts to grow */
+  .graph-intro{
+    position:absolute; left:0; right:0; top:33%; text-align:center; z-index:3;
+    pointer-events:none; padding:0 6vw; will-change:opacity,transform;
   }
-  .graph-info.show{ opacity:1; transform:none; }
-  .graph-info .t{ font-family:'Mona Sans Variable',Arial,sans-serif; font-size:18px; letter-spacing:.03em; margin-bottom:6px; }
-  .graph-info .d{ font-size:12.5px; line-height:1.7; color:var(--dark-soft); }
-  .graph-info .s{ display:inline-block; margin-top:8px; font-size:10.5px; font-style:normal; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .graph-legend{
-    display:flex; gap:18px; margin-top:14px;
-    font-size:11px; font-style:normal; color:var(--ink-soft); flex-wrap:wrap;
-  }
-  .graph-legend i{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+  .graph-intro .eyebrow{ color:var(--dark-soft); }
+  .graph-intro h2{ color:#f4f4ed; margin:.18em 0 .5em; }
+  .graph-intro-sub{ font-size:13px; color:var(--dark-soft); letter-spacing:.03em; }
+
+  .graph-hud,.graph-tools,.graph-actions,.graph-legend,.graph-info,.graph-hint{ position:absolute; z-index:4; transition:opacity .4s var(--ease); }
+  .graph-hud{ top:clamp(14px,2.4vh,26px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .graph-views{ display:flex; gap:3px; padding:4px; border-radius:999px; background:rgba(20,23,16,.6); border:1px solid rgba(244,244,237,.14); backdrop-filter:blur(8px); }
+  .graph-views button{ font:600 12px/1 'Mona Sans Variable',Arial,sans-serif; letter-spacing:.02em; color:var(--dark-soft); background:none; border:0; cursor:pointer; padding:7px 14px; border-radius:999px; transition:.25s var(--ease); }
+  .graph-views button:hover{ color:#f4f4ed; }
+  .graph-views button.on{ color:var(--ink); background:var(--accent); }
+  .graph-count{ font-size:11px; letter-spacing:.03em; color:var(--dark-soft); }
+  .graph-count b{ color:var(--accent); font-weight:700; }
+
+  .graph-tools{ left:clamp(14px,2.4vw,28px); bottom:clamp(14px,2.6vh,28px); display:flex; flex-direction:column; gap:10px; width:min(244px,68vw); }
+  .graph-search{ width:100%; font:500 13px 'Mona Sans Variable',Arial,sans-serif; color:#f4f4ed; background:rgba(20,23,16,.6); border:1px solid rgba(244,244,237,.16); border-radius:8px; padding:9px 12px; backdrop-filter:blur(8px); outline:none; }
+  .graph-search::placeholder{ color:var(--dark-soft); }
+  .graph-search:focus{ border-color:var(--accent); }
+  .graph-layers{ display:flex; flex-wrap:wrap; gap:6px; }
+  .graph-layers button{ font:600 11px 'Mona Sans Variable',Arial,sans-serif; letter-spacing:.02em; cursor:pointer; color:#dfe3d6; background:rgba(20,23,16,.5); border:1px solid rgba(244,244,237,.14); border-radius:999px; padding:5px 11px; transition:.2s var(--ease); display:flex; align-items:center; gap:6px; }
+  .graph-layers button i{ width:8px; height:8px; border-radius:2px; background:currentColor; }
+  .graph-layers button.on{ color:#0e1108; background:#cdd3c2; border-color:transparent; }
+  .graph-layers button:not(.on){ opacity:.5; }
+
+  .graph-actions{ top:clamp(14px,2.4vh,26px); right:clamp(14px,2.4vw,28px); display:flex; gap:8px; }
+  .graph-actions button{ font:600 12px 'Mona Sans Variable',Arial,sans-serif; cursor:pointer; letter-spacing:.02em; color:#f4f4ed; background:rgba(20,23,16,.6); border:1px solid rgba(244,244,237,.16); border-radius:8px; padding:8px 13px; backdrop-filter:blur(8px); transition:.2s var(--ease); }
+  .graph-actions button:hover{ border-color:var(--accent); }
+  .graph-actions button.on{ background:var(--accent); color:var(--ink); border-color:transparent; }
+
+  .graph-info{ right:clamp(14px,2.4vw,28px); bottom:clamp(14px,2.6vh,28px); width:min(310px,74vw); border:1px solid rgba(244,244,237,.2); background:rgba(20,23,16,.9); backdrop-filter:blur(8px); padding:15px 17px; border-radius:10px; opacity:0; transform:translateY(8px); pointer-events:none; }
+  .graph-info.show{ opacity:1; transform:none; pointer-events:auto; }
+  .graph-info .gi-tag{ font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--accent); }
+  .graph-info .gi-t{ font-family:'Mona Sans Variable',Arial,sans-serif; font-size:18px; letter-spacing:.02em; margin:5px 0 6px; color:#f6f6ef; word-break:break-word; }
+  .graph-info .gi-d{ font-size:12.5px; line-height:1.72; color:var(--dark-soft); }
+  .graph-info .gi-link{ display:inline-block; margin-top:11px; font-size:11px; font-weight:700; color:var(--ink); background:var(--accent); padding:6px 11px; border-radius:6px; text-decoration:none; }
+
+  .graph-legend{ left:50%; transform:translateX(-50%); bottom:clamp(14px,2.6vh,28px); display:flex; gap:15px; font-size:11px; color:var(--dark-soft); flex-wrap:wrap; justify-content:center; max-width:46vw; }
+  .graph-legend span{ display:flex; align-items:center; gap:6px; }
+  .graph-legend i{ width:9px; height:9px; border-radius:50%; }
+  .graph-hint{ left:50%; transform:translateX(-50%); bottom:calc(clamp(14px,2.6vh,28px) + 26px); font-size:11px; color:var(--dark-soft); letter-spacing:.03em; opacity:.7; pointer-events:none; white-space:nowrap; }
+
+  .graph-grow{ position:absolute; left:0; bottom:0; height:2px; width:100%; z-index:4; background:rgba(244,244,237,.08); }
+  .graph-grow i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent),#a78bfa); }
+  @media(max-width:680px){ .graph-legend{ max-width:92vw; } .graph-count,.graph-hint{ display:none; } .graph-tools{ width:min(200px,60vw); } }
 
   /* --- updating list + 蹲蹲 --- */
   .up-row{
@@ -1253,7 +1281,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
       <a class="menu-page" href="#/calendar" style="--i:3"><span class="mi"><span>CALENDAR <small>仪表盘</small></span></span></a>
     </nav>
     <div class="menu-side">
-      <a href="#graph" data-menu-anchor>项目星图</a>
+      <a href="#graph" data-menu-anchor>知识图谱</a>
       <a href="#updating" data-menu-anchor>正在更新 · 蹲蹲</a>
       <a href="#workflow" data-menu-anchor>工作流陈列室</a>
       <a href="#socials" data-menu-anchor>小红书</a>
@@ -1422,25 +1450,41 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     </div>
   </section>
 
-  <!-- ====== 04 · PROJECT GRAPH — 浅色章节里嵌一块深色「屏幕」，不再整屏切深 ====== -->
-  <section class="sec" id="graph">
-    <div class="wrap">
-      <p class="eyebrow" data-rise>04 — 项目星图 · constellation</p>
-      <h2 data-split>灵感不删除，<br><span class="alt">只是还没连上线</span><span class="serif-it">。</span></h2>
-      <div class="graph-stage" data-rise>
-        <canvas id="graphCanvas"></canvas>
-        <div class="graph-info" id="graphInfo">
-          <div class="t"></div>
-          <div class="d"></div>
-          <span class="s"></span>
-        </div>
+  <!-- ====== 04 · KNOWLEDGE GRAPH — 全屏钉住，滚动从一颗种子长成森林 ====== -->
+  <section class="sec s-graph" id="graph" data-theme="dark">
+    <div class="graph-pin" id="graphPin">
+      <canvas id="graphCanvas"></canvas>
+
+      <div class="graph-intro" id="graphIntro">
+        <p class="eyebrow">04 — 知识图谱 · everything i've grown</p>
+        <h2>从一颗种子，<br><span class="alt">长成一整座森林</span><span class="serif-it">。</span></h2>
+        <p class="graph-intro-sub">GitHub · Obsidian · Claude 三处的我，连成一张网 —— 往下滚，看它生长 ↓</p>
       </div>
-      <div class="graph-legend" data-rise>
-        <span><i style="background:#d2ff00"></i>正在更新</span>
-        <span><i style="background:#f4f4ed"></i>已上线</span>
-        <span><i style="background:#6b7060"></i>蛰伏中</span>
-        <span style="opacity:.7">— 大点是项目，小点是它的分支动态 · 鼠标可以拨弄它们</span>
+
+      <div class="graph-hud" id="graphHud" style="opacity:0">
+        <div class="graph-views" id="graphViews"></div>
+        <div class="graph-count" id="graphCount"></div>
       </div>
+
+      <div class="graph-actions" id="graphActions" style="opacity:0">
+        <button id="graphLock" title="锁定后可自由缩放/拖拽，页面不会滚走">🔒 锁定探索</button>
+        <button id="graphFull" title="全屏沉浸">⛶ 全屏</button>
+      </div>
+
+      <div class="graph-tools" id="graphTools" style="opacity:0">
+        <input class="graph-search" id="graphSearch" placeholder="搜索项目 / 笔记 / 学科…" autocomplete="off">
+        <div class="graph-layers" id="graphLayers"></div>
+      </div>
+
+      <aside class="graph-info" id="graphInfo">
+        <span class="gi-tag"></span>
+        <div class="gi-t"></div>
+        <div class="gi-d"></div>
+      </aside>
+
+      <div class="graph-legend" id="graphLegend" style="opacity:0"></div>
+      <div class="graph-hint" id="graphHint" style="opacity:0">滚动生长 · 悬停看详情 · 锁定后可缩放拖拽</div>
+      <div class="graph-grow" id="graphGrow"><i></i></div>
     </div>
   </section>
 
@@ -2994,109 +3038,206 @@ requestAnimationFrame(pageLoop);
 // debug hook: drive one choreography tick while the tab is hidden (rAF parked)
 window.HERO.pageTick = () => pageLoop(performance.now());
 
-/* --- 8g. project constellation (obsidian-style graph) --- */
-const NODES = [
-  { id:'zima',     n:'齐马蓝 · 本站',    d:'你正在看的这个网站。流体显形 hero + 全站动效，单文件零依赖。', s:'updating', x:.50, y:.42, r:15, sat:4 },
-  { id:'chess',    n:'棋界融合',         d:'国际象棋 × 将棋的 9×9 融合棋，规则已锁定，已上线可玩。', s:'live', x:.18, y:.30, r:12, sat:3 },
-  { id:'dazi',     n:'打字爽',           d:'中文打字练习站，Monkeytype 式手感 + 强反馈 + 自定义文章导入。', s:'updating', x:.30, y:.66, r:12, sat:3 },
-  { id:'mofa',     n:'嬤法大逃杀',       d:'多人混战小游戏实验，已部署上线。', s:'live', x:.10, y:.55, r:9, sat:2 },
-  { id:'kindle',   n:'kindle-station',  d:'EPUB 上传 → AI 魔改 → 转发 Kindle，外加高亮抓取同步。', s:'updating', x:.68, y:.24, r:11, sat:3 },
-  { id:'remix',    n:'EPUB remixer',    d:'kindle-station 的前身实验，ADHD 友好的电子书重排。', s:'dormant', x:.80, y:.12, r:6, sat:0 },
-  { id:'ody',      n:'odysseus 汉化',   d:'自托管 AI 工作台的中文本地化，已开源。', s:'live', x:.84, y:.46, r:9, sat:2 },
-  { id:'card',     n:'cardputer 掌机',  d:'M5Stack 掌上终端的固件折腾，键盘唤醒等坑已踩平。', s:'updating', x:.62, y:.72, r:10, sat:3 },
-  { id:'pen',      n:'vibe 笔',         d:'笔形外设 DIY。蛰伏中——等互动模块学完就回来定 BOM。可蹲。', s:'dormant', x:.76, y:.86, r:8, sat:0 },
-  { id:'liumang',  n:'剧本杀宇宙',       d:'21 本 1845 页剧本 OCR 成 59 万字故事圣经，改写与续写进行中。', s:'dormant', x:.36, y:.14, r:8, sat:1 },
-  { id:'sess',     n:'sessionss',       d:'多 session 并行大项目的 skill，工作流陈列室 WF·01。', s:'live', x:.44, y:.84, r:8, sat:2 },
-  { id:'cook',     n:'动效食谱',         d:'65 个高端 web 动效 demo，从 lando 官网逆向而来。', s:'live', x:.58, y:.55, r:9, sat:2 },
-];
-const EDGES = [['zima','cook'],['cook','sess'],['zima','sess'],['chess','liumang'],['dazi','zima'],
-               ['kindle','remix'],['card','pen'],['mofa','chess'],['ody','sess'],['kindle','zima']];
-const GCOL = { updating:'#d2ff00', live:'#f4f4ed', dormant:'#6b7060' };
-const gCanvas = document.getElementById('graphCanvas');
-const gInfo = document.getElementById('graphInfo');
-if (gCanvas){
-  const gtx = gCanvas.getContext('2d');
-  let gw = 0, gh = 0, gdpr = 1, gVisible = false, gMouse = { x:-1e4, y:-1e4 }, hovered = null;
-  const sats = [];
-  NODES.forEach(nd => {
-    for (let i = 0; i < nd.sat; i++)
-      sats.push({ p:nd, a:Math.random() * 6.28, dist:nd.r + 14 + Math.random() * 22, sp:(0.12 + Math.random() * 0.25) * (Math.random() < .5 ? -1 : 1) });
-  });
-  function gSize(){
-    const r = gCanvas.getBoundingClientRect();
-    gdpr = Math.min(devicePixelRatio || 1, 2);
-    gw = r.width; gh = r.height;
-    gCanvas.width = Math.round(gw * gdpr); gCanvas.height = Math.round(gh * gdpr);
-    gtx.setTransform(gdpr, 0, 0, gdpr, 0, 0);
+/* --- 8g. knowledge graph · multi-source, scroll-grown, full-screen --- */
+/*__GRAPH_DATA__*/
+const GRAPH={"meta":{"built":"2026-06-20","counts":{"nodes":138,"edges":420,"github":33,"claude":49,"obsidian":34,"bridges":30},"disciplines":["3D建模","AI工作台","ClaudeCode生态","Web动效","个人站","中文打字","剧本杀","商业","工具脚本","成长","教育","游戏","硬件","设计","阅读"],"languages":["Astro","HTML","JavaScript","PowerShell","Python","TypeScript"]},"nodes":[{"id":"root","label":"chichu","desc":"18 岁 vibe coder · 操作熵↓ · build in public · 好奇心第一动力。这张图就是我这一年长出来的全部。","platform":"core","cat":"root","status":null,"deg":18,"r":20,"disc":[]},{"id":"hub:github","label":"GitHub","desc":"开源仓库 · 公开 build in public 的全部产物","platform":"github","cat":"hub","status":null,"deg":33,"r":15,"disc":[]},{"id":"hub:claude","label":"Claude","desc":"我和 Claude 的长期记忆：项目档案 / 协作偏好 / 参考","platform":"claude","cat":"hub","status":null,"deg":49,"r":15,"disc":[]},{"id":"hub:obsidian","label":"Obsidian","desc":"个人笔记库：学习、规划、读书与随想","platform":"obsidian","cat":"hub","status":null,"deg":26,"r":15,"disc":[]},{"id":"gh:lixon","label":"lixon","desc":"LIXON — chichu's personal site: fluid hero + xiaohongshu build-log wall (reference-faithful replica)","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/lixon","repoUrl":"https://github.com/xing0325/lixon","stars":0,"disc":["Web动效","个人站"],"deg":7,"r":10.9},{"id":"lang:HTML","label":"HTML","desc":"技术栈","platform":"core","cat":"skill","status":null,"isLang":true,"deg":15,"r":14.1,"disc":[]},{"id":"gh:jingqi-share","label":"jingqi-share","desc":"chichu · 在惊奇分享 — 这一年 build in public 的探索（单页作品集，含可交互答辩画板）","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/jingqi-share","repoUrl":"https://github.com/xing0325/jingqi-share","stars":0,"disc":["教育","个人站"],"deg":6,"r":10.4},{"id":"gh:chichu-visual-talk-notes","label":"chichu-visual-talk-notes","desc":"","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/chichu-visual-talk-notes","repoUrl":"https://github.com/xing0325/chichu-visual-talk-notes","stars":0,"disc":[],"deg":3,"r":8.5},{"id":"gh:chichu-visual-talk","label":"chichu-visual-talk","desc":"","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/chichu-visual-talk","repoUrl":"https://github.com/xing0325/chichu-visual-talk","stars":0,"disc":[],"deg":3,"r":8.5},{"id":"gh:chichu_habit","label":"chichu_habit","desc":"记录与整理我的习惯（由不同 session 的 Claude 提取并推送）","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/chichu_habit","repoUrl":"https://github.com/xing0325/chichu_habit","stars":0,"disc":["ClaudeCode生态"],"deg":6,"r":10.4},{"id":"gh:chess-shogi","label":"chess-shogi","desc":"","platform":"github","cat":"project","status":"updating","lang":"TypeScript","private":false,"url":"https://github.com/xing0325/chess-shogi","repoUrl":"https://github.com/xing0325/chess-shogi","stars":0,"disc":[],"deg":3,"r":8.5},{"id":"lang:TypeScript","label":"TypeScript","desc":"技术栈","platform":"core","cat":"skill","status":null,"isLang":true,"deg":3,"r":8.5,"disc":[]},{"id":"gh:xiaohongshu-preview","label":"xiaohongshu-preview","desc":"小红书图文预览工作台 · 把 HTML 配图按小红书手机/网页样式预览，一键导出 PNG。Drop-in 仓库，给未来的 AI agent 协作用。","platform":"github","cat":"skill","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/xiaohongshu-preview","repoUrl":"https://github.com/xing0325/xiaohongshu-preview","stars":2,"disc":["AI工作台"],"deg":3,"r":8.5},{"id":"gh:odysseus-zh-CN","label":"odysseus-zh-CN","desc":"PewDiePie 的 Odysseus 自托管 AI 工作台 · 中文汉化（油猴脚本 + 文件补丁，运行时覆盖、不改源文件、可一键开关）","platform":"github","cat":"skill","status":"updating","lang":"Python","private":false,"url":"https://github.com/xing0325/odysseus-zh-CN","repoUrl":"https://github.com/xing0325/odysseus-zh-CN","stars":1,"disc":["AI工作台","工具脚本"],"deg":5,"r":9.8},{"id":"lang:Python","label":"Python","desc":"技术栈","platform":"core","cat":"skill","status":null,"isLang":true,"deg":4,"r":9.2,"disc":[]},{"id":"gh:warhol-factory","label":"warhol-factory","desc":"THE SILVER FACTORY — an interactive Andy Warhol pop-art tribute. Hand-pull your own silkscreen, multiply it, mix inks, sit for a Screen Test. Made entirely in your browser.","platform":"github","cat":"project","status":"updating","lang":"JavaScript","private":false,"url":"https://github.com/xing0325/warhol-factory","repoUrl":"https://github.com/xing0325/warhol-factory","stars":0,"disc":[],"deg":2,"r":7.7},{"id":"lang:JavaScript","label":"JavaScript","desc":"技术栈","platform":"core","cat":"skill","status":null,"isLang":true,"deg":4,"r":9.2,"disc":[]},{"id":"gh:zima-blue","label":"zima-blue","desc":"一格齐马蓝 · chichu 的个人站 (Zima Blue personal site)","platform":"github","cat":"project","status":"updating","lang":"JavaScript","private":false,"url":"https://xing0325.github.io/zima-blue/","repoUrl":"https://github.com/xing0325/zima-blue","stars":0,"disc":["个人站"],"deg":6,"r":10.4},{"id":"gh:mofazhusha","label":"mofazhusha","desc":"Magic Battle Royale - course gamification","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/mofazhusha","repoUrl":"https://github.com/xing0325/mofazhusha","stars":0,"disc":["游戏"],"deg":8,"r":11.4},{"id":"gh:zima","label":"zima","desc":"","platform":"github","cat":"project","status":"updating","lang":"Astro","private":false,"url":"https://github.com/xing0325/zima","repoUrl":"https://github.com/xing0325/zima","stars":0,"disc":["个人站"],"deg":7,"r":10.9},{"id":"lang:Astro","label":"Astro","desc":"技术栈","platform":"core","cat":"skill","status":null,"isLang":true,"deg":1,"r":6.6,"disc":[]},{"id":"gh:chichu-feishu-habits","label":"chichu-feishu-habits","desc":"Oscar 在飞书使用 Claude 的习惯/偏好/项目上下文","platform":"github","cat":"project","status":"updating","lang":"TypeScript","private":true,"url":"https://zimablue-alpha.vercel.app","repoUrl":"https://github.com/xing0325/chichu-feishu-habits","stars":0,"disc":[],"deg":4,"r":9.2},{"id":"gh:vibe-coding-class","label":"vibe-coding-class","desc":"","platform":"github","cat":"project","status":"updating","lang":"JavaScript","private":false,"url":"https://github.com/xing0325/vibe-coding-class","repoUrl":"https://github.com/xing0325/vibe-coding-class","stars":1,"disc":[],"deg":2,"r":7.7},{"id":"gh:siemens-training","label":"siemens-training","desc":"SITRAIN Hub — Siemens industrial training portal demo (Engineered Editorial static site, mirrors sc.yaowee.cn structure)","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/siemens-training","repoUrl":"https://github.com/xing0325/siemens-training","stars":0,"disc":["教育"],"deg":4,"r":9.2},{"id":"gh:qiantaici-decoder","label":"qiantaici-decoder","desc":"潜台词解码器 · 依恋类型互动作业(可嵌入 Notion)","platform":"github","cat":"project","status":"updating","lang":"HTML","private":false,"url":"https://github.com/xing0325/qiantaici-decoder","repoUrl":"https://github.com/xing0325/qiantaici-decoder","stars":0,"disc":[],"deg":2,"r":7.7},{"id":"gh:claude-account-switch-migration","label":"claude-account-switch-migration","desc":"Claude Code 桌面端换账号后历史 session 不见？拷贝 sidebar metadata 让旧对话重现。Windows/macOS/Linux 路径都覆盖。","platform":"github","cat":"skill","status":"live","lang":null,"private":false,"url":"https://github.com/xing0325/claude-account-switch-migration","repoUrl":"https://github.com/xing0325/claude-account-switch-migration","stars":0,"disc":["ClaudeCode生态"],"deg":4,"r":9.2},{"id":"gh:late-penalty","label":"late-penalty","desc":"迟到惩罚转盘 · Late Penalty Roulette","platform":"github","cat":"project","status":"live","lang":"HTML","private":false,"url":"https://github.com/xing0325/late-penalty","repoUrl":"https://github.com/xing0325/late-penalty","stars":0,"disc":["游戏"],"deg":3,"r":8.5},{"id":"gh:dazi-juice","label":"dazi-juice","desc":"中文打字练习网页：Monkeytype 风格 + 强反馈 + 导入自己的文章背诵式练打","platform":"github","cat":"project","status":"live","lang":"HTML","private":false,"url":"https://github.com/xing0325/dazi-juice","repoUrl":"https://github.com/xing0325/dazi-juice","stars":0,"disc":["中文打字"],"deg":4,"r":9.2},{"id":"gh:curi-online","label":"curi-online","desc":"好奇online——好奇学院的线上版网站，10人小团队 vibe coding 协作。Next.js + Supabase + Vercel，6 模块平铺（schedule/reading/workspace/lounge/daily/events）","platform":"github","cat":"project","status":"live","lang":null,"private":true,"url":"https://github.com/xing0325/curi-online","repoUrl":"https://github.com/xing0325/curi-online","stars":0,"disc":["教育"],"deg":4,"r":9.2},{"id":"gh:kiidschool","label":"kiidschool","desc":"钥匙玩校 2026夏令营 H5页面","platform":"github","cat":"project","status":"live","lang":"HTML","private":false,"url":"https://github.com/xing0325/kiidschool","repoUrl":"https://github.com/xing0325/kiidschool","stars":0,"disc":["教育"],"deg":7,"r":10.9},{"id":"gh:china-truth-graph","label":"china-truth-graph","desc":"活在真实中 · 中国近现代禁书与异见者知识图谱（166 节点 / 300+ 关系）","platform":"github","cat":"project","status":"live","lang":"JavaScript","private":false,"url":"https://github.com/xing0325/china-truth-graph","repoUrl":"https://github.com/xing0325/china-truth-graph","stars":0,"disc":[],"deg":3,"r":8.5},{"id":"gh:sessionss","label":"sessionss","desc":"Claude Code project templates (multi-session-website etc.)","platform":"github","cat":"skill","status":"live","lang":"PowerShell","private":true,"url":"https://github.com/xing0325/sessionss","repoUrl":"https://github.com/xing0325/sessionss","stars":0,"disc":["ClaudeCode生态"],"deg":4,"r":9.2},{"id":"lang:PowerShell","label":"PowerShell","desc":"技术栈","platform":"core","cat":"skill","status":null,"isLang":true,"deg":2,"r":7.7,"disc":[]},{"id":"gh:credit-score","label":"credit-score","desc":"好奇学习社区信用积分管理系统 · FastAPI + SQLite + Railway","platform":"github","cat":"project","status":"live","lang":"Python","private":true,"url":"https://github.com/xing0325/credit-score","repoUrl":"https://github.com/xing0325/credit-score","stars":0,"disc":["教育"],"deg":4,"r":9.2},{"id":"gh:bypass-pet","label":"bypass-pet","desc":"Pixel desktop pet for Windows that toggles Claude Code Desktop's bypass mode. Two states: the Narrator (accept) vs Tyler Durden (bypass), from Fight Club.","platform":"github","cat":"skill","status":"live","lang":"Python","private":false,"url":"https://github.com/xing0325/bypass-pet","repoUrl":"https://github.com/xing0325/bypass-pet","stars":0,"disc":["ClaudeCode生态"],"deg":7,"r":10.9},{"id":"gh:claude-bypass-hook","label":"claude-bypass-hook","desc":"PreToolUse hook for Claude Code Desktop that makes bypass-permissions mode actually work when settings.json is being silently ignored (Issue #29026). Sentinel-file toggle, fully scripted install/uninstall.","platform":"github","cat":"skill","status":"live","lang":"PowerShell","private":false,"url":"https://github.com/xing0325/claude-bypass-hook","repoUrl":"https://github.com/xing0325/claude-bypass-hook","stars":0,"disc":["工具脚本","ClaudeCode生态"],"deg":6,"r":10.4},{"id":"gh:web-anim-cookbook","label":"web-anim-cookbook","desc":"65 self-contained high-end web animation demos · reverse-engineered from landonorris.com (OFF+BRAND) · 8 categories · MIT","platform":"github","cat":"project","status":"live","lang":"HTML","private":false,"url":"https://github.com/xing0325/web-anim-cookbook","repoUrl":"https://github.com/xing0325/web-anim-cookbook","stars":0,"disc":["Web动效"],"deg":6,"r":10.4},{"id":"gh:landonorris-teardown","label":"landonorris-teardown","desc":"反向兰多·诺里斯官网 / OFF+BRAND 全站拆解 · 11 demos + 17 teardown blocks","platform":"github","cat":"project","status":"live","lang":"HTML","private":false,"url":"https://github.com/xing0325/landonorris-teardown","repoUrl":"https://github.com/xing0325/landonorris-teardown","stars":0,"disc":[],"deg":5,"r":9.8},{"id":"gh:allow-floating-ball","label":"allow-floating-ball","desc":"Claude Desktop MCP Allow 弹窗自动点击悬浮球（Windows）","platform":"github","cat":"skill","status":"live","lang":"Python","private":true,"url":"https://github.com/xing0325/allow-floating-ball","repoUrl":"https://github.com/xing0325/allow-floating-ball","stars":0,"disc":["ClaudeCode生态"],"deg":5,"r":9.8},{"id":"gh:mom-2026","label":"mom-2026","desc":"致妈妈 · 一封小小的信 · 2026 母亲节","platform":"github","cat":"project","status":"live","lang":"HTML","private":false,"url":"https://github.com/xing0325/mom-2026","repoUrl":"https://github.com/xing0325/mom-2026","stars":0,"disc":[],"deg":2,"r":7.7},{"id":"gh:calling-suishoji","label":"calling-suishoji","desc":"CALLING 随手记 - 用爱呼唤你自己 | 个人随手记应用，AI自动分类，日历视图，日记，周总结/月洞察","platform":"github","cat":"project","status":"live","lang":"TypeScript","private":false,"url":"https://github.com/xing0325/calling-suishoji","repoUrl":"https://github.com/xing0325/calling-suishoji","stars":0,"disc":["AI工作台"],"deg":4,"r":9.2},{"id":"gh:private-insight-officer","label":"private-insight-officer","desc":"???????? - AI ?? Obsidian ???????","platform":"github","cat":"skill","status":"live","lang":null,"private":true,"url":"https://github.com/xing0325/private-insight-officer","repoUrl":"https://github.com/xing0325/private-insight-officer","stars":0,"disc":[],"deg":2,"r":7.7},{"id":"cl:feedback_autonomy","label":"自主决策，不问无关紧要的问题","desc":"可逆小决策直接做，只在不可逆/影响产品形态/真的缺信息时才问","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态","3D建模"],"deg":3,"r":8.5},{"id":"cl:feedback_bookmarklet_over_password","label":"第三方账号同步首选 bookmarklet","desc":"抓三方数据：bookmarklet/插件优先；不存账号密码或 cookies，会触 2FA/captcha/法律责任","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["阅读","工具脚本","ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:feedback_branch_naming","label":"不要按 GitHub 用户名筛分支","desc":"团队分支按功能/日期/任务命名，不按作者用户名","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":2,"r":7.7},{"id":"cl:feedback_chinese_writing_quality_over_satire","label":"中文期刊稿件——调性≠质量","desc":"\"沙比/假到死\"是描述调性，不是让你真写烂稿；要能交稿","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:feedback_dev_server_url_push","label":"dev server 项目每次更新后推 URL","desc":"改 web 项目（Astro/Next/Vite 等）后必须贴 http://localhost:端口/ 让用户刷新看","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":10,"r":12.2},{"id":"cl:feedback_dont_reinterpret_decisions","label":"不要推翻已确认的方案","desc":"用户锁定方案后，后续模糊描述要问，不要默默切换方案","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":6,"r":10.4},{"id":"cl:feedback_dual_write_memory_to_habit_repo","label":"新 memory 条目要双写到 habit 仓库","desc":"每次加 memory 同步往 chichu_habit 仓库推一份独立文档；凭据类例外","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:feedback_explain_disciplines_first","label":"讲解东西前先列关联学科","desc":"问\"讲讲 X\" / \"X 是什么\"时回答开头先列关联学科再讲正文","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":2,"r":7.7},{"id":"cl:feedback_explain_html_visual_heavy","label":"讲解 / 教学 HTML 要图片多文字少","desc":"教学 HTML 视觉优先：卡片网格 + SVG 简笔 + 条形图，少用大段文字和纯表格","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["教育","ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:feedback_handoff_visual_to_codex","label":"美工需求交给 Codex + image-2","desc":"视觉/配图/海报/icon 别用 emoji 或 ASCII 凑数，提议去 Codex 用 image-2 做真图","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":7,"r":10.9},{"id":"cl:feedback_honest_assessment_no_flattery","label":"评估用户本人时别注水","desc":"打分/评价他时交代方法论、找负样本、别为讨好抬分","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:feedback_html_link_required","label":"HTML 每次更新都要附链接","desc":"写/改 HTML 后必须给可点击的 file:/// 本地链接，不只说路径","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":6,"r":10.4},{"id":"cl:feedback_html_report_before_pr","label":"推送 PR 前提醒做 HTML 版报告","desc":"推/写 PR 前主动问要不要做一个 HTML 版汇报页（参考 PR #83 模板）","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["Web动效","ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:feedback_lando_cookbook_sync","label":"lando-teardown 与 cookbook 仓库保持同构","desc":"lando HTML 改了跑 split_to_cookbook.py 同步 cookbook，推两仓给两链接","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["Web动效","ClaudeCode生态"],"deg":5,"r":9.8},{"id":"cl:feedback_match_form_factor","label":"提议功能时先确认形态","desc":"手持小设备别提脚踏/桌面外挂；硬件脑暴前先确认形态再发散","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["硬件","ClaudeCode生态","商业"],"deg":5,"r":9.8},{"id":"cl:feedback_no_likeness_hedge_for_personal","label":"个人用素材不要加肖像权 hedge","desc":"私人桌面素材引真人时正向描述演员名 + 越像越好，不写\"避免演员脸\"","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["工具脚本","ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:feedback_prefer_mechanical_inputs","label":"硬件输入优先机械结构","desc":"机械按键/旋钮/滚轮优先于电容触控和 IMU 软件手势（敲击/翻转都不灵敏）","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["硬件","ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:feedback_proactive_reminders","label":"主动提醒拉代码和提交 PR","desc":"用户外包：该 pull 时提醒、满意时提醒写 PR","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":2,"r":7.7},{"id":"cl:feedback_project_names_to_capswriter_hotwords","label":"项目名 + 昵称选择性进 CapsWriter 热词","desc":"高信号项目才加 hot.txt（有 project_*.md / 30 天活跃 / 重命名 session 对应项目）","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["工具脚本","ClaudeCode生态"],"deg":8,"r":11.4},{"id":"cl:feedback_response_format_checklist","label":"每次回答前列任务待办清单","desc":"待办清单开头、勾叉标注、AI/人肉/混合标注、只增不减","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":2,"r":7.7},{"id":"cl:feedback_small_sprite_use_bust_framing","label":"小尺寸 sprite 优先半身/胸像构图","desc":"≤256px 默认 bust，可非正方画布，可越出 canvas 边做 4th wall","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["剧本杀","ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:feedback_url_separator","label":"URL 后面紧贴中文会被吃进去 → 404","desc":"写预览链接时 URL 单独一行或留双空格，中文括号/箭头紧贴会被识别成路径","platform":"claude","cat":"memory","mtype":"feedback","status":null,"disc":["ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:github_workflow","label":"GitHub 团队协作流程","desc":"拉代码 → issue → 分支 → coding → PR（带 Closes #编号）→ 审批","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:project_cai_harness","label":"CAI harness（官方 cai CLI）","desc":"CAI 权威 harness=官方 CLI(cai-framework 0.5.10,WSL Ubuntu/DeepSeek)；桌面 CAI.lnk→WT profile→cai-deepseek；自制 GUI 已删，禁止重建","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:project_chess_shogi","label":"国象×将棋融合对战游戏","desc":"9×9 融合棋盘，工程在 C:\\Users\\david\\chess-shogi，规则已锁，Plan 1-4 全完成，已上线 https://chess-shogi-production.up.railway.app","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["游戏","ClaudeCode生态"],"deg":10,"r":12.2},{"id":"cl:project_dazi_juice","label":"打字爽 dazi-juice 项目状态","desc":"中文打字网站，Monkeytype 风格 + 强反馈 + 自定义文章导入，朱慈类删号作者要用户自带备份","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["中文打字","工具脚本","ClaudeCode生态"],"deg":8,"r":11.4},{"id":"cl:project_ditie_paoku","label":"倒反天罡版地铁跑酷《没有目的地》","desc":"工程 C:\\Users\\david\\ditie-paoku;Three.js 3D三渲二;你即地铁碾人/电车难题倒玩/Wire冷调;人即金币+撞击+尸堆;碾人不致败只撞硬障碍败;spec v2 定稿建 MVP","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["游戏","Web动效","ClaudeCode生态","3D建模"],"deg":9,"r":11.8},{"id":"cl:project_jingqi_share","label":"在惊奇分享展示站（chichu 一年长卷）","desc":"C:\\Users\\david\\jingqi-share 单页滚动站/7大主题提词器;画板 LZString 解压+自写SVG渲染可缩放拖动;NBSP路径坑;CAI段已脱敏;禁\"加戏\"保留原叙述与顺序","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["Web动效","个人站","硬件","ClaudeCode生态"],"deg":10,"r":12.2},{"id":"cl:project_kiidschool_detail_page_ux","label":"钥匙玩校 · 详情页长文阅读 UX 清单","desc":"9 条阅读 UX：进度条/TOC/阅读时间/折叠/锚点/懒加载/深色/字号/续读","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["阅读","Web动效","工具脚本","ClaudeCode生态","商业"],"deg":7,"r":10.9},{"id":"cl:project_kindle_station","label":"kindle-station 项目（EPUB Remixer + 高亮同步）","desc":"多用户 web：上传 EPUB → 可选 Claude 魔改 → 转发到 Kindle + bookmarklet 抓高亮","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["阅读","工具脚本","ClaudeCode生态"],"deg":5,"r":9.8},{"id":"cl:project_lando_hero_replica","label":"个人网站主工程（lando hero + 6 章节）","desc":"C:\\Users\\david\\lando-hero-replica 单文件零依赖,端口8170;VIBE_DASH 接口留给 Hermes;等正脸照片做蒙面显形;旧尝试在 lando-attempts-archive","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["Web动效","个人站","工具脚本","ClaudeCode生态","商业"],"deg":11,"r":12.6},{"id":"cl:project_liumang_xushi","label":"《流氓叙事》大型剧本杀 OCR + 故事圣经","desc":"21本/1845页/59万字已OCR(RapidOCR)+蒸馏,总纲在 C:\\高清电影中转站\\流氓叙事剧本\\_OCR_TEXT\\故事圣经_总纲.md,用户要改写/续写/创作","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["剧本杀","ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:project_m5stack_cardputer","label":"M5Stack Cardputer-ADV 硬件开发项目","desc":"工程在 C:\\Users\\david\\cardputer-adv，PlatformIO + 官方 M5Cardputer 库；键盘按 fn 唤醒/TCA8418 等 ADV 坑","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["硬件","工具脚本","ClaudeCode生态"],"deg":6,"r":10.4},{"id":"cl:project_mofazhusha","label":"嬤法大逃杀（mofazhusha）项目状态","desc":"Railway URL https://mofazhusha-production.up.railway.app/，每次 push 后必带预览链接","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["游戏","ClaudeCode生态"],"deg":4,"r":9.2},{"id":"cl:project_neranjara","label":"尼连禅河·原始佛教3D漫步","desc":"Three.js无构建单页/端口8200/顺河走过一天=无常,4时刻体验无常无我缘起灭,不读经;v1切片完成","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["Web动效","ClaudeCode生态","佛教冥想","3D建模"],"deg":8,"r":11.4},{"id":"cl:project_odysseus","label":"odysseus 自托管 AI 工作台（PewDiePie，已装）","desc":"C:\\Users\\david\\odysseus，dev分支，端口7000，开机自启已设，大脑已接(ChatGPT+DeepSeek)，汉化已开源 xing0325/odysseus-zh-CN","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["AI工作台","ClaudeCode生态"],"deg":6,"r":10.4},{"id":"cl:project_siemens_sitrain_demo","label":"西门子 SITRAIN 培训站 demo（商单）","desc":"模仿 sc.yaowee.cn，静态站 5 页（含 admin/design），已部署 https://xing0325.github.io/siemens-training/ ，朋友负责国内部署，等反馈迭代","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["教育","Web动效","工具脚本","ClaudeCode生态"],"deg":9,"r":11.8},{"id":"cl:project_silver_jewelry","label":"银戒指/首饰 DIY","desc":"代码建模→3D打印可铸树脂→失蜡单件直铸(无开模)，工程 C:\\Users\\david\\jewelry，差异化=生成式定制，目标自媒体+麓湖摆摊","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["AI工作台","硬件","工具脚本","ClaudeCode生态","3D建模","商业"],"deg":11,"r":12.6},{"id":"cl:project_telemachus","label":"手机版 Odysseus（Telemachus）","desc":"Flutter+Railway AI agent，工作+记录生活，设计锁 v1.3（C:\\Users\\david\\telemachus），下一步出实现计划；前端交 Fable","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["AI工作台","工具脚本","ClaudeCode生态"],"deg":5,"r":9.8},{"id":"cl:project_vibe_pen","label":"Vibe 笔项目进度（暂停中）","desc":"笔形外设 DIY 进度档案，已锁形态/模块/偏好；等学完互动模块再回来定 BOM","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["硬件","ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:project_zima","label":"个人站「齐马蓝」重做中","desc":"旧 zima 工程已被推翻禁止再动，新版在 桌面\\claude tui\\zima-blue 从零重做；动手前先确认基于哪个工程","platform":"claude","cat":"project","mtype":"project","status":"live","disc":["Web动效","个人站","AI工作台","ClaudeCode生态","3D建模"],"deg":15,"r":14.1},{"id":"cl:reference_camping_footage_backup","label":"露营周素材备份工作流","desc":"Insta360 GO 3S(DCIM\\Camera01,VID+LRV成对) → My Passport E:\\视频素材\\「年份季 露营周 地点」；禁用剪切，复制后逐文件校验再清卡","platform":"claude","cat":"memory","mtype":"reference","status":null,"disc":["工具脚本","ClaudeCode生态"],"deg":6,"r":10.4},{"id":"cl:reference_claude_account_migration","label":"Claude 桌面端换账号迁移 session","desc":"sidebar 看不到旧 session：拷贝 `%APPDATA%\\Claude\\claude-code-sessions\\` 下的 `local_*.json` 到新账号目录；canonical 在 https://github.com/xing0325/claude-account-switch-migration","platform":"claude","cat":"memory","mtype":"reference","status":null,"disc":["工具脚本","ClaudeCode生态","3D建模"],"deg":5,"r":9.8},{"id":"cl:reference_python_env","label":"用户机器 Python 环境","desc":"别用 PATH 的 python(agent venv 无pip)，用 py -3.12；国内装包走清华镜像","platform":"claude","cat":"memory","mtype":"reference","status":null,"disc":["AI工作台","工具脚本","ClaudeCode生态"],"deg":6,"r":10.4},{"id":"cl:reference_voice_input_capswriter","label":"中文语音输入 → CapsWriter-Offline","desc":"装在 C:\\Users\\david\\CapsWriter，按住 CapsLock 说话；Whispering 中文翻车别再走","platform":"claude","cat":"memory","mtype":"reference","status":null,"disc":["工具脚本","ClaudeCode生态"],"deg":3,"r":8.5},{"id":"cl:sandboxie_box_naming","label":"Sandboxie 沙盒名限制","desc":"box 名只能字母数字下划线，禁连字符，否则 Start.exe 弹\"无效沙箱名\"","platform":"claude","cat":"memory","mtype":"reference","status":null,"disc":["ClaudeCode生态"],"deg":2,"r":7.7},{"id":"cl:user_chichu_profile","label":"用户公开身份 chichu","desc":"18 岁 vibe coder 人设与文案口吻：操作熵/蹲蹲/build in public/好奇心第一动力","platform":"claude","cat":"memory","mtype":"user","status":null,"disc":["游戏","个人站","工具脚本","ClaudeCode生态"],"deg":12,"r":13},{"id":"cl:user_hardware_profile","label":"主力机硬件配置","desc":"Intel Ultra 7 155H / 31.5G / 仅 Intel 核显无独显无 CUDA / 非 Apple Silicon / Win11；判断\"能不能跑 X\"先对照这","platform":"claude","cat":"memory","mtype":"user","status":null,"disc":["硬件","ClaudeCode生态"],"deg":8,"r":11.4},{"id":"ob:2025秋 成人礼","label":"成人礼","desc":"随想：跳出视角看世界须靠吸收视角外之物","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"deg":2,"r":7.7},{"id":"ob:2025秋 日本游学规划","label":"日本游学规划","desc":"日本游学城市清单与行程投票","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"deg":2,"r":7.7},{"id":"ob:2025秋 百万设计师","label":"百万设计师","desc":"最爱的游戏设计师 Jonathan Blow（吹哥）及其代表作介绍","platform":"obsidian","cat":"note","status":null,"disc":["游戏"],"deg":5,"r":9.8},{"id":"ob:2025秋 给青少年的普世阅读指南","label":"给青少年的普世阅读指南","desc":"青少年荐书手册的构成与算法设计，附 2020-2022 书单","platform":"obsidian","cat":"note","status":null,"disc":["阅读"],"deg":3,"r":8.5},{"id":"ob:2025秋 课程反馈","label":"课程反馈","desc":"好奇学习社区第一周十门课程逐一反馈，最看好百万设计师","platform":"obsidian","cat":"note","status":null,"disc":["游戏","教育","阅读"],"deg":5,"r":9.8},{"id":"ob:2025秋 贩冰冰计划","label":"贩冰冰计划","desc":"麓湖摆摊卖水/椰子水的进货零售保温方案与成本利润","platform":"obsidian","cat":"note","status":null,"disc":["商业"],"deg":3,"r":8.5},{"id":"ob:2025秋 露营周规划","label":"露营周规划","desc":"高原徒步露营装备清单、食品药品与爬坡分队事项","platform":"obsidian","cat":"note","status":null,"disc":[],"deg":2,"r":7.7},{"id":"ob:《7号房的故事》影评","label":"《7号房的故事》影评","desc":"论电影无法苛求真实，好坏须用真实之外的标准评判","platform":"obsidian","cat":"note","status":null,"disc":[],"deg":1,"r":6.6},{"id":"ob:《BRAID》游戏画面","label":"《BRAID》游戏画面","desc":"《时空幻境》画面留存","platform":"obsidian","cat":"note","status":null,"disc":["游戏"],"deg":2,"r":7.7},{"id":"ob:《失败的逻辑》读书笔记","label":"《失败的逻辑》读书笔记","desc":"复杂系统中人为何失败：超信号、隐式目标与完美主义灾难","platform":"obsidian","cat":"note","status":null,"disc":["阅读"],"deg":2,"r":7.7},{"id":"ob:会议：如何构建品牌，如何制定战略","label":"会议：如何构建品牌，如何制定战略","desc":"顾问张雅文分享：增强品牌影响力所需的思维与储备","platform":"obsidian","cat":"note","status":null,"disc":["商业"],"deg":2,"r":7.7},{"id":"ob:数列","label":"数列","desc":"数学占位笔记","platform":"obsidian","cat":"note","status":null,"disc":["数学"],"deg":1,"r":6.6},{"id":"ob:数学学习","label":"数学学习","desc":"反思什么才算「学会」：抛开刷题排名，本质是输入输出锻炼神经通路对抗遗忘","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"deg":2,"r":7.7},{"id":"ob:暑假突击计划","label":"暑假突击计划","desc":"8.20–8.31 冲刺：8 本书 + 托福 SAT 各 60h，每日时间表与责任复利","platform":"obsidian","cat":"note","status":null,"disc":["游戏"],"deg":2,"r":7.7},{"id":"ob:替潘昱辰写的作文","label":"替潘昱辰写的作文","desc":"以「容忍度光谱」回应反抗与忍耐之辩","platform":"obsidian","cat":"note","status":null,"disc":[],"deg":1,"r":6.6},{"id":"ob:游戏《BRAID》","label":"游戏《BRAID》","desc":"Jonathan Blow《时空幻境》游戏笔记","platform":"obsidian","cat":"note","status":null,"disc":["游戏"],"deg":3,"r":8.5},{"id":"ob:游戏《The Witness》","label":"游戏《The Witness》","desc":"Jonathan Blow《见证者》游戏笔记","platform":"obsidian","cat":"note","status":null,"disc":["游戏"],"deg":3,"r":8.5},{"id":"ob:游戏帝国","label":"游戏帝国","desc":"EA 创始人 Trip 创业史与理念：免费是毒药、从世界需要出发、制作人话事","platform":"obsidian","cat":"note","status":null,"disc":["游戏"],"deg":3,"r":8.5},{"id":"ob:王琦的采访大纲","label":"王琦的采访大纲","desc":"采访大纲：「创新教育的老师可以是什么样」","platform":"obsidian","cat":"note","status":null,"disc":["教育"],"deg":2,"r":7.7},{"id":"ob:线下活动","label":"线下活动","desc":"有杏书店《北欧秘诀》新书分享会的海报要素、公告结构与复盘","platform":"obsidian","cat":"note","status":null,"disc":["教育","成长"],"deg":3,"r":8.5},{"id":"ob:资源大合集","label":"资源大合集","desc":"资源收藏：F1 电影《霹雳神风》","platform":"obsidian","cat":"note","status":null,"disc":[],"deg":1,"r":6.6},{"id":"ob:随想集","label":"随想集","desc":"关于世俗与抽象、理论崇拜、提问、做最好、死亡、亲情的多则随想","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"deg":2,"r":7.7},{"id":"ob:canvas:922db2","label":"到底什么算是游戏？","desc":"Obsidian canvas · 2025秋 Jonathan Blow分享演示","platform":"obsidian","cat":"note","status":null,"disc":["游戏","设计"],"small":true,"deg":4,"r":4.5},{"id":"ob:canvas:f8d5a9","label":"作品","desc":"Obsidian canvas · 2025秋 Jonathan Blow分享演示","platform":"obsidian","cat":"note","status":null,"disc":["游戏","设计"],"small":true,"deg":6,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理","label":"大谷翔平 81 宫格目标管理","desc":"把目标拆成中心 + 8 区 × 8 行动的曼陀罗计划法","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"deg":10,"r":12.2},{"id":"ob:大谷翔平 81 宫格目标管理:信用","label":"信用","desc":"Ohtani 81 宫格 · 信用","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:待人","label":"待人","desc":"Ohtani 81 宫格 · 待人","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:时间管理","label":"时间管理","desc":"Ohtani 81 宫格 · 时间管理","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:做事","label":"做事","desc":"Ohtani 81 宫格 · 做事","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:示范","label":"示范","desc":"Ohtani 81 宫格 · 示范","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:学习","label":"学习","desc":"Ohtani 81 宫格 · 学习","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:生活","label":"生活","desc":"Ohtani 81 宫格 · 生活","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"ob:大谷翔平 81 宫格目标管理:保持奖学金","label":"保持奖学金","desc":"Ohtani 81 宫格 · 保持奖学金","platform":"obsidian","cat":"note","status":null,"disc":["成长"],"small":true,"deg":2,"r":4.5},{"id":"disc:Web动效","label":"Web动效","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":12,"r":13,"disc":[]},{"id":"disc:个人站","label":"个人站","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":9,"r":11.8,"disc":[]},{"id":"disc:教育","label":"教育","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":11,"r":12.6,"disc":[]},{"id":"disc:ClaudeCode生态","label":"ClaudeCode生态","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":55,"r":20,"disc":[]},{"id":"disc:AI工作台","label":"AI工作台","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":9,"r":11.8,"disc":[]},{"id":"disc:工具脚本","label":"工具脚本","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":19,"r":15.3,"disc":[]},{"id":"disc:游戏","label":"游戏","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":16,"r":14.4,"disc":[]},{"id":"disc:中文打字","label":"中文打字","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":3,"r":8.5,"disc":[]},{"id":"disc:3D建模","label":"3D建模","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":7,"r":10.9,"disc":[]},{"id":"disc:阅读","label":"阅读","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":7,"r":10.9,"disc":[]},{"id":"disc:硬件","label":"硬件","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":8,"r":11.4,"disc":[]},{"id":"disc:商业","label":"商业","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":7,"r":10.9,"disc":[]},{"id":"disc:剧本杀","label":"剧本杀","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":3,"r":8.5,"disc":[]},{"id":"disc:成长","label":"成长","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":15,"r":14.1,"disc":[]},{"id":"disc:设计","label":"设计","desc":"学科 / 兴趣聚类","platform":"core","cat":"discipline","status":null,"isDisc":true,"deg":3,"r":8.5,"disc":[]}],"edges":[{"a":"root","b":"hub:github","type":"struct"},{"a":"root","b":"hub:claude","type":"struct"},{"a":"root","b":"hub:obsidian","type":"struct"},{"a":"hub:github","b":"gh:lixon","type":"struct"},{"a":"gh:lixon","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:jingqi-share","type":"struct"},{"a":"gh:jingqi-share","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:chichu-visual-talk-notes","type":"struct"},{"a":"gh:chichu-visual-talk-notes","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:chichu-visual-talk","type":"struct"},{"a":"gh:chichu-visual-talk","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:chichu_habit","type":"struct"},{"a":"gh:chichu_habit","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:chess-shogi","type":"struct"},{"a":"gh:chess-shogi","b":"lang:TypeScript","type":"lang"},{"a":"hub:github","b":"gh:xiaohongshu-preview","type":"struct"},{"a":"gh:xiaohongshu-preview","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:odysseus-zh-CN","type":"struct"},{"a":"gh:odysseus-zh-CN","b":"lang:Python","type":"lang"},{"a":"hub:github","b":"gh:warhol-factory","type":"struct"},{"a":"gh:warhol-factory","b":"lang:JavaScript","type":"lang"},{"a":"hub:github","b":"gh:zima-blue","type":"struct"},{"a":"gh:zima-blue","b":"lang:JavaScript","type":"lang"},{"a":"hub:github","b":"gh:mofazhusha","type":"struct"},{"a":"gh:mofazhusha","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:zima","type":"struct"},{"a":"gh:zima","b":"lang:Astro","type":"lang"},{"a":"hub:github","b":"gh:chichu-feishu-habits","type":"struct"},{"a":"gh:chichu-feishu-habits","b":"lang:TypeScript","type":"lang"},{"a":"hub:github","b":"gh:vibe-coding-class","type":"struct"},{"a":"gh:vibe-coding-class","b":"lang:JavaScript","type":"lang"},{"a":"hub:github","b":"gh:siemens-training","type":"struct"},{"a":"gh:siemens-training","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:qiantaici-decoder","type":"struct"},{"a":"gh:qiantaici-decoder","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:claude-account-switch-migration","type":"struct"},{"a":"hub:github","b":"gh:late-penalty","type":"struct"},{"a":"gh:late-penalty","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:dazi-juice","type":"struct"},{"a":"gh:dazi-juice","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:curi-online","type":"struct"},{"a":"hub:github","b":"gh:kiidschool","type":"struct"},{"a":"gh:kiidschool","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:china-truth-graph","type":"struct"},{"a":"gh:china-truth-graph","b":"lang:JavaScript","type":"lang"},{"a":"hub:github","b":"gh:sessionss","type":"struct"},{"a":"gh:sessionss","b":"lang:PowerShell","type":"lang"},{"a":"hub:github","b":"gh:credit-score","type":"struct"},{"a":"gh:credit-score","b":"lang:Python","type":"lang"},{"a":"hub:github","b":"gh:bypass-pet","type":"struct"},{"a":"gh:bypass-pet","b":"lang:Python","type":"lang"},{"a":"hub:github","b":"gh:claude-bypass-hook","type":"struct"},{"a":"gh:claude-bypass-hook","b":"lang:PowerShell","type":"lang"},{"a":"hub:github","b":"gh:web-anim-cookbook","type":"struct"},{"a":"gh:web-anim-cookbook","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:landonorris-teardown","type":"struct"},{"a":"gh:landonorris-teardown","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:allow-floating-ball","type":"struct"},{"a":"gh:allow-floating-ball","b":"lang:Python","type":"lang"},{"a":"hub:github","b":"gh:mom-2026","type":"struct"},{"a":"gh:mom-2026","b":"lang:HTML","type":"lang"},{"a":"hub:github","b":"gh:calling-suishoji","type":"struct"},{"a":"gh:calling-suishoji","b":"lang:TypeScript","type":"lang"},{"a":"hub:github","b":"gh:private-insight-officer","type":"struct"},{"a":"gh:chichu-visual-talk","b":"gh:chichu-visual-talk-notes","type":"intra"},{"a":"gh:zima","b":"gh:zima-blue","type":"intra"},{"a":"gh:zima-blue","b":"gh:chichu-feishu-habits","type":"intra"},{"a":"gh:landonorris-teardown","b":"gh:web-anim-cookbook","type":"intra"},{"a":"gh:landonorris-teardown","b":"gh:lixon","type":"intra"},{"a":"gh:web-anim-cookbook","b":"gh:lixon","type":"intra"},{"a":"gh:bypass-pet","b":"gh:claude-bypass-hook","type":"intra"},{"a":"gh:claude-bypass-hook","b":"gh:allow-floating-ball","type":"intra"},{"a":"gh:claude-account-switch-migration","b":"gh:bypass-pet","type":"intra"},{"a":"gh:sessionss","b":"gh:curi-online","type":"intra"},{"a":"gh:credit-score","b":"gh:curi-online","type":"intra"},{"a":"gh:mofazhusha","b":"gh:kiidschool","type":"intra"},{"a":"gh:calling-suishoji","b":"gh:private-insight-officer","type":"intra"},{"a":"gh:china-truth-graph","b":"gh:jingqi-share","type":"intra"},{"a":"gh:chichu_habit","b":"gh:chichu-feishu-habits","type":"intra"},{"a":"hub:claude","b":"cl:feedback_autonomy","type":"struct"},{"a":"hub:claude","b":"cl:feedback_bookmarklet_over_password","type":"struct"},{"a":"hub:claude","b":"cl:feedback_branch_naming","type":"struct"},{"a":"hub:claude","b":"cl:feedback_chinese_writing_quality_over_satire","type":"struct"},{"a":"hub:claude","b":"cl:feedback_dev_server_url_push","type":"struct"},{"a":"hub:claude","b":"cl:feedback_dont_reinterpret_decisions","type":"struct"},{"a":"hub:claude","b":"cl:feedback_dual_write_memory_to_habit_repo","type":"struct"},{"a":"cl:feedback_dual_write_memory_to_habit_repo","b":"gh:chichu_habit","type":"bridge"},{"a":"hub:claude","b":"cl:feedback_explain_disciplines_first","type":"struct"},{"a":"hub:claude","b":"cl:feedback_explain_html_visual_heavy","type":"struct"},{"a":"hub:claude","b":"cl:feedback_handoff_visual_to_codex","type":"struct"},{"a":"hub:claude","b":"cl:feedback_honest_assessment_no_flattery","type":"struct"},{"a":"hub:claude","b":"cl:feedback_html_link_required","type":"struct"},{"a":"hub:claude","b":"cl:feedback_html_report_before_pr","type":"struct"},{"a":"hub:claude","b":"cl:feedback_lando_cookbook_sync","type":"struct"},{"a":"cl:feedback_lando_cookbook_sync","b":"gh:web-anim-cookbook","type":"bridge"},{"a":"cl:feedback_lando_cookbook_sync","b":"gh:landonorris-teardown","type":"bridge"},{"a":"hub:claude","b":"cl:feedback_match_form_factor","type":"struct"},{"a":"hub:claude","b":"cl:feedback_no_likeness_hedge_for_personal","type":"struct"},{"a":"cl:feedback_no_likeness_hedge_for_personal","b":"gh:bypass-pet","type":"bridge"},{"a":"hub:claude","b":"cl:feedback_prefer_mechanical_inputs","type":"struct"},{"a":"hub:claude","b":"cl:feedback_proactive_reminders","type":"struct"},{"a":"hub:claude","b":"cl:feedback_project_names_to_capswriter_hotwords","type":"struct"},{"a":"cl:feedback_project_names_to_capswriter_hotwords","b":"gh:chichu_habit","type":"bridge"},{"a":"cl:feedback_project_names_to_capswriter_hotwords","b":"gh:mofazhusha","type":"bridge"},{"a":"cl:feedback_project_names_to_capswriter_hotwords","b":"gh:kiidschool","type":"bridge"},{"a":"cl:feedback_project_names_to_capswriter_hotwords","b":"gh:allow-floating-ball","type":"bridge"},{"a":"hub:claude","b":"cl:feedback_response_format_checklist","type":"struct"},{"a":"hub:claude","b":"cl:feedback_small_sprite_use_bust_framing","type":"struct"},{"a":"cl:feedback_small_sprite_use_bust_framing","b":"gh:bypass-pet","type":"bridge"},{"a":"hub:claude","b":"cl:feedback_url_separator","type":"struct"},{"a":"cl:feedback_url_separator","b":"gh:mofazhusha","type":"bridge"},{"a":"hub:claude","b":"cl:github_workflow","type":"struct"},{"a":"hub:claude","b":"cl:project_cai_harness","type":"struct"},{"a":"hub:claude","b":"cl:project_chess_shogi","type":"struct"},{"a":"cl:project_chess_shogi","b":"gh:chess-shogi","type":"bridge"},{"a":"cl:project_chess_shogi","b":"gh:mofazhusha","type":"bridge"},{"a":"hub:claude","b":"cl:project_dazi_juice","type":"struct"},{"a":"cl:project_dazi_juice","b":"gh:dazi-juice","type":"bridge"},{"a":"hub:claude","b":"cl:project_ditie_paoku","type":"struct"},{"a":"hub:claude","b":"cl:project_jingqi_share","type":"struct"},{"a":"cl:project_jingqi_share","b":"gh:jingqi-share","type":"bridge"},{"a":"hub:claude","b":"cl:project_kiidschool_detail_page_ux","type":"struct"},{"a":"cl:project_kiidschool_detail_page_ux","b":"gh:kiidschool","type":"bridge"},{"a":"hub:claude","b":"cl:project_kindle_station","type":"struct"},{"a":"hub:claude","b":"cl:project_lando_hero_replica","type":"struct"},{"a":"cl:project_lando_hero_replica","b":"gh:lixon","type":"bridge"},{"a":"cl:project_lando_hero_replica","b":"gh:zima","type":"bridge"},{"a":"hub:claude","b":"cl:project_liumang_xushi","type":"struct"},{"a":"hub:claude","b":"cl:project_m5stack_cardputer","type":"struct"},{"a":"hub:claude","b":"cl:project_mofazhusha","type":"struct"},{"a":"cl:project_mofazhusha","b":"gh:mofazhusha","type":"bridge"},{"a":"hub:claude","b":"cl:project_neranjara","type":"struct"},{"a":"hub:claude","b":"cl:project_odysseus","type":"struct"},{"a":"cl:project_odysseus","b":"gh:odysseus-zh-CN","type":"bridge"},{"a":"hub:claude","b":"cl:project_siemens_sitrain_demo","type":"struct"},{"a":"cl:project_siemens_sitrain_demo","b":"gh:siemens-training","type":"bridge"},{"a":"hub:claude","b":"cl:project_silver_jewelry","type":"struct"},{"a":"hub:claude","b":"cl:project_telemachus","type":"struct"},{"a":"hub:claude","b":"cl:project_vibe_pen","type":"struct"},{"a":"hub:claude","b":"cl:project_zima","type":"struct"},{"a":"cl:project_zima","b":"gh:zima-blue","type":"bridge"},{"a":"cl:project_zima","b":"gh:zima","type":"bridge"},{"a":"hub:claude","b":"cl:reference_camping_footage_backup","type":"struct"},{"a":"hub:claude","b":"cl:reference_claude_account_migration","type":"struct"},{"a":"cl:reference_claude_account_migration","b":"gh:claude-account-switch-migration","type":"bridge"},{"a":"hub:claude","b":"cl:reference_python_env","type":"struct"},{"a":"hub:claude","b":"cl:reference_voice_input_capswriter","type":"struct"},{"a":"hub:claude","b":"cl:sandboxie_box_naming","type":"struct"},{"a":"hub:claude","b":"cl:user_chichu_profile","type":"struct"},{"a":"cl:user_chichu_profile","b":"gh:zima","type":"bridge"},{"a":"hub:claude","b":"cl:user_hardware_profile","type":"struct"},{"a":"cl:feedback_dev_server_url_push","b":"cl:feedback_html_link_required","type":"intra"},{"a":"cl:feedback_dev_server_url_push","b":"cl:project_ditie_paoku","type":"intra"},{"a":"cl:feedback_honest_assessment_no_flattery","b":"cl:feedback_chinese_writing_quality_over_satire","type":"intra"},{"a":"cl:project_cai_harness","b":"cl:user_hardware_profile","type":"intra"},{"a":"cl:project_cai_harness","b":"cl:reference_python_env","type":"intra"},{"a":"cl:project_chess_shogi","b":"cl:feedback_dont_reinterpret_decisions","type":"intra"},{"a":"cl:project_chess_shogi","b":"cl:feedback_handoff_visual_to_codex","type":"intra"},{"a":"cl:project_chess_shogi","b":"cl:feedback_dev_server_url_push","type":"intra"},{"a":"cl:project_chess_shogi","b":"cl:feedback_project_names_to_capswriter_hotwords","type":"intra"},{"a":"cl:project_dazi_juice","b":"cl:feedback_dev_server_url_push","type":"intra"},{"a":"cl:project_dazi_juice","b":"cl:feedback_html_link_required","type":"intra"},{"a":"cl:project_dazi_juice","b":"cl:feedback_match_form_factor","type":"intra"},{"a":"cl:project_ditie_paoku","b":"cl:feedback_handoff_visual_to_codex","type":"intra"},{"a":"cl:project_ditie_paoku","b":"cl:user_chichu_profile","type":"intra"},{"a":"cl:project_jingqi_share","b":"cl:feedback_dont_reinterpret_decisions","type":"intra"},{"a":"cl:project_jingqi_share","b":"cl:feedback_dev_server_url_push","type":"intra"},{"a":"cl:project_jingqi_share","b":"cl:user_chichu_profile","type":"intra"},{"a":"cl:project_jingqi_share","b":"cl:feedback_handoff_visual_to_codex","type":"intra"},{"a":"cl:project_lando_hero_replica","b":"cl:project_zima","type":"intra"},{"a":"cl:project_m5stack_cardputer","b":"cl:github_workflow","type":"intra"},{"a":"cl:project_m5stack_cardputer","b":"cl:feedback_html_link_required","type":"intra"},{"a":"cl:project_neranjara","b":"cl:feedback_dev_server_url_push","type":"intra"},{"a":"cl:project_neranjara","b":"cl:feedback_dont_reinterpret_decisions","type":"intra"},{"a":"cl:project_neranjara","b":"cl:user_hardware_profile","type":"intra"},{"a":"cl:project_neranjara","b":"cl:project_lando_hero_replica","type":"intra"},{"a":"cl:project_odysseus","b":"cl:user_hardware_profile","type":"intra"},{"a":"cl:project_siemens_sitrain_demo","b":"cl:feedback_handoff_visual_to_codex","type":"intra"},{"a":"cl:project_siemens_sitrain_demo","b":"cl:feedback_dev_server_url_push","type":"intra"},{"a":"cl:project_siemens_sitrain_demo","b":"cl:feedback_url_separator","type":"intra"},{"a":"cl:project_silver_jewelry","b":"cl:user_chichu_profile","type":"intra"},{"a":"cl:project_silver_jewelry","b":"cl:user_hardware_profile","type":"intra"},{"a":"cl:project_silver_jewelry","b":"cl:reference_python_env","type":"intra"},{"a":"cl:project_telemachus","b":"cl:project_odysseus","type":"intra"},{"a":"cl:project_zima","b":"cl:feedback_dont_reinterpret_decisions","type":"intra"},{"a":"cl:project_zima","b":"cl:feedback_handoff_visual_to_codex","type":"intra"},{"a":"cl:project_zima","b":"cl:feedback_dev_server_url_push","type":"intra"},{"a":"cl:project_zima","b":"cl:feedback_html_link_required","type":"intra"},{"a":"cl:project_zima","b":"cl:github_workflow","type":"intra"},{"a":"cl:reference_camping_footage_backup","b":"cl:user_chichu_profile","type":"intra"},{"a":"cl:reference_camping_footage_backup","b":"cl:user_hardware_profile","type":"intra"},{"a":"cl:user_chichu_profile","b":"cl:project_lando_hero_replica","type":"intra"},{"a":"cl:user_chichu_profile","b":"cl:project_zima","type":"intra"},{"a":"hub:obsidian","b":"ob:2025秋 成人礼","type":"struct"},{"a":"hub:obsidian","b":"ob:2025秋 日本游学规划","type":"struct"},{"a":"hub:obsidian","b":"ob:2025秋 百万设计师","type":"struct"},{"a":"hub:obsidian","b":"ob:2025秋 给青少年的普世阅读指南","type":"struct"},{"a":"hub:obsidian","b":"ob:2025秋 课程反馈","type":"struct"},{"a":"hub:obsidian","b":"ob:2025秋 贩冰冰计划","type":"struct"},{"a":"hub:obsidian","b":"ob:2025秋 露营周规划","type":"struct"},{"a":"hub:obsidian","b":"ob:《7号房的故事》影评","type":"struct"},{"a":"hub:obsidian","b":"ob:《BRAID》游戏画面","type":"struct"},{"a":"hub:obsidian","b":"ob:《失败的逻辑》读书笔记","type":"struct"},{"a":"hub:obsidian","b":"ob:会议：如何构建品牌，如何制定战略","type":"struct"},{"a":"hub:obsidian","b":"ob:数列","type":"struct"},{"a":"hub:obsidian","b":"ob:数学学习","type":"struct"},{"a":"hub:obsidian","b":"ob:暑假突击计划","type":"struct"},{"a":"hub:obsidian","b":"ob:替潘昱辰写的作文","type":"struct"},{"a":"hub:obsidian","b":"ob:游戏《BRAID》","type":"struct"},{"a":"hub:obsidian","b":"ob:游戏《The Witness》","type":"struct"},{"a":"hub:obsidian","b":"ob:游戏帝国","type":"struct"},{"a":"hub:obsidian","b":"ob:王琦的采访大纲","type":"struct"},{"a":"hub:obsidian","b":"ob:线下活动","type":"struct"},{"a":"hub:obsidian","b":"ob:资源大合集","type":"struct"},{"a":"hub:obsidian","b":"ob:随想集","type":"struct"},{"a":"hub:obsidian","b":"ob:canvas:922db2","type":"struct"},{"a":"hub:obsidian","b":"ob:canvas:f8d5a9","type":"struct"},{"a":"ob:canvas:f8d5a9","b":"ob:游戏《BRAID》","type":"intra"},{"a":"ob:canvas:f8d5a9","b":"ob:游戏《The Witness》","type":"intra"},{"a":"ob:2025秋 百万设计师","b":"ob:canvas:f8d5a9","type":"intra"},{"a":"ob:canvas:922db2","b":"ob:2025秋 百万设计师","type":"intra"},{"a":"hub:obsidian","b":"ob:大谷翔平 81 宫格目标管理","type":"struct"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:信用","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:待人","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:时间管理","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:做事","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:示范","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:学习","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:生活","type":"intra"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"ob:大谷翔平 81 宫格目标管理:保持奖学金","type":"intra"},{"a":"gh:lixon","b":"disc:Web动效","type":"disc"},{"a":"gh:lixon","b":"disc:个人站","type":"disc"},{"a":"gh:jingqi-share","b":"disc:教育","type":"disc"},{"a":"gh:jingqi-share","b":"disc:个人站","type":"disc"},{"a":"gh:chichu_habit","b":"disc:ClaudeCode生态","type":"disc"},{"a":"gh:xiaohongshu-preview","b":"disc:AI工作台","type":"disc"},{"a":"gh:odysseus-zh-CN","b":"disc:AI工作台","type":"disc"},{"a":"gh:odysseus-zh-CN","b":"disc:工具脚本","type":"disc"},{"a":"gh:zima-blue","b":"disc:个人站","type":"disc"},{"a":"gh:mofazhusha","b":"disc:游戏","type":"disc"},{"a":"gh:zima","b":"disc:个人站","type":"disc"},{"a":"gh:siemens-training","b":"disc:教育","type":"disc"},{"a":"gh:claude-account-switch-migration","b":"disc:ClaudeCode生态","type":"disc"},{"a":"gh:late-penalty","b":"disc:游戏","type":"disc"},{"a":"gh:dazi-juice","b":"disc:中文打字","type":"disc"},{"a":"gh:curi-online","b":"disc:教育","type":"disc"},{"a":"gh:kiidschool","b":"disc:教育","type":"disc"},{"a":"gh:sessionss","b":"disc:ClaudeCode生态","type":"disc"},{"a":"gh:credit-score","b":"disc:教育","type":"disc"},{"a":"gh:bypass-pet","b":"disc:ClaudeCode生态","type":"disc"},{"a":"gh:claude-bypass-hook","b":"disc:工具脚本","type":"disc"},{"a":"gh:claude-bypass-hook","b":"disc:ClaudeCode生态","type":"disc"},{"a":"gh:web-anim-cookbook","b":"disc:Web动效","type":"disc"},{"a":"gh:allow-floating-ball","b":"disc:ClaudeCode生态","type":"disc"},{"a":"gh:calling-suishoji","b":"disc:AI工作台","type":"disc"},{"a":"cl:feedback_autonomy","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_autonomy","b":"disc:3D建模","type":"disc"},{"a":"cl:feedback_bookmarklet_over_password","b":"disc:阅读","type":"disc"},{"a":"cl:feedback_bookmarklet_over_password","b":"disc:工具脚本","type":"disc"},{"a":"cl:feedback_bookmarklet_over_password","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_branch_naming","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_chinese_writing_quality_over_satire","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_dev_server_url_push","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_dont_reinterpret_decisions","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_dual_write_memory_to_habit_repo","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_explain_disciplines_first","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_explain_html_visual_heavy","b":"disc:教育","type":"disc"},{"a":"cl:feedback_explain_html_visual_heavy","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_handoff_visual_to_codex","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_honest_assessment_no_flattery","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_html_link_required","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_html_report_before_pr","b":"disc:Web动效","type":"disc"},{"a":"cl:feedback_html_report_before_pr","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_lando_cookbook_sync","b":"disc:Web动效","type":"disc"},{"a":"cl:feedback_lando_cookbook_sync","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_match_form_factor","b":"disc:硬件","type":"disc"},{"a":"cl:feedback_match_form_factor","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_match_form_factor","b":"disc:商业","type":"disc"},{"a":"cl:feedback_no_likeness_hedge_for_personal","b":"disc:工具脚本","type":"disc"},{"a":"cl:feedback_no_likeness_hedge_for_personal","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_prefer_mechanical_inputs","b":"disc:硬件","type":"disc"},{"a":"cl:feedback_prefer_mechanical_inputs","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_proactive_reminders","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_project_names_to_capswriter_hotwords","b":"disc:工具脚本","type":"disc"},{"a":"cl:feedback_project_names_to_capswriter_hotwords","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_response_format_checklist","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_small_sprite_use_bust_framing","b":"disc:剧本杀","type":"disc"},{"a":"cl:feedback_small_sprite_use_bust_framing","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:feedback_url_separator","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:github_workflow","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_cai_harness","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_chess_shogi","b":"disc:游戏","type":"disc"},{"a":"cl:project_chess_shogi","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_dazi_juice","b":"disc:中文打字","type":"disc"},{"a":"cl:project_dazi_juice","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_dazi_juice","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_ditie_paoku","b":"disc:游戏","type":"disc"},{"a":"cl:project_ditie_paoku","b":"disc:Web动效","type":"disc"},{"a":"cl:project_ditie_paoku","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_ditie_paoku","b":"disc:3D建模","type":"disc"},{"a":"cl:project_jingqi_share","b":"disc:Web动效","type":"disc"},{"a":"cl:project_jingqi_share","b":"disc:个人站","type":"disc"},{"a":"cl:project_jingqi_share","b":"disc:硬件","type":"disc"},{"a":"cl:project_jingqi_share","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_kiidschool_detail_page_ux","b":"disc:阅读","type":"disc"},{"a":"cl:project_kiidschool_detail_page_ux","b":"disc:Web动效","type":"disc"},{"a":"cl:project_kiidschool_detail_page_ux","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_kiidschool_detail_page_ux","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_kiidschool_detail_page_ux","b":"disc:商业","type":"disc"},{"a":"cl:project_kindle_station","b":"disc:阅读","type":"disc"},{"a":"cl:project_kindle_station","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_kindle_station","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_lando_hero_replica","b":"disc:Web动效","type":"disc"},{"a":"cl:project_lando_hero_replica","b":"disc:个人站","type":"disc"},{"a":"cl:project_lando_hero_replica","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_lando_hero_replica","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_lando_hero_replica","b":"disc:商业","type":"disc"},{"a":"cl:project_liumang_xushi","b":"disc:剧本杀","type":"disc"},{"a":"cl:project_liumang_xushi","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_m5stack_cardputer","b":"disc:硬件","type":"disc"},{"a":"cl:project_m5stack_cardputer","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_m5stack_cardputer","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_mofazhusha","b":"disc:游戏","type":"disc"},{"a":"cl:project_mofazhusha","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_neranjara","b":"disc:Web动效","type":"disc"},{"a":"cl:project_neranjara","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_neranjara","b":"disc:3D建模","type":"disc"},{"a":"cl:project_odysseus","b":"disc:AI工作台","type":"disc"},{"a":"cl:project_odysseus","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_siemens_sitrain_demo","b":"disc:教育","type":"disc"},{"a":"cl:project_siemens_sitrain_demo","b":"disc:Web动效","type":"disc"},{"a":"cl:project_siemens_sitrain_demo","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_siemens_sitrain_demo","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_silver_jewelry","b":"disc:AI工作台","type":"disc"},{"a":"cl:project_silver_jewelry","b":"disc:硬件","type":"disc"},{"a":"cl:project_silver_jewelry","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_silver_jewelry","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_silver_jewelry","b":"disc:3D建模","type":"disc"},{"a":"cl:project_silver_jewelry","b":"disc:商业","type":"disc"},{"a":"cl:project_telemachus","b":"disc:AI工作台","type":"disc"},{"a":"cl:project_telemachus","b":"disc:工具脚本","type":"disc"},{"a":"cl:project_telemachus","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_vibe_pen","b":"disc:硬件","type":"disc"},{"a":"cl:project_vibe_pen","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_zima","b":"disc:Web动效","type":"disc"},{"a":"cl:project_zima","b":"disc:个人站","type":"disc"},{"a":"cl:project_zima","b":"disc:AI工作台","type":"disc"},{"a":"cl:project_zima","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:project_zima","b":"disc:3D建模","type":"disc"},{"a":"cl:reference_camping_footage_backup","b":"disc:工具脚本","type":"disc"},{"a":"cl:reference_camping_footage_backup","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:reference_claude_account_migration","b":"disc:工具脚本","type":"disc"},{"a":"cl:reference_claude_account_migration","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:reference_claude_account_migration","b":"disc:3D建模","type":"disc"},{"a":"cl:reference_python_env","b":"disc:AI工作台","type":"disc"},{"a":"cl:reference_python_env","b":"disc:工具脚本","type":"disc"},{"a":"cl:reference_python_env","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:reference_voice_input_capswriter","b":"disc:工具脚本","type":"disc"},{"a":"cl:reference_voice_input_capswriter","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:sandboxie_box_naming","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:user_chichu_profile","b":"disc:游戏","type":"disc"},{"a":"cl:user_chichu_profile","b":"disc:个人站","type":"disc"},{"a":"cl:user_chichu_profile","b":"disc:工具脚本","type":"disc"},{"a":"cl:user_chichu_profile","b":"disc:ClaudeCode生态","type":"disc"},{"a":"cl:user_hardware_profile","b":"disc:硬件","type":"disc"},{"a":"cl:user_hardware_profile","b":"disc:ClaudeCode生态","type":"disc"},{"a":"ob:2025秋 成人礼","b":"disc:成长","type":"disc"},{"a":"ob:2025秋 日本游学规划","b":"disc:成长","type":"disc"},{"a":"ob:2025秋 百万设计师","b":"disc:游戏","type":"disc"},{"a":"ob:2025秋 给青少年的普世阅读指南","b":"disc:阅读","type":"disc"},{"a":"ob:2025秋 课程反馈","b":"disc:游戏","type":"disc"},{"a":"ob:2025秋 课程反馈","b":"disc:教育","type":"disc"},{"a":"ob:2025秋 课程反馈","b":"disc:阅读","type":"disc"},{"a":"ob:2025秋 贩冰冰计划","b":"disc:商业","type":"disc"},{"a":"ob:《BRAID》游戏画面","b":"disc:游戏","type":"disc"},{"a":"ob:《失败的逻辑》读书笔记","b":"disc:阅读","type":"disc"},{"a":"ob:会议：如何构建品牌，如何制定战略","b":"disc:商业","type":"disc"},{"a":"ob:数学学习","b":"disc:成长","type":"disc"},{"a":"ob:暑假突击计划","b":"disc:游戏","type":"disc"},{"a":"ob:游戏《BRAID》","b":"disc:游戏","type":"disc"},{"a":"ob:游戏《The Witness》","b":"disc:游戏","type":"disc"},{"a":"ob:游戏帝国","b":"disc:游戏","type":"disc"},{"a":"ob:王琦的采访大纲","b":"disc:教育","type":"disc"},{"a":"ob:线下活动","b":"disc:教育","type":"disc"},{"a":"ob:线下活动","b":"disc:成长","type":"disc"},{"a":"ob:随想集","b":"disc:成长","type":"disc"},{"a":"ob:canvas:922db2","b":"disc:游戏","type":"disc"},{"a":"ob:canvas:922db2","b":"disc:设计","type":"disc"},{"a":"ob:canvas:f8d5a9","b":"disc:游戏","type":"disc"},{"a":"ob:canvas:f8d5a9","b":"disc:设计","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:信用","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:待人","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:时间管理","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:做事","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:示范","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:学习","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:生活","b":"disc:成长","type":"disc"},{"a":"ob:大谷翔平 81 宫格目标管理:保持奖学金","b":"disc:成长","type":"disc"},{"a":"root","b":"disc:Web动效","type":"struct"},{"a":"root","b":"disc:个人站","type":"struct"},{"a":"root","b":"disc:教育","type":"struct"},{"a":"root","b":"disc:ClaudeCode生态","type":"struct"},{"a":"root","b":"disc:AI工作台","type":"struct"},{"a":"root","b":"disc:工具脚本","type":"struct"},{"a":"root","b":"disc:游戏","type":"struct"},{"a":"root","b":"disc:中文打字","type":"struct"},{"a":"root","b":"disc:3D建模","type":"struct"},{"a":"root","b":"disc:阅读","type":"struct"},{"a":"root","b":"disc:硬件","type":"struct"},{"a":"root","b":"disc:商业","type":"struct"},{"a":"root","b":"disc:剧本杀","type":"struct"},{"a":"root","b":"disc:成长","type":"struct"},{"a":"root","b":"disc:设计","type":"struct"},{"a":"ob:2025秋 露营周规划","b":"cl:reference_camping_footage_backup","type":"bridge"},{"a":"ob:2025秋 贩冰冰计划","b":"cl:project_silver_jewelry","type":"bridge"},{"a":"ob:2025秋 给青少年的普世阅读指南","b":"cl:project_kindle_station","type":"bridge"},{"a":"ob:2025秋 课程反馈","b":"gh:kiidschool","type":"bridge"},{"a":"ob:2025秋 百万设计师","b":"cl:project_ditie_paoku","type":"bridge"},{"a":"ob:游戏帝国","b":"cl:project_chess_shogi","type":"bridge"}]};
+/*__GRAPH_DATA_END__*/
+(function(){
+  const cv=document.getElementById('graphCanvas'), sec=document.getElementById('graph'), pin=document.getElementById('graphPin');
+  if(!cv||!sec||!pin||!GRAPH.nodes.length) return;
+  const ctx=cv.getContext('2d'), $=id=>document.getElementById(id);
+  const intro=$('graphIntro'),hud=$('graphHud'),tools=$('graphTools'),actions=$('graphActions'),
+        legend=$('graphLegend'),info=$('graphInfo'),hint=$('graphHint'),growI=$('graphGrow').firstElementChild,
+        countEl=$('graphCount'),viewsEl=$('graphViews'),layersEl=$('graphLayers'),searchEl=$('graphSearch'),
+        lockBtn=$('graphLock'),fullBtn=$('graphFull');
+  const PCOL={github:'#d2ff00',claude:'#ff7a2f',obsidian:'#a78bfa',core:'#dfe3d6'};
+  const PNAME={github:'GitHub',claude:'Claude',obsidian:'Obsidian',core:'核心'};
+  const CATNAME={project:'项目',skill:'技能 / 工具',discipline:'学科 / 兴趣',note:'笔记',memory:'记忆',hub:'平台',root:'我'};
+  const clamp01=v=>v<0?0:v>1?1:v, lerp=(a,b,t)=>a+(b-a)*t;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hex2rgb=h=>{const n=parseInt(h.slice(1),16);return (n>>16&255)+','+(n>>8&255)+','+(n&255);};
+
+  const N=new Map(GRAPH.nodes.map(n=>[n.id,n]));
+  const adj=new Map(GRAPH.nodes.map(n=>[n.id,[]]));
+  for(const e of GRAPH.edges){ adj.get(e.a)&&adj.get(e.a).push({o:e.b,t:e.type}); adj.get(e.b)&&adj.get(e.b).push({o:e.a,t:e.type}); }
+  for(const n of GRAPH.nodes) Object.assign(n,{x:(Math.random()-.5)*40,y:(Math.random()-.5)*40,vx:0,vy:0,born:false,ap:0});
+
+  const VIEWS=[{id:'all',label:'总览',root:'root',plat:null},
+               {id:'github',label:'GitHub',root:'hub:github',plat:'github'},
+               {id:'claude',label:'Claude',root:'hub:claude',plat:'claude'},
+               {id:'obsidian',label:'Obsidian',root:'hub:obsidian',plat:'obsidian'}];
+  const LAYERS=[{id:'project',label:'项目',cats:['project'],col:'#cfe3a0'},
+                {id:'skill',label:'技能·工具',cats:['skill'],col:'#cdd3c2'},
+                {id:'discipline',label:'兴趣·学科',cats:['discipline'],col:'#a78bfa'},
+                {id:'note',label:'笔记·记忆',cats:['note','memory'],col:'#ff9a5f'}];
+  let view=VIEWS[0]; const layerOn=new Set(LAYERS.map(l=>l.id));
+  const catLayer=c=>{const l=LAYERS.find(l=>l.cats.includes(c));return l&&l.id;};
+
+  // ---- state ----
+  let W=0,H=0,dpr=1, order=[], parentOf=new Map(), visSet=new Set(),
+      alpha=1, bridgeAlpha=0, grown=false, locked=false, fs=false,
+      cam={x:0,y:0,scale:1}, camT={x:0,y:0,scale:1}, manual=false,
+      mouse={x:-1e4,y:-1e4,inside:false}, drag=null, panning=false, last={x:0,y:0}, hovered=null, now=0, running=false;
+  const reheat=()=>{ alpha=Math.max(alpha,0.9); };
+  const sx=n=>({x:W/2+(n.x-cam.x)*cam.scale,y:H/2+(n.y-cam.y)*cam.scale});
+  const toWorld=(x,y)=>({x:cam.x+(x-W/2)/cam.scale,y:cam.y+(y-H/2)/cam.scale});
+
+  function resize(){ const r=pin.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=r.width; H=r.height;
+    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); }
+
+  // ---- visible set + BFS birth order ----
+  function rawVisible(n){
+    if(n.cat==='root') return view.id==='all';
+    if(n.cat==='hub') return view.id==='all'?true:n.id===view.root;
+    if(view.plat && !(n.platform===view.plat||n.platform==='core')) return false;
+    const lay=catLayer(n.cat); if(lay&&!layerOn.has(lay)) return false;
+    return true;
   }
-  gSize(); addEventListener('resize', gSize);
-  new IntersectionObserver(es => { gVisible = es[0].isIntersecting; }).observe(gCanvas);
-  gCanvas.addEventListener('pointermove', e => {
-    const r = gCanvas.getBoundingClientRect();
-    gMouse.x = e.clientX - r.left; gMouse.y = e.clientY - r.top;
-  });
-  gCanvas.addEventListener('pointerleave', () => { gMouse.x = gMouse.y = -1e4; });
-  function nodePos(nd, t){
-    let x = nd.x * gw + Math.sin(t * 0.5 + nd.x * 9) * 7;
-    let y = nd.y * gh + Math.cos(t * 0.4 + nd.y * 7) * 6;
-    const dx = x - gMouse.x, dy = y - gMouse.y, d2 = dx * dx + dy * dy;
-    if (d2 < 16000){ const f = (16000 - d2) / 16000 * 14; const d = Math.sqrt(d2) || 1; x += dx / d * f; y += dy / d * f; }
-    return [x, y];
+  function recompute(){
+    visSet=new Set(GRAPH.nodes.filter(rawVisible).map(n=>n.id));
+    for(const id of [...visSet]){ const n=N.get(id);
+      if(n.cat==='discipline'||n.isLang){ if(!adj.get(id).some(a=>visSet.has(a.o)&&N.get(a.o).platform!=='core')) visSet.delete(id); } }
+    order=[]; parentOf=new Map(); const seen=new Set();
+    const start=visSet.has(view.root)?view.root:[...visSet][0]; const q=[];
+    if(start){ q.push(start); seen.add(start); }
+    while(q.length){ const id=q.shift(); order.push(id);
+      const nb=adj.get(id).filter(a=>a.t!=='bridge'&&visSet.has(a.o)&&!seen.has(a.o)).map(a=>a.o)
+        .sort((a,b)=>(N.get(b).r||5)-(N.get(a).r||5));
+      for(const o of nb){ if(!seen.has(o)){ seen.add(o); parentOf.set(o,id); q.push(o); } } }
+    for(const id of visSet) if(!seen.has(id)) order.push(id);
+    order.forEach((id,i)=>N.get(id).bi=i);
+    for(const n of GRAPH.nodes) if(!visSet.has(n.id)){ n.born=false; n.ap=0; }
+    updateCount(); reheat();
   }
-  function gDraw(now){
-    requestAnimationFrame(gDraw);
-    if (!gVisible) return;
-    const t = now / 1000;
-    gtx.clearRect(0, 0, gw, gh);
-    const pos = {};
-    NODES.forEach(nd => pos[nd.id] = nodePos(nd, t));
-    // edges
-    gtx.lineWidth = 1;
-    for (const [a, b] of EDGES){
-      const pa = pos[a], pb = pos[b];
-      gtx.strokeStyle = 'rgba(244,244,237,0.13)';
-      gtx.beginPath(); gtx.moveTo(pa[0], pa[1]); gtx.lineTo(pb[0], pb[1]); gtx.stroke();
-    }
-    // satellites
-    for (const s of sats){
-      const p = pos[s.p.id];
-      const x = p[0] + Math.cos(t * s.sp * 2 + s.a) * s.dist;
-      const y = p[1] + Math.sin(t * s.sp * 2 + s.a) * s.dist * 0.7;
-      gtx.fillStyle = 'rgba(244,244,237,0.35)';
-      gtx.beginPath(); gtx.arc(x, y, 1.6, 0, 6.29); gtx.fill();
-      gtx.strokeStyle = 'rgba(244,244,237,0.05)';
-      gtx.beginPath(); gtx.moveTo(p[0], p[1]); gtx.lineTo(x, y); gtx.stroke();
-    }
-    // nodes
-    hovered = null;
-    for (const nd of NODES){
-      const [x, y] = pos[nd.id];
-      const dx = gMouse.x - x, dy = gMouse.y - y;
-      const isHover = dx * dx + dy * dy < (nd.r + 12) * (nd.r + 12);
-      if (isHover) hovered = nd;
-      gtx.fillStyle = GCOL[nd.s];
-      gtx.beginPath(); gtx.arc(x, y, nd.r * (isHover ? 1.18 : 1), 0, 6.29); gtx.fill();
-      if (nd.s === 'updating'){
-        gtx.strokeStyle = 'rgba(210,255,0,' + (0.35 + 0.3 * Math.sin(t * 2 + nd.x * 10)) + ')';
-        gtx.lineWidth = 1.4;
-        gtx.beginPath(); gtx.arc(x, y, nd.r + 6 + Math.sin(t * 2 + nd.x * 10) * 2, 0, 6.29); gtx.stroke();
-        gtx.lineWidth = 1;
-      }
-      gtx.fillStyle = 'rgba(244,244,237,' + (isHover ? 1 : 0.62) + ')';
-      gtx.font = (isHover ? '600 ' : '') + '11px Georgia, serif';
-      gtx.textAlign = 'center';
-      gtx.fillText(nd.n, x, y + nd.r + 16);
-    }
-    gCanvas.style.cursor = hovered ? 'pointer' : 'crosshair';
-    if (hovered){
-      gInfo.querySelector('.t').textContent = hovered.n;
-      gInfo.querySelector('.d').textContent = hovered.d;
-      gInfo.querySelector('.s').textContent = { updating:'● 正在更新', live:'● 已上线', dormant:'● 蛰伏中 · 可蹲' }[hovered.s];
-      gInfo.classList.add('show');
-    } else gInfo.classList.remove('show');
+
+  // ---- growth ----
+  function applyGrowth(p){
+    const nodeP=grown?1:clamp01(p/0.82); bridgeAlpha=grown?1:clamp01((p-0.7)/0.3);
+    const bornN=Math.round(nodeP*order.length);
+    for(let i=0;i<order.length;i++){ const n=N.get(order[i]), should=i<bornN;
+      if(should&&!n.born){ n.born=true; const par=N.get(parentOf.get(n.id)||view.root);
+        if(par&&par!==n){ const ang=i*2.39996, rad=par.r+n.r+48; n.x=par.x+Math.cos(ang)*rad; n.y=par.y+Math.sin(ang)*rad; } n.vx=n.vy=0; n.ap=0; reheat(); }
+      else if(!should&&n.born&&!grown){ n.born=false; n.ap=0; } }
   }
-  requestAnimationFrame(gDraw);
-}
+
+  // ---- force sim: repulsion + hard collision + springs + light gravity ----
+  function sim(){
+    const born=order.map(id=>N.get(id)).filter(n=>n.born); const n=born.length; if(!n) return;
+    for(let i=0;i<n;i++){ const a=born[i];
+      for(let j=i+1;j<n;j++){ const b=born[j]; let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy+0.01; const d=Math.sqrt(d2);
+        const f=24000/d2*alpha, ux=dx/d, uy=dy/d;
+        a.vx+=ux*f; a.vy+=uy*f; b.vx-=ux*f; b.vy-=uy*f;
+        const min=a.r+b.r+14; if(d<min){ const push=(min-d)*0.5; a.x+=ux*push; a.y+=uy*push; b.x-=ux*push; b.y-=uy*push; } } }
+    for(const e of GRAPH.edges){ if(e.type==='bridge'&&!grown&&bridgeAlpha<0.05) continue;
+      const a=N.get(e.a),b=N.get(e.b); if(!a.born||!b.born) continue;
+      let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
+      const rest=e.type==='disc'?165:e.type==='struct'?135:e.type==='bridge'?230:e.type==='lang'?64:96;
+      const k=e.type==='bridge'?0.004:e.type==='disc'?0.012:0.02;
+      const f=(d-rest)*k*alpha; dx/=d; dy/=d; a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f; }
+    for(const a of born){ if(a===drag) continue;
+      a.vx-=a.x*0.0007*alpha; a.vy-=a.y*0.0007*alpha; a.vx*=0.9; a.vy*=0.9;
+      const sp=Math.hypot(a.vx,a.vy); if(sp>18){ a.vx*=18/sp; a.vy*=18/sp; }
+      a.x+=a.vx; a.y+=a.vy; if(a.cat==='root'){ a.x*=0.92; a.y*=0.92; } a.ap=Math.min(1,a.ap+0.05); }
+    alpha=Math.max(0.06,alpha*0.994);
+  }
+  function autoCam(){ const born=order.map(id=>N.get(id)).filter(n=>n.born); if(!born.length) return;
+    let a=1e9,b=1e9,c=-1e9,d=-1e9; for(const n of born){ a=Math.min(a,n.x-n.r);c=Math.max(c,n.x+n.r);b=Math.min(b,n.y-n.r);d=Math.max(d,n.y+n.r); }
+    const bw=c-a||1,bh=d-b||1,pad=120; camT.scale=Math.max(0.2,Math.min(W/(bw+pad),H/(bh+pad),2.2)); camT.x=(a+c)/2; camT.y=(b+d)/2; }
+
+  // ---- picking + info ----
+  function pick(mx,my){ let best=null,bd=1e9; for(const id of order){ const n=N.get(id); if(!n.born) continue;
+    const p=sx(n),dx=mx-p.x,dy=my-p.y,dd=dx*dx+dy*dy,rr=n.r*cam.scale+7; if(dd<rr*rr&&dd<bd){ bd=dd; best=n; } } return best; }
+  let infoLink=null;
+  function updateInfo(n){ if(!n){ info.classList.remove('show'); return; }
+    info.querySelector('.gi-tag').textContent=(PNAME[n.platform]||'核心')+' · '+(CATNAME[n.cat]||n.cat);
+    info.querySelector('.gi-t').textContent=n.label; info.querySelector('.gi-d').textContent=n.desc||'';
+    if(n.url){ if(!infoLink){ infoLink=document.createElement('a'); infoLink.className='gi-link'; infoLink.target='_blank'; infoLink.rel='noopener'; info.appendChild(infoLink); }
+      infoLink.href=n.url; infoLink.textContent=/github\.com/.test(n.url)?'看仓库 ↗':'打开 ↗'; infoLink.style.display=''; }
+    else if(infoLink) infoLink.style.display='none';
+    info.classList.add('show'); }
+
+  // ---- draw ----
+  function draw(){ ctx.clearRect(0,0,W,H);
+    if(mouse.inside&&!drag&&!panning) hovered=pick(mouse.x,mouse.y);
+    const hi=hovered, nb=hi?new Set(adj.get(hi.id).map(a=>a.o)):null;
+    for(const e of GRAPH.edges){ const a=N.get(e.a),b=N.get(e.b); if(!a.born||!b.born) continue;
+      let al,col,lw=1;
+      if(e.type==='bridge'){ al=0.5*bridgeAlpha; col='210,255,0'; lw=1.5; }
+      else if(e.type==='disc'){ al=0.045; col='200,205,190'; }
+      else if(e.type==='struct'){ al=0.035; col='200,205,190'; }
+      else if(e.type==='lang'){ al=0.03; col='200,205,190'; }
+      else { al=0.10; col=hex2rgb(PCOL[a.platform]||PCOL.core); }
+      if(hi){ if(e.a===hi.id||e.b===hi.id){ al=Math.max(al,0.55); lw=Math.max(lw,1.3); } else al*=0.22; }
+      if(al<0.01) continue; const A=sx(a),B=sx(b);
+      ctx.strokeStyle='rgba('+col+','+al+')'; ctx.lineWidth=lw;
+      ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke(); }
+    for(const id of order){ const nn=N.get(id); if(!nn.born) continue; const p=sx(nn), col=PCOL[nn.platform]||PCOL.core;
+      const r=Math.max(2,nn.r*cam.scale)*(0.55+0.45*nn.ap), dim=hi&&nn!==hi&&!(nb&&nb.has(nn.id));
+      ctx.globalAlpha=(dim?0.25:1)*Math.min(1,nn.ap+0.12);
+      if(nn.status==='updating'){ ctx.strokeStyle='rgba(210,255,0,'+(0.28+0.22*Math.sin(now*0.004+nn.bi))+')'; ctx.lineWidth=1.3; ctx.beginPath(); ctx.arc(p.x,p.y,r+5,0,6.29); ctx.stroke(); }
+      ctx.fillStyle='rgba(18,21,14,.82)'; ctx.beginPath(); ctx.arc(p.x,p.y,r+2.4,0,6.29); ctx.fill();   // dark halo lifts nodes off the edge mesh
+      if(nn.cat==='discipline'){ ctx.fillStyle='rgba(167,139,250,.16)'; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,6.29); ctx.fill(); ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); }
+      else { ctx.fillStyle=col; ctx.beginPath(); ctx.arc(p.x,p.y,r,0,6.29); ctx.fill(); }
+      if(nn.cat==='root'){ ctx.strokeStyle='#d2ff00'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(p.x,p.y,r+5,0,6.29); ctx.stroke(); }
+      const showL=nn===hi||nn.cat==='root'||nn.cat==='hub'||(nn.r>=10&&cam.scale>0.55)||cam.scale>1.6;
+      if(showL){ ctx.globalAlpha=dim?0.3:1; ctx.fillStyle='rgba(244,244,237,.9)';
+        ctx.font=((nn===hi||nn.cat==='hub'||nn.cat==='root')?'700 ':'500 ')+Math.round(Math.max(11,Math.min(15,9+cam.scale*2.4)))+'px Mona Sans Variable, Arial, sans-serif';
+        ctx.textAlign='center'; ctx.fillText(nn.label,p.x,p.y+r+13); }
+      ctx.globalAlpha=1; }
+    updateInfo(hi);
+    cv.style.cursor=hi?'pointer':(panning?'grabbing':((locked||fs)?'grab':'default')); }
+
+  // ---- main loop ----
+  function scrollProgress(){ const r=sec.getBoundingClientRect(); return clamp01(-r.top/(r.height-innerHeight)); }
+  function loop(t){ if(!running) return; now=t;
+    const p=fs||locked?1:scrollProgress();
+    const fade=clamp01((p-0.02)/0.1);
+    intro.style.opacity=1-fade; intro.style.transform='translateY('+(-fade*24)+'px)';
+    const ui=(grown||fs||locked)?1:clamp01((p-0.05)/0.08);
+    hud.style.opacity=ui; tools.style.opacity=ui; actions.style.opacity=ui; legend.style.opacity=ui; hint.style.opacity=ui*0.7;
+    growI.style.width=((grown?1:clamp01(p/0.82))*100)+'%';
+    applyGrowth(p);
+    if(!manual){ autoCam(); cam.x=lerp(cam.x,camT.x,0.07); cam.y=lerp(cam.y,camT.y,0.07); cam.scale=lerp(cam.scale,camT.scale,0.07); }
+    else { cam.x=lerp(cam.x,camT.x,0.18); cam.y=lerp(cam.y,camT.y,0.18); cam.scale=lerp(cam.scale,camT.scale,0.18); }
+    if(!reduce) sim();
+    draw(); requestAnimationFrame(loop); }
+  new IntersectionObserver(es=>{ const v=es[0].isIntersecting; if(v&&!running){ running=true; requestAnimationFrame(loop); } else if(!v){ running=false; } },{threshold:0}).observe(pin);
+
+  // ---- interaction ----
+  cv.addEventListener('pointermove',e=>{ const r=cv.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; mouse.inside=true;
+    if(drag){ const w=toWorld(mouse.x,mouse.y); drag.x=w.x; drag.y=w.y; drag.vx=drag.vy=0; reheat(); }
+    else if(panning){ cam.x-=(e.clientX-last.x)/cam.scale; cam.y-=(e.clientY-last.y)/cam.scale; camT.x=cam.x; camT.y=cam.y; last={x:e.clientX,y:e.clientY}; manual=true; } });
+  cv.addEventListener('pointerleave',()=>{ mouse.inside=false; mouse.x=mouse.y=-1e4; });
+  cv.addEventListener('pointerdown',e=>{ try{cv.setPointerCapture(e.pointerId);}catch(_){}; const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,hit=pick(mx,my);
+    if(hit){ drag=hit; manual=true; } else { panning=true; last={x:e.clientX,y:e.clientY}; } });
+  addEventListener('pointerup',()=>{ drag=null; panning=false; });
+  pin.addEventListener('wheel',e=>{ if(!(locked||fs)) return; e.preventDefault();
+    const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,before=toWorld(mx,my);
+    cam.scale=Math.max(0.15,Math.min(6,cam.scale*Math.exp(-e.deltaY*0.0014)));
+    const after=toWorld(mx,my); cam.x+=before.x-after.x; cam.y+=before.y-after.y; camT.x=cam.x; camT.y=cam.y; camT.scale=cam.scale; manual=true; },{passive:false});
+
+  // ---- controls ----
+  VIEWS.forEach(v=>{ const btn=document.createElement('button'); btn.textContent=v.label; if(v===view) btn.classList.add('on');
+    btn.onclick=()=>{ view=v; manual=false; grown=locked||fs; [...viewsEl.children].forEach(c=>c.classList.toggle('on',c===btn)); searchEl.value=''; recompute(); }; viewsEl.appendChild(btn); });
+  LAYERS.forEach(l=>{ const btn=document.createElement('button'); btn.innerHTML='<i style="color:'+l.col+'"></i>'+l.label; btn.classList.add('on');
+    btn.onclick=()=>{ layerOn.has(l.id)?layerOn.delete(l.id):layerOn.add(l.id); btn.classList.toggle('on',layerOn.has(l.id)); recompute(); }; layersEl.appendChild(btn); });
+  legend.innerHTML=['github','obsidian','claude'].map(k=>'<span><i style="background:'+PCOL[k]+'"></i>'+PNAME[k]+'</span>').join('')+'<span><i style="background:#d2ff00;border-radius:1px"></i>跨平台连线</span>';
+  function updateCount(){ const c=GRAPH.meta.counts||{}; countEl.innerHTML=view.id==='all'
+    ? '<b>'+(c.nodes||GRAPH.nodes.length)+'</b> 节点 · 跨 3 平台 · <b>'+(c.bridges||0)+'</b> 条跨平台连线'
+    : PNAME[view.plat]+' · <b>'+[...visSet].filter(id=>N.get(id).platform===view.plat).length+'</b> 节点'; }
+
+  lockBtn.onclick=()=>{ locked=!locked; lockBtn.classList.toggle('on',locked); lockBtn.textContent=locked?'🔓 解锁':'🔒 锁定探索';
+    if(locked){ grown=true; applyGrowth(1); } else { grown=fs; manual=false; } reheat(); };
+  fullBtn.onclick=()=>{ if(!fs){ if(pin.requestFullscreen) pin.requestFullscreen(); } else if(document.exitFullscreen) document.exitFullscreen(); };
+  document.addEventListener('fullscreenchange',()=>{ fs=document.fullscreenElement===pin; fullBtn.classList.toggle('on',fs); fullBtn.textContent=fs?'⛶ 退出全屏':'⛶ 全屏';
+    grown=fs||locked; if(fs) applyGrowth(1); setTimeout(resize,80); reheat(); });
+  searchEl.addEventListener('input',()=>{ const q=searchEl.value.trim().toLowerCase(); if(!q){ return; }
+    const m=GRAPH.nodes.find(n=>visSet.has(n.id)&&(n.label.toLowerCase().includes(q)||(n.desc||'').toLowerCase().includes(q)));
+    if(m){ grown=true; applyGrowth(1); manual=true; camT.x=m.x; camT.y=m.y; camT.scale=1.7; hovered=m; reheat(); } });
+
+  const ro=new ResizeObserver(resize); ro.observe(pin); addEventListener('resize',resize);
+  resize(); recompute();
+})();
 
 /* --- 8h. updating list + 蹲蹲 (localStorage; Hermes will feed real data) --- */
 const UPDATES = [
