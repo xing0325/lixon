@@ -956,10 +956,11 @@
     text-transform:uppercase; opacity:.82;
   }
   .album-cover{
-    position:relative; overflow:hidden; border-radius:0; flex:none;
+    position:relative; overflow:hidden; border-radius:0; flex:none; width:fit-content;
     background:#1b1d18; box-shadow:0 24px 50px -30px rgba(0,0,0,.55);
   }
-  .album-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* real covers: scale to fit a per-tier bounding box, never crop (max-w/h set inline) */
+  .album-cover img{ display:block; width:auto; height:auto; max-width:100%; }
   .album-cover.ph::after{   /* halftone only on gradient placeholders */
     content:''; position:absolute; inset:0;
     background-image:radial-gradient(rgba(20,22,15,.22) 1px, transparent 1.4px);
@@ -972,6 +973,17 @@
     color:rgba(255,255,255,.94); text-transform:uppercase;
   }
   .album-line{ font-size:13px; line-height:1.55; max-width:30ch; opacity:.9; }
+  /* callout 黄条高亮擦扫入场 + 落款小字 */
+  .q-wrap{ position:relative; }
+  .q-wrap.armed{ overflow:hidden; }
+  .q-wrap.armed .q{ clip-path:inset(0 101% 0 0); }
+  .q-wrap.armed.is-in .q{ animation:qReveal .85s cubic-bezier(.19,1,.22,1) .06s forwards; }
+  @keyframes qReveal{ to{ clip-path:inset(0 0 0 0); } }
+  .q-sweep{ display:none; }
+  .q-wrap.armed .q-sweep{ display:block; position:absolute; top:-.06em; bottom:-.06em; left:0; width:.5em; margin-left:-.25em; background:var(--lime,#d2ff00); opacity:0; pointer-events:none; }
+  .q-wrap.armed.is-in .q-sweep{ animation:qSweep .85s cubic-bezier(.19,1,.22,1) .06s forwards; }
+  @keyframes qSweep{ 0%{ left:0; opacity:0; } 9%{ opacity:1; } 90%{ opacity:1; } 100%{ left:100%; opacity:0; } }
+  .album-sub{ margin-top:.45rem; font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; opacity:.6; }
 
   /* interstitial handwriting callout (原站 .horizontal-item-text) */
   .album-callout{ display:flex; flex-flow:column; gap:1.1rem; flex:none; max-width:30rem; align-self:center; }
@@ -2767,8 +2779,8 @@ const ALB_EXTRA = [
 ];
 // 引言 callout —— chichu 调性代笔（真签名待矢量化；可改）
 const ALB_CALLOUTS = [
-  { q:'重要的不是<span class="hl">起点</span>有多好，是<span class="hl">每天</span>都还在 build。' },
-  { q:'好奇心是我唯一的<span class="hl">第一动力</span>，剩下的都交给操作熵。' }
+  { q:'爱<span class="hl">具体</span>的生活，不要爱<span class="hl">幻象</span>。', sub:'坦坦荡荡，见自己。' },
+  { q:'把手<span class="hl">弄脏</span>。不及格的想法，也能<span class="hl">跑起来</span>。' }
 ];
 
 const albumPin = document.getElementById('albumPin');
@@ -2776,6 +2788,10 @@ const albumSection = document.getElementById('album');
 const albumTrack = document.getElementById('albumTrack');
 const albumHead = albumPin ? albumPin.querySelector('.album-head') : null;
 let albumCur = 0, albumTarget = 0;
+// 黄条擦扫入场：callout 进视口触发一次（横向轨道平移会把它带进来）
+const albIO = ('IntersectionObserver' in window) ? new IntersectionObserver((es) => {
+  es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('is-in'); albIO.unobserve(e.target); } });
+}, { threshold: 0.4 }) : null;
 
 function albImg(note, tier){
   const d = ALB_TIERS[tier] || ALB_TIERS.md2, w = d[0], h = d[1];
@@ -2783,7 +2799,7 @@ function albImg(note, tier){
   el.className = 'album-item t-' + tier;
   const top = `<div class="album-top"><span>${note.tag || '#施工日志'}</span><span>${note.d || ''}</span></div>`;
   const cover = note.cover
-    ? `<div class="album-cover" style="width:${w}vh;height:${h}vh"><img src="${note.cover}" alt="" loading="lazy"></div>`
+    ? `<div class="album-cover"><img src="${note.cover}" alt="" loading="eager" style="max-width:${w}vh;max-height:${h}vh"></div>`
     : `<div class="album-cover ph" style="width:${w}vh;height:${h}vh;background:linear-gradient(150deg,${(note.g&&note.g[0])||'#3b3c38'},${(note.g&&note.g[1])||'#282c20'})"><b>${note.w || 'NOTE'}</b></div>`;
   const line = note.line ? `<div class="album-line">${note.line}</div>` : '';
   el.innerHTML = top + cover + line;
@@ -2794,8 +2810,10 @@ function albCallout(idx){
   const c = ALB_CALLOUTS[idx] || ALB_CALLOUTS[0];
   const el = document.createElement('div');
   el.className = 'album-callout';
-  el.innerHTML = `<div class="q">${c.q}</div>` +
-    `<svg class="album-sig" data-todo="真签名待矢量化" viewBox="0 0 200 58" fill="none" stroke="var(--lime,#d2ff00)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 40 C 28 6, 44 8, 38 34 C 35 50, 55 48, 62 28 C 68 12, 78 44, 92 34 C 110 22, 128 48, 158 16 M118 40 L188 28"/></svg>`;
+  el.innerHTML =
+    `<div class="q-wrap"><div class="q">${c.q}</div><span class="q-sweep"></span></div>` +
+    `<svg class="album-sig" data-todo="真签名待矢量化" viewBox="0 0 200 58" fill="none" stroke="var(--lime,#d2ff00)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 40 C 28 6, 44 8, 38 34 C 35 50, 55 48, 62 28 C 68 12, 78 44, 92 34 C 110 22, 128 48, 158 16 M118 40 L188 28"/></svg>` +
+    (c.sub ? `<div class="album-sub">${c.sub}</div>` : '');
   return el;
 }
 function albStagger(el, it){
@@ -2831,6 +2849,10 @@ function buildAlbum(notes){
     sp.className = 'album-spacer' + (col.s === 'full' ? '' : ' ' + (col.s || 'half'));
     albumTrack.appendChild(sp);
   }
+  if (albIO && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+    albumTrack.querySelectorAll('.q-wrap').forEach(w => { w.classList.add('armed'); albIO.observe(w); });
+  // 封面按自然比例缩放，宽度要等图片载入才定 → 每张载入后重算滚程高度
+  albumTrack.querySelectorAll('.album-cover img').forEach(img => { if (!img.complete) img.addEventListener('load', sizeAlbum, { once:true }); });
   sizeAlbum();
 }
 function sizeAlbum(){
@@ -2925,14 +2947,15 @@ function pageLoop(now){
   if (albumPin && albumTrack && albumSection && albumPin.offsetParent !== null){
     const ar = albumSection.getBoundingClientRect();
     if (!(ar.bottom < -100 || ar.top > ih + 100)){
-      const p = reducedMotion ? 1 : clamp01(-ar.top / (ar.height - ih));
+      const lead = ih * 0.55;   // 进场提前量：章节顶进到视口约 55% 就开滚（像原站照片一进场就左移）
+      const p = reducedMotion ? 1 : clamp01((lead - ar.top) / (lead + ar.height - ih));
       const maxTravel = Math.max(0, albumTrack.scrollWidth - innerWidth);
       albumTarget = p * maxTravel;
       albumCur += (albumTarget - albumCur) * 0.085;        // lerp → 惯性滑行/过冲
       if (reducedMotion || Math.abs(albumTarget - albumCur) < 0.2) albumCur = albumTarget;
       albumTrack.style.transform = `translate3d(${-albumCur}px,0,0)`;
       // intro 标题在墙开动后淡出，让照片成焦点（原站墙上无大标题）
-      if (albumHead) albumHead.style.opacity = clamp01(1 - p / 0.1);
+      if (albumHead) albumHead.style.opacity = clamp01(1 - p / 0.2);
       // color morph 暗绿 #282c20 → 纸 #efefe5；ease-in 让暗墙多留一会儿、临近结尾才开到纸白
       const cp = Math.pow(p, 1.6);
       const mixc = (a, b) => Math.round(a + (b - a) * cp);
