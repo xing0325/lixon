@@ -1021,9 +1021,8 @@
     font-family:'Brier','Mona Sans Variable',serif; font-weight:400; font-style:normal;
     font-size:clamp(1.25rem,1.6vw,1.6rem); line-height:.946; letter-spacing:.05rem; color:inherit;
   }
-  .album-callout .q .hl{ color:var(--lime,#d2ff00); transition:color .3s ease; }
-  /* 纸白段：lime 字不可读 → 墨色字 + lime 记号笔高亮；签名转深橄榄 */
-  .album-pin.on-paper .album-callout .q .hl{ color:var(--ink); background:linear-gradient(transparent 52%, rgba(210,255,0,.55) 52%); }
+  /* lime 高亮词：永远记号笔高亮（字色随底色明暗自适应，永远可读），任何底色都不会是裸 lime */
+  .album-callout .q .hl{ color:inherit; background:linear-gradient(transparent 50%, rgba(210,255,0,.62) 50%); padding:0 .04em; }
   .album-pin.on-paper .album-sig{ stroke:#5a6b00; opacity:.9; transition:stroke .3s ease; }
   .album-callout .album-sig{ width:clamp(120px,12vw,180px); height:auto; opacity:.95; }
   .album-pin{ transition:color .25s linear; }
@@ -3006,13 +3005,9 @@ function pageLoop(now){
       albumTrack.style.transform = `translate3d(${-albumCur}px,0,0)`;
       // intro 标题在墙开动后淡出，让照片成焦点（原站墙上无大标题）
       if (albumHead) albumHead.style.opacity = clamp01(1 - p / 0.2);
-      // 卡点：第一列滚到最左缘(75vw lead-in 滚完)。暗绿墙一直压着，到这一刻已"啪"地翻成纸白
-      const pNode = maxTravel > 0 ? clamp01(0.75 * innerWidth / maxTravel) : 0.3;
+      // 一半深一半浅：暗→纸随滚动均匀渐变，中点 p=.5 正好是暗↔亮交界（暗墙占前半、纸白占后半）
       const ss = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-      const snapStart = Math.max(0.001, pNode - 0.16);   // 翻转窗口放宽一点 → 更柔
-      const cp = p < snapStart ? (p / snapStart) * 0.14
-               : p < pNode     ? 0.14 + ss(snapStart, pNode, p) * 0.86
-               :                 1;
+      const cp = ss(0.06, 0.94, p);
       const mixc = (a, b) => Math.round(a + (b - a) * cp);
       albumSection.style.background = `rgb(${mixc(40,239)},${mixc(44,239)},${mixc(32,229)})`;
       const onPaper = cp > 0.5;
