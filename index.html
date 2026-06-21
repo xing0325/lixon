@@ -2835,8 +2835,9 @@ const albumTrack = document.getElementById('albumTrack');
 const albumHead = albumPin ? albumPin.querySelector('.album-head') : null;
 let albumCur = 0, albumTarget = 0;
 // 黄条擦扫入场：callout 进视口触发一次（横向轨道平移会把它带进来）
+// 每次这句话进视口都重放擦扫（离开就重置），不再只触发一次
 const albIO = ('IntersectionObserver' in window) ? new IntersectionObserver((es) => {
-  es.forEach(e => { if (e.isIntersecting){ e.target.classList.add('is-in'); albIO.unobserve(e.target); } });
+  es.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-in'); else e.target.classList.remove('is-in'); });
 }, { threshold: 0.4 }) : null;
 
 function albImg(note, tier){
@@ -3002,11 +3003,13 @@ function pageLoop(now){
       albumTrack.style.transform = `translate3d(${-albumCur}px,0,0)`;
       // intro 标题在墙开动后淡出，让照片成焦点（原站墙上无大标题）
       if (albumHead) albumHead.style.opacity = clamp01(1 - p / 0.2);
-      // 卡点：第一列滚到最左缘(75vw lead-in 滚完) = 暗绿→纸白的关键转折
+      // 卡点：第一列滚到最左缘(75vw lead-in 滚完)。暗绿墙一直压着，到这一刻已"啪"地翻成纸白
       const pNode = maxTravel > 0 ? clamp01(0.75 * innerWidth / maxTravel) : 0.3;
       const ss = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-      // 节点前：极缓微亮(0→.12)；节点起：决定性翻转(.12→1)
-      const cp = p < pNode ? (p / pNode) * 0.12 : 0.12 + ss(0, 0.34, p - pNode) * 0.88;
+      const snapStart = Math.max(0.001, pNode - 0.11);   // 翻转在抵达节点前的小窗口内快速完成
+      const cp = p < snapStart ? (p / snapStart) * 0.14
+               : p < pNode     ? 0.14 + ss(snapStart, pNode, p) * 0.86
+               :                 1;
       const mixc = (a, b) => Math.round(a + (b - a) * cp);
       albumSection.style.background = `rgb(${mixc(40,239)},${mixc(44,239)},${mixc(32,229)})`;
       albumPin.style.color = cp > 0.5 ? 'var(--ink)' : '#f4f4ed';
