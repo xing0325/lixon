@@ -1021,7 +1021,10 @@
     font-family:'Brier','Mona Sans Variable',serif; font-weight:400; font-style:normal;
     font-size:clamp(1.25rem,1.6vw,1.6rem); line-height:.946; letter-spacing:.05rem; color:inherit;
   }
-  .album-callout .q .hl{ color:var(--lime,#d2ff00); }
+  .album-callout .q .hl{ color:var(--lime,#d2ff00); transition:color .3s ease; }
+  /* 纸白段：lime 字不可读 → 墨色字 + lime 记号笔高亮；签名转深橄榄 */
+  .album-pin.on-paper .album-callout .q .hl{ color:var(--ink); background:linear-gradient(transparent 52%, rgba(210,255,0,.55) 52%); }
+  .album-pin.on-paper .album-sig{ stroke:#5a6b00; opacity:.9; transition:stroke .3s ease; }
   .album-callout .album-sig{ width:clamp(120px,12vw,180px); height:auto; opacity:.95; }
   .album-pin{ transition:color .25s linear; }
 
@@ -2905,7 +2908,7 @@ function buildAlbum(notes){
 function sizeAlbum(){
   if (!albumTrack || !albumSection) return;
   const travel = Math.max(0, albumTrack.scrollWidth - innerWidth);
-  albumSection.style.height = (innerHeight + travel) + 'px';
+  albumSection.style.height = (innerHeight + travel * 0.75) + 'px';   // 横移比纵滚快一档 → 屏数更短，配内容长度
 }
 buildAlbum(ALBUM);
 addEventListener('resize', sizeAlbum, { passive:true });
@@ -3006,13 +3009,15 @@ function pageLoop(now){
       // 卡点：第一列滚到最左缘(75vw lead-in 滚完)。暗绿墙一直压着，到这一刻已"啪"地翻成纸白
       const pNode = maxTravel > 0 ? clamp01(0.75 * innerWidth / maxTravel) : 0.3;
       const ss = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-      const snapStart = Math.max(0.001, pNode - 0.11);   // 翻转在抵达节点前的小窗口内快速完成
+      const snapStart = Math.max(0.001, pNode - 0.16);   // 翻转窗口放宽一点 → 更柔
       const cp = p < snapStart ? (p / snapStart) * 0.14
                : p < pNode     ? 0.14 + ss(snapStart, pNode, p) * 0.86
                :                 1;
       const mixc = (a, b) => Math.round(a + (b - a) * cp);
       albumSection.style.background = `rgb(${mixc(40,239)},${mixc(44,239)},${mixc(32,229)})`;
-      albumPin.style.color = cp > 0.5 ? 'var(--ink)' : '#f4f4ed';
+      const onPaper = cp > 0.5;
+      albumPin.style.color = onPaper ? 'var(--ink)' : '#f4f4ed';
+      albumPin.classList.toggle('on-paper', onPaper);   // 纸白段：lime 高亮词转可读
     }
   }
 
