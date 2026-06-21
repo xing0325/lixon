@@ -441,14 +441,15 @@
     [data-rise]{ opacity:1; transform:none; transition:none; }
   }
 
-  /* --- §00 RACE CONTROL dashboard — F1 遥测大盘，替换旧 status strip（原站配色） --- */
+  /* --- §00 RACE CONTROL · vibe-coder 驾驶舱 v2（指挥中心 + Inspector + 工作流赛道 + i18n，原站配色） --- */
   .sec-pulse{ padding:0; }
   .rc-dash{
-    --rc-bg:#0e100a; --rc-pane:#13150c; --rc-pane2:#0b0d06;
+    --rc-bg:#0e100a; --rc-pane:#13150c; --rc-pane2:#0b0d06; --rc-pane3:#171a0f;
     --rc-hair:rgba(210,255,0,.15); --rc-hair2:rgba(180,184,165,.12);
     --rc-mut:#b4b8a5; --rc-mut2:rgba(180,184,165,.55);
+    --rc-red:#ff4d4d; --rc-yel:#ffcc33;
     --rc-mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,"Microsoft YaHei",monospace;
-    position:relative; width:100%; min-height:94svh;
+    position:relative; width:100%;
     display:flex; flex-direction:column;
     background:var(--rc-bg); color:var(--paper);
     font-family:var(--rc-mono); overflow:hidden;
@@ -459,7 +460,8 @@
   .rc-dash *{ box-sizing:border-box; }
   .rc-k{ font:600 9.5px/1 var(--rc-mono); letter-spacing:.16em; text-transform:uppercase; color:var(--rc-mut2); }
   .rc-lime{ color:var(--accent); } .rc-or{ color:var(--orange); } .rc-mut{ color:var(--rc-mut); }
-  .rc-hd{ display:flex; align-items:center; gap:clamp(10px,1.6vw,22px); padding:13px clamp(16px,2.4vw,30px);
+  /* header + language switch */
+  .rc-hd{ display:flex; align-items:center; gap:clamp(10px,1.4vw,20px); padding:13px clamp(16px,2.4vw,30px);
     border-bottom:1px solid var(--rc-hair); background:#0c0e06; flex-wrap:wrap; }
   .rc-brand{ display:flex; align-items:center; gap:11px; font:600 clamp(13px,1.1vw,15px)/1 var(--rc-mono); letter-spacing:.1em; }
   .rc-brand small{ color:var(--rc-mut2); }
@@ -470,56 +472,102 @@
   .rc-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent);
     box-shadow:0 0 9px 1px rgba(210,255,0,.6); animation:rcBlip 1.5s infinite; flex:none; }
   @keyframes rcBlip{ 0%,100%{opacity:1} 50%{opacity:.2} }
-  .rc-gp{ flex:1; text-align:center; font:500 clamp(13px,1.3vw,17px)/1 var(--rc-mono); letter-spacing:.2em; white-space:nowrap; }
+  .rc-gp{ flex:1; text-align:center; font:500 clamp(12px,1.2vw,16px)/1 var(--rc-mono); letter-spacing:.2em; white-space:nowrap; }
   .rc-gp i{ font-style:normal; color:var(--rc-mut2); font-size:.72em; letter-spacing:.1em; }
+  .rc-lang{ display:flex; border:1px solid var(--rc-hair); border-radius:6px; overflow:hidden; }
+  .rc-lang button{ font:600 10px/1 var(--rc-mono); letter-spacing:.06em; color:var(--rc-mut); background:none; border:0; padding:7px 9px; cursor:pointer; transition:.2s; }
+  .rc-lang button+button{ border-left:1px solid var(--rc-hair2); }
+  .rc-lang button.on{ background:var(--accent); color:#0d0f0a; }
   .rc-hstat{ display:flex; flex-direction:column; gap:4px; }
   .rc-hstat .v{ font:600 13px/1 var(--rc-mono); letter-spacing:.05em; }
-  .rc-grid{ display:grid; grid-template-columns:clamp(260px,23vw,322px) 1fr clamp(270px,24vw,330px);
-    gap:1px; background:var(--rc-hair2); flex:1; min-height:0; }
+  /* core status strip */
+  .rc-strip{ display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--rc-hair2); border-bottom:1px solid var(--rc-hair); }
+  .rc-st{ background:var(--rc-pane); padding:10px clamp(12px,1.6vw,20px); display:flex; flex-direction:column; gap:6px; }
+  .rc-st .v{ font:600 clamp(15px,1.5vw,19px)/1 var(--rc-mono); letter-spacing:.02em; }
+  .rc-st .v small{ font-size:.6em; color:var(--rc-mut2); }
+  /* 3-col grid */
+  .rc-grid{ display:grid; grid-template-columns:clamp(248px,21vw,300px) 1fr clamp(280px,25vw,344px);
+    gap:1px; background:var(--rc-hair2); }
   .rc-col{ background:var(--rc-bg); display:flex; flex-direction:column; gap:1px; min-height:0; }
   .rc-pane{ background:var(--rc-pane); display:flex; flex-direction:column; min-height:0; }
   .rc-ph{ display:flex; align-items:center; justify-content:space-between; padding:10px 15px; border-bottom:1px solid var(--rc-hair2); }
   .rc-ph .t{ font:600 11px/1 var(--rc-mono); letter-spacing:.14em; text-transform:uppercase; color:var(--paper); }
   .rc-ph .s{ font:600 9.5px/1 var(--rc-mono); letter-spacing:.1em; color:var(--rc-mut2); text-transform:uppercase; }
-  .rc-lbh,.rc-lbr{ display:grid; grid-template-columns:24px 1fr 56px 42px; align-items:center; gap:6px; padding:0 15px; }
-  .rc-lbh{ height:26px; } .rc-lbh span{ font:600 9px/1 var(--rc-mono); letter-spacing:.08em; color:var(--rc-mut2); text-transform:uppercase; }
-  .rc-lbr{ height:clamp(34px,5.2vh,44px); border-top:1px solid rgba(255,255,255,.04); position:relative; }
+  /* leaderboard / standings */
+  .rc-lbh,.rc-lbr{ display:grid; grid-template-columns:24px 1fr 54px 38px; align-items:center; gap:6px; padding:0 15px; }
+  .rc-lbh{ height:24px; } .rc-lbh span{ font:600 9px/1 var(--rc-mono); letter-spacing:.08em; color:var(--rc-mut2); text-transform:uppercase; }
+  .rc-lbr{ height:clamp(32px,4.4vh,42px); border-top:1px solid rgba(255,255,255,.04); position:relative; cursor:pointer; transition:background .2s; }
+  .rc-lbr:hover{ background:rgba(255,255,255,.03); }
+  .rc-lbr.sel{ background:linear-gradient(90deg,rgba(210,255,0,.10),transparent 75%); }
+  .rc-lbr.sel::after{ content:""; position:absolute; right:0; top:0; bottom:0; width:2px; background:var(--accent); }
   .rc-lbr .pos{ font:600 14px/1 var(--rc-mono); color:var(--rc-mut); }
-  .rc-lbr.p1{ background:linear-gradient(90deg,rgba(210,255,0,.09),transparent 70%); }
-  .rc-lbr.p1::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--accent); }
   .rc-lbr.p1 .pos{ color:var(--accent); }
   .rc-nm{ display:flex; align-items:center; gap:8px; font:600 13px/1 var(--rc-mono); letter-spacing:.02em; min-width:0; }
   .rc-nm i{ width:7px; height:7px; border-radius:2px; background:var(--accent); opacity:.85; flex:none; }
-  .rc-lbr.idle .rc-nm i{ background:var(--rc-mut2); } .rc-lbr.warn .rc-nm i{ background:var(--orange); }
-  .rc-tok{ font:600 13px/1 var(--rc-mono); text-align:right; } .rc-gap{ font:600 11px/1 var(--rc-mono); text-align:right; color:var(--rc-mut); }
+  .rc-tok{ font:600 12px/1 var(--rc-mono); text-align:right; } .rc-gap{ font:600 11px/1 var(--rc-mono); text-align:right; color:var(--rc-mut); }
   .rc-feed{ padding:10px 15px; display:flex; flex-direction:column; gap:7px; font:600 11px/1.35 var(--rc-mono); flex:1; min-height:0; }
   .rc-feed>div{ color:var(--rc-mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .rc-feed b{ color:var(--accent); font-weight:600; } .rc-feed .w,.rc-feed .w b{ color:var(--orange); }
   .rc-feed time{ color:var(--rc-mut2); margin-right:8px; }
-  .rc-mini{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--rc-hair2); }
-  .rc-mini>div{ background:var(--rc-pane); padding:11px 14px; display:flex; flex-direction:column; gap:6px; }
-  .rc-mini .v{ font:600 clamp(15px,1.5vw,19px)/1 var(--rc-mono); }
-  .rc-circ{ position:relative; background:var(--rc-pane2); padding:12px 16px; flex:1; display:flex; flex-direction:column; min-height:0; }
-  .rc-lap{ position:absolute; top:46px; left:20px; font:600 12px/1 var(--rc-mono); letter-spacing:.1em; color:var(--rc-mut); z-index:1; }
-  .rc-lap b{ display:block; font-size:clamp(26px,3vw,38px); color:var(--paper); margin-top:5px; letter-spacing:0; }
-  .rc-cond{ position:absolute; top:52px; right:20px; display:flex; flex-direction:column; gap:7px; font:600 10px/1 var(--rc-mono); letter-spacing:.08em; z-index:1; }
-  .rc-cond div{ display:flex; gap:10px; color:var(--rc-mut2); text-transform:uppercase; justify-content:flex-end; }
-  .rc-circ svg{ width:100%; flex:1; display:block; min-height:0; }
-  .rc-chips{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rc-hair2); margin-top:8px; }
-  .rc-chip{ background:var(--rc-pane); padding:10px 13px; display:flex; flex-direction:column; gap:6px; }
-  .rc-chip .v{ font:600 clamp(14px,1.5vw,17px)/1 var(--rc-mono); }
-  .rc-gz{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:13px 15px 6px; }
-  .rc-gauge{ display:flex; flex-direction:column; align-items:center; gap:7px; }
-  .rc-gauge .lbl{ font:600 9px/1 var(--rc-mono); letter-spacing:.12em; color:var(--rc-mut2); text-transform:uppercase; text-align:center; }
-  .rc-sgrid{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--rc-hair2); }
-  .rc-sgrid>div{ background:var(--rc-pane); padding:10px 14px; display:flex; flex-direction:column; gap:5px; }
-  .rc-sgrid .v{ font:600 15px/1 var(--rc-mono); }
-  .rc-bar{ height:5px; border-radius:3px; background:rgba(255,255,255,.08); overflow:hidden; margin-top:3px; }
+  /* command center — what matters now */
+  .rc-cmd{ flex:1; display:flex; flex-direction:column; }
+  .rc-cmd-h{ padding:14px 18px 4px; }
+  .rc-cmd-h .t{ font:600 clamp(20px,2.2vw,30px)/1.05 var(--rc-mono); letter-spacing:.01em; color:var(--paper); }
+  .rc-cmd-h .s{ display:block; margin-top:6px; font:600 10px/1 var(--rc-mono); letter-spacing:.16em; text-transform:uppercase; color:var(--rc-mut2); }
+  .rc-flags{ display:flex; flex-direction:column; gap:9px; padding:14px 18px; }
+  .rc-flag{ display:flex; align-items:center; gap:13px; padding:13px 15px; border-radius:7px; cursor:pointer;
+    border:1px solid; transition:transform .2s, background .2s; }
+  .rc-flag:hover{ transform:translateX(2px); }
+  .rc-flag .ico{ font-size:16px; line-height:1; flex:none; }
+  .rc-flag .fl{ font:600 10px/1 var(--rc-mono); letter-spacing:.14em; text-transform:uppercase; flex:none; width:64px; }
+  .rc-flag .msg{ flex:1; font:600 13px/1.3 var(--rc-mono); color:var(--paper); min-width:0; }
+  .rc-flag .tag{ font:600 9.5px/1 var(--rc-mono); letter-spacing:.1em; text-transform:uppercase; padding:5px 9px; border-radius:5px; flex:none; }
+  .rc-flag.red{ background:rgba(255,77,77,.09); border-color:rgba(255,77,77,.42); }
+  .rc-flag.red .ico,.rc-flag.red .fl{ color:var(--rc-red); } .rc-flag.red .tag{ background:rgba(255,77,77,.16); color:var(--rc-red); }
+  .rc-flag.yel{ background:rgba(255,204,51,.07); border-color:rgba(255,204,51,.36); }
+  .rc-flag.yel .ico,.rc-flag.yel .fl{ color:var(--rc-yel); } .rc-flag.yel .tag{ background:rgba(255,204,51,.14); color:var(--rc-yel); }
+  .rc-flag .meta{ font:600 10px/1 var(--rc-mono); color:var(--rc-mut2); flex:none; }
+  .rc-next{ margin-top:auto; padding:6px 18px 18px; }
+  .rc-next .nh{ font:600 10px/1 var(--rc-mono); letter-spacing:.16em; text-transform:uppercase; color:var(--rc-mut2); margin-bottom:10px; }
+  .rc-nbtns{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .rc-nbtn{ background:var(--rc-pane3); border:1px solid var(--rc-hair2); border-radius:7px; padding:12px 13px; cursor:pointer; text-align:left;
+    display:flex; flex-direction:column; gap:5px; transition:border-color .2s, transform .2s; font-family:var(--rc-mono); }
+  .rc-nbtn:hover{ border-color:var(--rc-hair); transform:translateY(-2px); }
+  .rc-nbtn b{ font:600 12px/1.2 var(--rc-mono); color:var(--paper); }
+  .rc-nbtn span{ font:600 9.5px/1 var(--rc-mono); letter-spacing:.06em; color:var(--rc-mut2); }
+  /* inspector */
+  .rc-insp{ flex:1; display:flex; flex-direction:column; }
+  .rc-insp-top{ display:flex; align-items:center; gap:12px; padding:15px 16px; border-bottom:1px solid var(--rc-hair2); }
+  .rc-insp-ic{ width:34px; height:34px; border-radius:8px; display:grid; place-items:center; font-size:17px; flex:none; border:1.5px solid currentColor; }
+  .rc-insp-tt{ min-width:0; } .rc-insp-tt b{ display:block; font:600 16px/1.1 var(--rc-mono); letter-spacing:.03em; }
+  .rc-insp-tt span{ font:600 10px/1 var(--rc-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--rc-mut2); }
+  .rc-insp-badge{ margin-left:auto; font:600 9.5px/1 var(--rc-mono); letter-spacing:.1em; text-transform:uppercase; padding:5px 10px; border-radius:5px; background:rgba(210,255,0,.14); color:var(--accent); }
+  .rc-irow{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 16px; border-top:1px solid rgba(255,255,255,.04); font:600 11.5px/1.3 var(--rc-mono); }
+  .rc-irow .k{ color:var(--rc-mut2); text-transform:none; letter-spacing:0; font-size:11px; } .rc-irow .v{ color:var(--paper); text-align:right; }
+  .rc-ibtn{ margin:12px 16px 16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .rc-ibtn button{ font:600 10px/1 var(--rc-mono); letter-spacing:.04em; color:var(--rc-mut); background:var(--rc-pane3); border:1px solid var(--rc-hair2); border-radius:6px; padding:9px 11px; cursor:pointer; font-family:var(--rc-mono); transition:.2s; }
+  .rc-ibtn button:hover{ border-color:var(--rc-hair); color:var(--paper); }
+  .rc-bar{ height:5px; border-radius:3px; background:rgba(255,255,255,.08); overflow:hidden; flex:1; min-width:60px; }
   .rc-bar i{ display:block; height:100%; background:var(--accent); }
-  .rc-q{ display:flex; flex-direction:column; flex:1; min-height:0; }
-  .rc-qr{ display:grid; grid-template-columns:1fr 54px; gap:8px; align-items:center; padding:9px 15px; border-top:1px solid rgba(255,255,255,.04); font:600 11px/1.3 var(--rc-mono); }
-  .rc-qr .tn{ color:var(--paper); min-width:0; } .rc-qr .tn small{ display:block; color:var(--rc-mut2); font-size:9.5px; letter-spacing:.05em; margin-top:3px; }
-  .rc-qr .stt{ text-align:right; font-size:9.5px; letter-spacing:.08em; line-height:1.5; } .rc-run{ color:var(--accent); } .rc-qd{ color:var(--rc-mut2); }
+  /* workflow circuit (full-width) + log */
+  .rc-flow{ display:grid; grid-template-columns:1fr clamp(280px,26vw,360px); gap:1px; background:var(--rc-hair2); border-top:1px solid var(--rc-hair2); }
+  .rc-track{ position:relative; background:var(--rc-pane2); padding:12px 16px 8px; min-height:0; }
+  .rc-track .rc-ph{ border:none; padding:0 0 6px; }
+  .rc-track svg{ width:100%; height:auto; display:block; }
+  .rc-stage-lbl{ font:600 9.5px/1 var(--rc-mono); letter-spacing:.06em; fill:var(--rc-mut); text-transform:uppercase; }
+  .rc-stage-no{ font:600 8px/1 var(--rc-mono); fill:var(--rc-mut2); }
+  .rc-flowline{ stroke-dasharray:5 9; animation:rcFlow 1.1s linear infinite; }
+  @keyframes rcFlow{ to{ stroke-dashoffset:-14; } }
+  .rc-agent{ cursor:pointer; }
+  .rc-agent .ab{ transform-box:fill-box; transform-origin:center; animation:rcBob 2.6s ease-in-out infinite; }
+  @keyframes rcBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-3px); } }
+  .rc-agent text{ font:600 9px/1 var(--rc-mono); }
+  .rc-log{ background:var(--rc-pane); display:flex; flex-direction:column; min-height:0; }
+  .rc-loglist{ padding:9px 15px; display:flex; flex-direction:column; gap:7px; font:600 10.5px/1.4 var(--rc-mono); overflow:hidden; }
+  .rc-loglist>div{ color:var(--rc-mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rc-loglist time{ color:var(--rc-mut2); margin-right:7px; }
+  .rc-loglist b{ font-weight:600; }
+  /* ticker + status bar + note (unchanged) */
   .rc-tick{ display:flex; flex-direction:column; border-top:1px solid var(--rc-hair); background:var(--rc-pane2); overflow:hidden; }
   .rc-trow{ display:flex; white-space:nowrap; will-change:transform; }
   .rc-trow.a{ animation:rcMq 38s linear infinite; } .rc-trow.b{ animation:rcMq2 44s linear infinite; }
@@ -537,13 +585,15 @@
   .rc-note{ padding:13px clamp(16px,2.4vw,30px) 16px; font:400 11.5px/1.6 var(--rc-mono); color:var(--rc-mut2);
     border-top:1px solid var(--rc-hair2); background:var(--rc-bg); }
   .rc-note code{ color:var(--accent); }
-  /* §00 immersive: hide global nav (LIXON / DASHBOARD / MENU) while the terminal owns the viewport — reappears elsewhere */
+  /* §00 immersive: hide global nav while the terminal owns the viewport */
   #siteNav{ transition:opacity .45s var(--ease), transform .45s var(--ease); }
   body.rc-immersive #siteNav{ opacity:0; transform:translateY(-16px); pointer-events:none; }
-  @media (max-width:920px){
+  @media (max-width:980px){
     .rc-grid{ grid-template-columns:1fr; }
-    .rc-gp{ order:5; flex-basis:100%; text-align:left; margin-top:2px; }
-    .rc-dash{ min-height:auto; }
+    .rc-flow{ grid-template-columns:1fr; }
+    .rc-strip{ grid-template-columns:repeat(2,1fr); }
+    .rc-nbtns{ grid-template-columns:1fr; }
+    .rc-gp{ display:none; }
   }
 
   /* --- about --- */
@@ -1440,23 +1490,35 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
         <div class="rc-brand"><span class="rc-v">V</span>VIBE CODER<small> // RACE CONTROL</small></div>
         <div class="rc-live"><i class="rc-dot"></i><span data-hermes="now">离线 <small>· offline</small></span></div>
         <div class="rc-gp">AI TOKEN GRAND PRIX <i>· CONTEXT CIRCUIT</i></div>
-        <div class="rc-hstat"><span class="rc-k">本地 · 北京</span><span class="v" id="rcClock">--:--:--</span></div>
-        <div class="rc-hstat"><span class="rc-k">距 02:00 结算</span><span class="v rc-or" id="rcCd">--:--:--</span></div>
+        <div class="rc-lang" id="rcLang">
+          <button data-lang="zh">中</button><button data-lang="both" class="on">双语</button><button data-lang="en">EN</button>
+        </div>
+        <div class="rc-hstat"><span class="rc-k" data-i18n="local">本地 · 北京</span><span class="v" id="rcClock">--:--:--</span></div>
+        <div class="rc-hstat"><span class="rc-k" data-i18n="settle">距 02:00 结算</span><span class="v rc-or" id="rcCd">--:--:--</span></div>
+      </div>
+
+      <div class="rc-strip">
+        <div class="rc-st"><span class="rc-k" data-i18n="project">当前项目</span><span class="v rc-lime">lixon</span></div>
+        <div class="rc-st"><span class="rc-k" data-i18n="stint">连续工作</span><span class="v" data-hermes="hours">00:47:12</span></div>
+        <div class="rc-st"><span class="rc-k" data-i18n="tokens">今日 token</span><span class="v" data-hermes="tokens">2.35M</span></div>
+        <div class="rc-st"><span class="rc-k" data-i18n="agents">AI 队友</span><span class="v">5 <small data-i18n="running">· 3 在跑</small></span></div>
+        <div class="rc-st"><span class="rc-k" data-i18n="output">今日产出</span><span class="v">3<small data-i18n="commits"> commits</small> · 4<small data-i18n="docs"> docs</small></span></div>
       </div>
 
       <div class="rc-grid">
+        <!-- LEFT · 模型排名 -->
         <div class="rc-col">
           <div class="rc-pane">
-            <div class="rc-ph"><span class="t">Live Leaderboard</span><span class="s">今日 · tokens</span></div>
-            <div class="rc-lbh"><span>P</span><span>MODEL · 引擎</span><span style="text-align:right">TOKENS</span><span style="text-align:right">份额</span></div>
-            <div class="rc-lbr p1"><span class="pos">1</span><span class="rc-nm"><i></i>CLAUDE</span><span class="rc-tok" data-tok="claude">1.84M</span><span class="rc-gap">78%</span></div>
-            <div class="rc-lbr"><span class="pos">2</span><span class="rc-nm"><i></i>CODEX</span><span class="rc-tok" data-tok="codex">412K</span><span class="rc-gap">18%</span></div>
-            <div class="rc-lbr"><span class="pos">3</span><span class="rc-nm"><i></i>DEEPSEEK</span><span class="rc-tok" data-tok="deepseek">96K</span><span class="rc-gap">4%</span></div>
-            <div class="rc-lbr idle"><span class="pos">4</span><span class="rc-nm"><i></i>HERMES</span><span class="rc-tok rc-mut">网关</span><span class="rc-gap">·</span></div>
-            <div class="rc-lbr idle"><span class="pos">5</span><span class="rc-nm"><i></i>CAI</span><span class="rc-tok rc-mut">待命</span><span class="rc-gap">·</span></div>
+            <div class="rc-ph"><span class="t" data-i18n="standings">MODEL STANDINGS</span><span class="s">今日 · tokens</span></div>
+            <div class="rc-lbh"><span>P</span><span data-i18n="model">MODEL</span><span style="text-align:right">TOKENS</span><span style="text-align:right" data-i18n="share">份额</span></div>
+            <div class="rc-lbr p1" data-insp="agent:claude"><span class="pos">1</span><span class="rc-nm"><i></i>CLAUDE</span><span class="rc-tok" data-tok="claude">1.84M</span><span class="rc-gap">78%</span></div>
+            <div class="rc-lbr" data-insp="agent:codex"><span class="pos">2</span><span class="rc-nm"><i></i>CODEX</span><span class="rc-tok" data-tok="codex">412K</span><span class="rc-gap">18%</span></div>
+            <div class="rc-lbr" data-insp="agent:deepseek"><span class="pos">3</span><span class="rc-nm"><i></i>DEEPSEEK</span><span class="rc-tok" data-tok="deepseek">96K</span><span class="rc-gap">4%</span></div>
+            <div class="rc-lbr" data-insp="agent:hermes"><span class="pos">4</span><span class="rc-nm"><i></i>HERMES</span><span class="rc-tok rc-mut">网关</span><span class="rc-gap">·</span></div>
+            <div class="rc-lbr" data-insp="agent:cai"><span class="pos">5</span><span class="rc-nm"><i></i>CAI</span><span class="rc-tok rc-mut">待命</span><span class="rc-gap">·</span></div>
           </div>
           <div class="rc-pane" style="flex:1">
-            <div class="rc-ph"><span class="t">Race Control Feed</span><span class="s">live</span></div>
+            <div class="rc-ph"><span class="t" data-i18n="feed">RACE CONTROL FEED</span><span class="s">live</span></div>
             <div class="rc-feed">
               <div><time>昨日</time><b>UPDATE</b> <span data-hermes="lastlog">个人站上线</span></div>
               <div><time>·</time><b>CLAUDE</b> › 知识图谱 §04 上线</div>
@@ -1465,66 +1527,63 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
               <div><time>·</time><b>HERMES</b> › 微信网关在线</div>
             </div>
           </div>
-          <div class="rc-pane">
-            <div class="rc-ph"><span class="t">Session Summary</span></div>
-            <div class="rc-mini">
-              <div><span class="rc-k">今日总 tokens</span><span class="v rc-lime" data-hermes="tokens">2.35M</span></div>
-              <div><span class="rc-k">今日成本</span><span class="v">$0.92</span></div>
-              <div><span class="rc-k">avg tok/s</span><span class="v">24.3K</span></div>
-              <div><span class="rc-k">在场 track time</span><span class="v" data-hermes="hours">7h 12m</span></div>
+        </div>
+
+        <!-- CENTER · 指挥中心 -->
+        <div class="rc-col">
+          <div class="rc-cmd">
+            <div class="rc-cmd-h">
+              <div class="t" data-i18n="whatMattersNow">现在最重要的事</div>
+              <span class="s" data-i18n="raceControl">指挥中心 · RACE CONTROL</span>
+            </div>
+            <div class="rc-flags">
+              <div class="rc-flag red" data-insp="flag:hermes">
+                <span class="ico">⚑</span><span class="fl" data-i18n="redFlag">红旗</span>
+                <span class="msg" data-i18n="flagHermes">HERMES 正在等待写入权限</span>
+                <span class="meta">2:14</span><span class="tag" data-i18n="blocking">阻塞中</span>
+              </div>
+              <div class="rc-flag yel" data-insp="flag:git">
+                <span class="ico">⚑</span><span class="fl" data-i18n="yellowFlag">黄旗</span>
+                <span class="msg" data-i18n="flagGit">Git 工作区有 17 个文件没提交</span>
+                <span class="tag" data-i18n="attention">注意</span>
+              </div>
+              <div class="rc-flag yel" data-insp="flag:prd">
+                <span class="ico">⚑</span><span class="fl" data-i18n="yellowFlag">黄旗</span>
+                <span class="msg" data-i18n="flagPrd">产品文档 2 天没更新</span>
+                <span class="tag" data-i18n="attention">注意</span>
+              </div>
+            </div>
+            <div class="rc-next">
+              <div class="nh" data-i18n="nextMove">下一步</div>
+              <div class="rc-nbtns">
+                <button class="rc-nbtn" data-insp="flag:git"><b data-i18n="nbCheckpoint">保存检查点</b><span>git commit</span></button>
+                <button class="rc-nbtn" data-insp="flag:hermes"><b data-i18n="nbHermes">处理 Hermes 权限</b><span>unblock</span></button>
+                <button class="rc-nbtn" data-insp="flag:prd"><b data-i18n="nbPrd">更新产品文档</b><span>refresh PRD</span></button>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- RIGHT · Inspector -->
         <div class="rc-col">
-          <div class="rc-circ">
-            <div class="rc-ph" style="border:none;padding:0 0 6px"><span class="t">Context Circuit · Token Routing</span><span class="s">sector 3 · code-gen</span></div>
-            <div class="rc-lap">LAP<b><span id="rcLap">23</span><span style="font-size:.5em;color:var(--rc-mut2)"> /∞</span></b></div>
-            <div class="rc-cond"><div>LOAD <b class="rc-or">HIGH</b></div><div>ROUTING <b class="rc-lime">OPTIMAL</b></div><div>CONTENTION <b class="rc-or">MED</b></div></div>
-            <svg viewBox="0 0 640 360" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-              <path id="rcTrack" d="M120,250 C70,200 70,120 150,100 C215,84 250,140 330,128 C405,117 415,60 490,72 C565,84 585,160 530,210 C495,242 440,228 420,265 C398,305 330,318 270,300 C220,285 170,320 120,250 Z" fill="none" stroke="rgba(210,255,0,.16)" stroke-width="20" stroke-linejoin="round"/>
-              <path d="M120,250 C70,200 70,120 150,100 C215,84 250,140 330,128 C405,117 415,60 490,72 C565,84 585,160 530,210 C495,242 440,228 420,265 C398,305 330,318 270,300 C220,285 170,320 120,250 Z" fill="none" stroke="rgba(239,239,229,.10)" stroke-width="1.5" stroke-dasharray="2 7"/>
-              <g id="rcCars"></g>
-              <text x="120" y="244" font-family="monospace" font-size="9" fill="rgba(210,255,0,.6)">▸ START / FINISH</text>
-            </svg>
-            <div class="rc-chips">
-              <div class="rc-chip"><span class="rc-k">context load</span><span class="v">78%</span></div>
-              <div class="rc-chip"><span class="rc-k">window pressure</span><span class="v rc-or">HIGH</span></div>
-              <div class="rc-chip"><span class="rc-k">queue depth</span><span class="v">14</span></div>
-              <div class="rc-chip"><span class="rc-k">error rate</span><span class="v rc-lime">0.62%</span></div>
-            </div>
-          </div>
+          <div class="rc-pane rc-insp" id="rcInsp"></div>
         </div>
+      </div>
 
-        <div class="rc-col">
-          <div class="rc-pane">
-            <div class="rc-ph"><span class="t">Model Telemetry</span><span class="s">claude</span></div>
-            <div class="rc-gz">
-              <div class="rc-gauge">
-                <svg width="90" height="90" viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="46" cy="46" r="38" fill="none" stroke="#d2ff00" stroke-width="7" stroke-linecap="round" stroke-dasharray="239" stroke-dashoffset="72" transform="rotate(-90 46 46)"/><text x="46" y="44" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="17" font-weight="600" fill="#efefe5">42.3</text><text x="46" y="58" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="8" fill="rgba(239,239,229,.5)">K TOK/S</text></svg>
-                <span class="lbl">tokens / sec</span>
-              </div>
-              <div class="rc-gauge">
-                <svg width="90" height="90" viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="46" cy="46" r="38" fill="none" stroke="#d2ff00" stroke-width="7" stroke-linecap="round" stroke-dasharray="239" stroke-dashoffset="53" transform="rotate(-90 46 46)"/><text x="46" y="44" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="17" font-weight="600" fill="#efefe5">7.8</text><text x="46" y="58" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="8" fill="rgba(239,239,229,.5)">/ 10</text></svg>
-                <span class="lbl">reasoning depth</span>
-              </div>
-            </div>
-            <div class="rc-sgrid">
-              <div><span class="rc-k">total tokens</span><span class="v">58.3M</span></div>
-              <div><span class="rc-k">context window</span><span class="v">78%</span><span class="rc-bar"><i style="width:78%"></i></span></div>
-              <div><span class="rc-k">latency p50</span><span class="v">912ms</span></div>
-              <div><span class="rc-k">cost / run</span><span class="v">$0.27</span></div>
-            </div>
-          </div>
-          <div class="rc-pane" style="flex:1">
-            <div class="rc-ph"><span class="t">Prompt Queue</span><span class="s">total 4</span></div>
-            <div class="rc-q">
-              <div class="rc-qr"><span class="tn">Refactor 知识图谱 §04<small>CLAUDE</small></span><span class="stt rc-run">RUNNING<br>00:12</span></div>
-              <div class="rc-qr"><span class="tn">露营周素材备份<small>HERMES</small></span><span class="stt rc-qd">QUEUED<br>00:18</span></div>
-              <div class="rc-qr"><span class="tn">嬤法大逃杀 push<small>DEEPSEEK</small></span><span class="stt rc-qd">QUEUED<br>00:31</span></div>
-              <div class="rc-qr"><span class="tn">海报 image-2<small>CODEX</small></span><span class="stt rc-qd">QUEUED<br>00:42</span></div>
-            </div>
-          </div>
+      <!-- 工作流赛道 + 实时日志 -->
+      <div class="rc-flow">
+        <div class="rc-track">
+          <div class="rc-ph"><span class="t" data-i18n="workflowCircuit">WORKFLOW CIRCUIT</span><span class="s" data-i18n="pipeline">想法 → 发布 · pipeline</span></div>
+          <svg id="rcWf" viewBox="0 0 1000 290" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <path id="rcWfTrack" d="M130,80 H870 A70,70 0 0 1 870,220 H130 A70,70 0 0 1 130,80 Z" fill="none" stroke="rgba(210,255,0,.13)" stroke-width="2.5"/>
+            <path d="M130,80 H870 A70,70 0 0 1 870,220 H130 A70,70 0 0 1 130,80 Z" fill="none" stroke="#d2ff00" stroke-width="2.5" stroke-opacity=".5" class="rc-flowline"/>
+            <g id="rcWfStages"></g>
+            <g id="rcWfAgents"></g>
+          </svg>
+        </div>
+        <div class="rc-log">
+          <div class="rc-ph"><span class="t" data-i18n="liveLog">LIVE LOG</span><span class="s">live</span></div>
+          <div class="rc-loglist" id="rcLog"></div>
         </div>
       </div>
 
@@ -1540,16 +1599,16 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
       </div>
 
       <div class="rc-sb">
-        <span>ORCHESTRATOR <b class="rc-lime">OPTIMAL</b></span>
-        <span>ROUTING <b>98.7%</b></span>
-        <span>QUEUE <b>14</b></span>
-        <span>CONTEXT <b>72%</b></span>
-        <span>RATE HEADROOM <b class="rc-or">31%</b></span>
+        <span><b class="rc-lime">ORCHESTRATOR</b> OPTIMAL</span>
+        <span data-i18n="sbRouting">路由 98.7%</span>
+        <span data-i18n="sbQueue">队列 14</span>
+        <span data-i18n="sbContext">上下文 72%</span>
+        <span><span data-i18n="sbLove">爱心模式</span> <b class="rc-or" data-i18n="off">关</b></span>
         <span class="health"><i></i><i></i><i></i><i></i><i class="o"></i></span>
       </div>
 
       <div class="rc-note">
-        ※ §00 是「vibe coder 遥测大盘」：计时塔 / circuit / 在场 / token 绑 <code>data-hermes</code> · <code>data-tok</code>，由 Hermes（vibe-coder-dashboard）每日推 <code>VIBE_DASH.applyData()</code> 即时刷新；race-control feed 接每日 commit，queue 接任务/蹲蹲。其余仪表为遥测装饰，可逐块接真数据。
+        ※ 驾驶舱原型：指挥中心红黄旗 / Inspector / 工作流赛道为 mock 数据 + 基础交互（点 模型 · 红黄旗 · 下一步 · 赛道车手 → 右侧 Inspector）；语言 中 / 双语 / EN 可切。真实遥测由 Hermes 接 <code>data-hermes</code> · <code>data-tok</code> · <code>VIBE_DASH</code>。完整规格见工程 <code>RACE_CONTROL_SPEC.md</code>。
       </div>
     </div>
 
@@ -1570,63 +1629,107 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
     </script>
     <script>
     (function(){
-      var sec=document.getElementById('status'),
-          track=document.getElementById('rcTrack'),
-          cars=document.getElementById('rcCars'),
-          lapEl=document.getElementById('rcLap'),
-          NS='http://www.w3.org/2000/svg';
-      if(!track||!cars) return;
-      var L=track.getTotalLength();
+      var sec=document.getElementById('status'); if(!sec) return;
+      var NS='http://www.w3.org/2000/svg';
       // 车手品牌色（用户钦定）：claude 橙 / codex 蓝 / deepseek 蓝 / cai 终端绿 / hermes 白
       var BRAND={claude:'#ff6b00',codex:'#4ea3ff',deepseek:'#6f78ff',cai:'#2fe06b',hermes:'#f4f4ed'};
-      document.querySelectorAll('#status .rc-lbr').forEach(function(r){
+
+      /* ---------- i18n ---------- */
+      var I18N={
+        zh:{local:'本地 · 北京',settle:'距 02:00 结算',project:'当前项目',stint:'连续工作',tokens:'今日 token',agents:'AI 队友',output:'今日产出',standings:'模型排名',model:'模型',share:'份额',feed:'指挥台日志',whatMattersNow:'现在最重要的事',raceControl:'指挥中心',redFlag:'红旗',yellowFlag:'黄旗',blocking:'阻塞中',attention:'注意',flagHermes:'HERMES 正在等待写入权限',flagGit:'Git 工作区有 17 个文件没提交',flagPrd:'产品文档 2 天没更新',nextMove:'下一步',nbCheckpoint:'保存检查点',nbHermes:'处理 Hermes 权限',nbPrd:'更新产品文档',workflowCircuit:'工作流赛道',pipeline:'想法 → 发布',liveLog:'实时日志',sbRouting:'路由 98.7%',sbQueue:'队列 14',sbContext:'上下文 72%',sbLove:'爱心模式',off:'关'},
+        en:{local:'LOCAL · BEIJING',settle:'TO 02:00 SETTLE',project:'PROJECT',stint:'STINT',tokens:'TOKENS',agents:'AGENTS',output:'OUTPUT',standings:'MODEL STANDINGS',model:'MODEL',share:'SHARE',feed:'RACE CONTROL FEED',whatMattersNow:'WHAT MATTERS NOW',raceControl:'RACE CONTROL',redFlag:'RED FLAG',yellowFlag:'YELLOW FLAG',blocking:'BLOCKING',attention:'ATTENTION',flagHermes:'HERMES waiting for write permission',flagGit:'17 uncommitted files in worktree',flagPrd:'PRD stale · 2 days',nextMove:'NEXT MOVE',nbCheckpoint:'Save checkpoint',nbHermes:'Approve Hermes',nbPrd:'Update PRD',workflowCircuit:'WORKFLOW CIRCUIT',pipeline:'IDEA → SHIP',liveLog:'LIVE LOG',sbRouting:'ROUTING 98.7%',sbQueue:'QUEUE 14',sbContext:'CONTEXT 72%',sbLove:'LOVE MODE',off:'OFF'}
+      };
+      var lang='both';
+      function tr(k){ var z=I18N.zh[k]; if(z==null) return ''; var e=I18N.en[k]; if(lang==='zh')return z; if(lang==='en')return e; return z+' / '+e; }
+      function applyLang(){
+        sec.querySelectorAll('[data-i18n]').forEach(function(el){ var v=tr(el.getAttribute('data-i18n')); if(v) el.textContent=v; });
+        renderStages(); renderLog(); renderInspector(curInsp);
+      }
+      var langBox=document.getElementById('rcLang');
+      if(langBox) langBox.querySelectorAll('button').forEach(function(b){
+        b.addEventListener('click',function(){ lang=b.getAttribute('data-lang'); langBox.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on',x===b); }); applyLang(); });
+      });
+
+      /* ---------- leaderboard brand dots ---------- */
+      sec.querySelectorAll('.rc-lbr').forEach(function(r){
         var nm=r.querySelector('.rc-nm'); if(!nm) return;
         var key=nm.textContent.trim().toLowerCase().split(/\s+/)[0], dot=r.querySelector('.rc-nm i');
         if(BRAND[key]&&dot){ dot.style.background=BRAND[key]; dot.style.opacity='1'; }
       });
-      var DEF=[
-        {k:'claude',name:'CLAUDE',off:0.02,spd:0.050},
-        {k:'codex',name:'CODEX',off:0.31,spd:0.040},
-        {k:'deepseek',name:'DEEPSEEK',off:0.56,spd:0.046},
-        {k:'hermes',name:'HERMES',off:0.75,spd:0.030},
-        {k:'cai',name:'CAI',off:0.89,spd:0.024}
-      ];
-      var COL=DEF.map(function(d){
-        var col=BRAND[d.k], w=d.name.length*5.8+12;
-        var g=document.createElementNS(NS,'g');
-        var glow=document.createElementNS(NS,'circle'); glow.setAttribute('r','11'); glow.setAttribute('fill','none'); glow.setAttribute('stroke',col); glow.setAttribute('stroke-width','1'); glow.setAttribute('stroke-opacity','.3');
-        var dot=document.createElementNS(NS,'circle'); dot.setAttribute('r',d.k==='claude'?'6':'5'); dot.setAttribute('fill',col);
-        var rect=document.createElementNS(NS,'rect'); rect.setAttribute('x',(-w/2).toFixed(0)); rect.setAttribute('y','10'); rect.setAttribute('width',w.toFixed(0)); rect.setAttribute('height','15'); rect.setAttribute('rx','3'); rect.setAttribute('fill','#0d0f0a'); rect.setAttribute('stroke',col); rect.setAttribute('stroke-opacity','.55');
-        var txt=document.createElementNS(NS,'text'); txt.setAttribute('x','0'); txt.setAttribute('y','21'); txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-family','ui-monospace,Consolas,monospace'); txt.setAttribute('font-size','9'); txt.setAttribute('font-weight','600'); txt.setAttribute('fill',col); txt.textContent=d.name;
-        g.appendChild(glow); g.appendChild(dot); g.appendChild(rect); g.appendChild(txt);
-        cars.appendChild(g);
-        return {d:d,g:g,glow:glow,pos:d.off*L};
-      });
-      var lapBase=23, claudeDist=0, running=false, last=0;
-      function frame(ts){
-        if(!running) return;
-        var dt=last?Math.min(0.05,(ts-last)/1000):0.016; last=ts;
-        for(var i=0;i<COL.length;i++){
-          var c=COL[i];
-          c.pos=(c.pos + c.d.spd*L*dt) % L;
-          var p=track.getPointAtLength(c.pos);
-          c.g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')');
-          c.glow.setAttribute('stroke-opacity',(0.2+0.18*Math.abs(Math.sin(ts/550+i))).toFixed(3));
-          if(c.d.k==='claude') claudeDist+=c.d.spd*L*dt;
-        }
-        var lap=lapBase+Math.floor(claudeDist/L);
-        if(lapEl&&lap!==lapEl._v){ lapEl._v=lap; lapEl.textContent=lap; }
-        requestAnimationFrame(frame);
+
+      /* ---------- inspector ---------- */
+      function hexA(hex,a){ var n=parseInt(hex.slice(1),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
+      var AG={
+        claude:{name:'CLAUDE',color:BRAND.claude,rz:[['状态','运行中'],['当前任务','重构 context loader'],['今日 token','1.84M'],['消耗速度','42.3K / 分钟'],['今日成本','$0.62'],['上下文占用','78%'],['改动文件','23 个'],['最近活动','22:31:12']],re:[['Status','Running'],['Task','Refactor context loader'],['Tokens','1.84M'],['Burn','42.3K / min'],['Cost','$0.62'],['Context','78%'],['Files','23'],['Last','22:31:12']],bz:['打开控制台','查看 session','保存检查点'],be:['Open console','View session','Checkpoint'],sz:'运行中',se:'ACTIVE'},
+        codex:{name:'CODEX',color:BRAND.codex,rz:[['状态','运行中'],['当前任务','跑测试 + 构建'],['今日 token','412K'],['上下文占用','41%'],['最近活动','22:30:15']],re:[['Status','Running'],['Task','Tests + build'],['Tokens','412K'],['Context','41%'],['Last','22:30:15']],bz:['打开控制台','运行测试'],be:['Open console','Run tests'],sz:'运行中',se:'ACTIVE'},
+        deepseek:{name:'DEEPSEEK',color:BRAND.deepseek,rz:[['状态','规划中'],['当前任务','长上下文蒸馏'],['今日 token','96K'],['上下文占用','62%'],['最近活动','22:31:58']],re:[['Status','Planning'],['Task','Long-context distill'],['Tokens','96K'],['Context','62%'],['Last','22:31:58']],bz:['打开控制台','查看 session'],be:['Open console','View session'],sz:'运行中',se:'ACTIVE'},
+        hermes:{name:'HERMES',color:BRAND.hermes,rz:[['状态','等待权限'],['当前任务','写入 /docs'],['已等待','2 分 14 秒'],['影响','当前任务无法继续'],['建议','先处理权限']],re:[['Status','Waiting'],['Task','Write to /docs'],['Waited','2m 14s'],['Impact','Task blocked'],['Suggest','Approve first']],bz:['去处理','忽略 1 小时'],be:['Resolve','Snooze 1h'],sz:'等待权限',se:'WAITING'},
+        cai:{name:'CAI',color:BRAND.cai,rz:[['状态','空闲'],['当前任务','待命'],['今日 token','12K'],['最近活动','21:48:02']],re:[['Status','Idle'],['Task','Standby'],['Tokens','12K'],['Last','21:48:02']],bz:['打开控制台'],be:['Open console'],sz:'空闲',se:'IDLE'}
+      };
+      var FLAG={
+        hermes:{nz:'告警 · 红旗',ne:'ALERT · RED FLAG',color:'#ff4d4d',rz:[['类型','红旗'],['问题','HERMES 等待写入权限'],['影响','当前任务无法继续'],['已等待','2 分 14 秒'],['建议','先处理权限，再继续写代码']],re:[['Type','Red flag'],['Issue','HERMES waiting for permission'],['Impact','Task cannot continue'],['Waited','2m 14s'],['Suggest','Approve, then resume']],bz:['去处理','忽略 1 小时','标记已解决'],be:['Resolve','Snooze 1h','Mark done'],sz:'阻塞中',se:'BLOCKING'},
+        git:{nz:'Git 工作区',ne:'GIT WORKTREE',color:'#ffcc33',rz:[['当前仓库','lixon'],['当前分支','status-dashboard'],['未提交','17 个文件'],['最近 commit','3 小时前'],['风险','中等偏高'],['建议','先存一个 checkpoint']],re:[['Repo','lixon'],['Branch','status-dashboard'],['Uncommitted','17 files'],['Last commit','3h ago'],['Risk','Medium-high'],['Suggest','Save a checkpoint']],bz:['查看改动','创建 checkpoint','打开 GitHub'],be:['View diff','Checkpoint','Open GitHub'],sz:'注意',se:'ATTENTION'},
+        prd:{nz:'产品文档',ne:'PRODUCT DOC',color:'#ffcc33',rz:[['PRD 最后更新','2 天前'],['今日代码改动','17 个文件'],['文档状态','偏旧'],['代码文档漂移','高'],['建议','更新 PRD，避免自己也看不懂']],re:[['PRD updated','2 days ago'],['Code changes','17 files'],['Doc status','Stale'],['Doc drift','High'],['Suggest','Update PRD']],bz:['打开 PRD','生成今日总结','创建更新草稿'],be:['Open PRD','Daily summary','Draft update'],sz:'注意',se:'ATTENTION'}
+      };
+      var curInsp='agent:claude', inspEl=document.getElementById('rcInsp');
+      function renderInspector(key){
+        curInsp=key||curInsp; if(!inspEl) return;
+        var p=curInsp.split(':'), kind=p[0], id=p[1], d=kind==='agent'?AG[id]:FLAG[id]; if(!d) return;
+        var isA=kind==='agent', col=d.color;
+        var title=isA?d.name:(lang==='en'?d.ne:lang==='zh'?d.nz:d.nz+' / '+d.ne);
+        var sub=isA?(lang==='en'?'INSPECTOR':lang==='zh'?'详情面板':'详情面板 / INSPECTOR'):(lang==='en'?'ALERT':lang==='zh'?'告警':'告警 / ALERT');
+        var badge=lang==='en'?d.se:d.sz, rows=lang==='en'?d.re:d.rz, btns=lang==='en'?d.be:d.bz;
+        var h='<div class="rc-insp-top"><div class="rc-insp-ic" style="color:'+col+'">◆</div><div class="rc-insp-tt"><b>'+title+'</b><span>'+sub+'</span></div><span class="rc-insp-badge" style="background:'+hexA(col,.14)+';color:'+col+'">'+badge+'</span></div>';
+        rows.forEach(function(r){ h+='<div class="rc-irow"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>'; });
+        h+='<div class="rc-ibtn">'; btns.forEach(function(b){ h+='<button>'+b+'</button>'; }); h+='</div>';
+        inspEl.innerHTML=h;
+        sec.querySelectorAll('.rc-lbr').forEach(function(r){ r.classList.toggle('sel', r.getAttribute('data-insp')===curInsp); });
       }
-      function start(){ if(running)return; running=true; last=0; requestAnimationFrame(frame); }
-      function stop(){ running=false; }
+      sec.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-insp]'); if(t) renderInspector(t.getAttribute('data-insp')); });
+
+      /* ---------- workflow circuit ---------- */
+      var STAGES=[{k:'idea',zh:'想法',en:'IDEA',x:185,y:80},{k:'doc',zh:'文档',en:'DOC',x:380,y:80},{k:'agent',zh:'队友',en:'AGENT',x:575,y:80},{k:'code',zh:'代码',en:'CODE',x:770,y:80},{k:'build',zh:'构建',en:'BUILD',x:700,y:220},{k:'deploy',zh:'部署',en:'DEPLOY',x:470,y:220},{k:'ship',zh:'发布',en:'SHIP',x:240,y:220}];
+      var ST={}; STAGES.forEach(function(s,i){ s.no=i+1; ST[s.k]=s; });
+      var AGAT=[{k:'claude',stage:'code'},{k:'codex',stage:'build'},{k:'deepseek',stage:'agent'},{k:'hermes',stage:'agent',off:34},{k:'cai',stage:'idea'}];
+      var stagesG=document.getElementById('rcWfStages'), agentsG=document.getElementById('rcWfAgents');
+      function el(n){ return document.createElementNS(NS,n); }
+      function renderStages(){
+        if(!stagesG) return; stagesG.textContent='';
+        STAGES.forEach(function(s){
+          var c=el('circle'); c.setAttribute('cx',s.x); c.setAttribute('cy',s.y); c.setAttribute('r','15'); c.setAttribute('fill','#0d0f0a'); c.setAttribute('stroke','rgba(210,255,0,.4)'); c.setAttribute('stroke-width','1.5');
+          var no=el('text'); no.setAttribute('x',s.x); no.setAttribute('y',s.y+3.5); no.setAttribute('text-anchor','middle'); no.setAttribute('class','rc-stage-no'); no.textContent='0'+s.no;
+          var lb=el('text'); lb.setAttribute('x',s.x); lb.setAttribute('text-anchor','middle'); lb.setAttribute('class','rc-stage-lbl'); lb.setAttribute('y', s.y<150? s.y-25 : s.y+33);
+          lb.textContent= lang==='en'? s.en : lang==='zh'? s.zh : s.zh+' '+s.en;
+          stagesG.appendChild(c); stagesG.appendChild(no); stagesG.appendChild(lb);
+        });
+      }
+      function renderAgents(){
+        if(!agentsG) return; agentsG.textContent='';
+        AGAT.forEach(function(a){
+          var s=ST[a.stage]; if(!s) return; var col=BRAND[a.k];
+          var below=s.y<150, ay=below?s.y+24:s.y-24, ax=s.x+(a.off||0);
+          var g=el('g'); g.setAttribute('class','rc-agent'); g.setAttribute('data-insp','agent:'+a.k);
+          var ab=el('g'); ab.setAttribute('class','ab');
+          var glow=el('circle'); glow.setAttribute('cx',ax); glow.setAttribute('cy',ay); glow.setAttribute('r','9'); glow.setAttribute('fill','none'); glow.setAttribute('stroke',col); glow.setAttribute('stroke-opacity','.32');
+          var dot=el('circle'); dot.setAttribute('cx',ax); dot.setAttribute('cy',ay); dot.setAttribute('r','5.5'); dot.setAttribute('fill',col);
+          var nm=el('text'); nm.setAttribute('x',ax); nm.setAttribute('y',below?ay+17:ay-11); nm.setAttribute('text-anchor','middle'); nm.setAttribute('fill',col); nm.setAttribute('font-family','ui-monospace,Consolas,monospace'); nm.setAttribute('font-size','9'); nm.setAttribute('font-weight','600'); nm.textContent=a.k.toUpperCase();
+          ab.appendChild(glow); ab.appendChild(dot); ab.appendChild(nm); g.appendChild(ab); agentsG.appendChild(g);
+        });
+      }
+
+      /* ---------- live log ---------- */
+      var LOGZ=[['22:31','CLAUDE','完成：重构 context loader'],['22:30','HERMES','等待权限：写入 /docs'],['22:30','CODEX','推送 3 个 commit'],['22:29','SYSTEM','工作区 17 个文件未提交'],['22:28','DEEPSEEK','补了 token 边界测试']];
+      var LOGE=[['22:31','CLAUDE','Done: refactor context loader'],['22:30','HERMES','Waiting permission: write /docs'],['22:30','CODEX','Pushed 3 commits'],['22:29','SYSTEM','17 uncommitted files'],['22:28','DEEPSEEK','Added token edge tests']];
+      function renderLog(){
+        var box=document.getElementById('rcLog'); if(!box) return; box.textContent='';
+        (lang==='en'?LOGE:LOGZ).forEach(function(r){ var d=document.createElement('div'); var col=BRAND[r[1].toLowerCase()]||'#b4b8a5'; d.innerHTML='<time>'+r[0]+'</time><b style="color:'+col+'">['+r[1]+']</b> '+r[2]; box.appendChild(d); });
+      }
+
+      /* ---------- nav-hide + init ---------- */
       if('IntersectionObserver' in window){
-        new IntersectionObserver(function(es){
-          var e=es[0], own=e.isIntersecting&&e.intersectionRatio>=0.5;
-          document.body.classList.toggle('rc-immersive', own);
-          if(e.isIntersecting) start(); else stop();
-        },{threshold:[0,0.5,0.9]}).observe(sec);
-      } else { start(); }
+        new IntersectionObserver(function(es){ var e=es[0]; document.body.classList.toggle('rc-immersive', e.isIntersecting&&e.intersectionRatio>=0.5); },{threshold:[0,0.5,0.9]}).observe(sec);
+      }
+      renderAgents(); applyLang();
     })();
     </script>
   </section>
