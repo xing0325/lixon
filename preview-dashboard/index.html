@@ -537,6 +537,9 @@
   .rc-note{ padding:13px clamp(16px,2.4vw,30px) 16px; font:400 11.5px/1.6 var(--rc-mono); color:var(--rc-mut2);
     border-top:1px solid var(--rc-hair2); background:var(--rc-bg); }
   .rc-note code{ color:var(--accent); }
+  /* §00 immersive: hide global nav (LIXON / DASHBOARD / MENU) while the terminal owns the viewport — reappears elsewhere */
+  #siteNav{ transition:opacity .45s var(--ease), transform .45s var(--ease); }
+  body.rc-immersive #siteNav{ opacity:0; transform:translateY(-16px); pointer-events:none; }
   @media (max-width:920px){
     .rc-grid{ grid-template-columns:1fr; }
     .rc-gp{ order:5; flex-basis:100%; text-align:left; margin-top:2px; }
@@ -1476,18 +1479,12 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
         <div class="rc-col">
           <div class="rc-circ">
             <div class="rc-ph" style="border:none;padding:0 0 6px"><span class="t">Context Circuit · Token Routing</span><span class="s">sector 3 · code-gen</span></div>
-            <div class="rc-lap">LAP<b>23<span style="font-size:.5em;color:var(--rc-mut2)"> /∞</span></b></div>
+            <div class="rc-lap">LAP<b><span id="rcLap">23</span><span style="font-size:.5em;color:var(--rc-mut2)"> /∞</span></b></div>
             <div class="rc-cond"><div>LOAD <b class="rc-or">HIGH</b></div><div>ROUTING <b class="rc-lime">OPTIMAL</b></div><div>CONTENTION <b class="rc-or">MED</b></div></div>
             <svg viewBox="0 0 640 360" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-              <path d="M120,250 C70,200 70,120 150,100 C215,84 250,140 330,128 C405,117 415,60 490,72 C565,84 585,160 530,210 C495,242 440,228 420,265 C398,305 330,318 270,300 C220,285 170,320 120,250 Z" fill="none" stroke="rgba(210,255,0,.16)" stroke-width="20" stroke-linejoin="round"/>
+              <path id="rcTrack" d="M120,250 C70,200 70,120 150,100 C215,84 250,140 330,128 C405,117 415,60 490,72 C565,84 585,160 530,210 C495,242 440,228 420,265 C398,305 330,318 270,300 C220,285 170,320 120,250 Z" fill="none" stroke="rgba(210,255,0,.16)" stroke-width="20" stroke-linejoin="round"/>
               <path d="M120,250 C70,200 70,120 150,100 C215,84 250,140 330,128 C405,117 415,60 490,72 C565,84 585,160 530,210 C495,242 440,228 420,265 C398,305 330,318 270,300 C220,285 170,320 120,250 Z" fill="none" stroke="rgba(239,239,229,.10)" stroke-width="1.5" stroke-dasharray="2 7"/>
-              <g font-family="ui-monospace,Consolas,monospace" font-size="10" font-weight="600">
-                <g><circle cx="158" cy="100" r="6" fill="#d2ff00"/><circle cx="158" cy="100" r="11" fill="none" stroke="#d2ff00" stroke-opacity=".35"/><rect x="114" y="74" width="90" height="17" rx="3" fill="#0d0f0a" stroke="rgba(210,255,0,.4)"/><text x="159" y="86" fill="#d2ff00" text-anchor="middle">CLAUDE <tspan data-tok="claude">1.84M</tspan></text></g>
-                <g><circle cx="330" cy="128" r="5" fill="#d2ff00" opacity=".9"/><rect x="290" y="138" width="92" height="17" rx="3" fill="#0d0f0a" stroke="rgba(210,255,0,.25)"/><text x="336" y="150" fill="#efefe5" text-anchor="middle">DEEPSEEK <tspan data-tok="deepseek">96K</tspan></text></g>
-                <g><circle cx="492" cy="72" r="5" fill="#ff6b00"/><rect x="452" y="46" width="82" height="17" rx="3" fill="#0d0f0a" stroke="rgba(255,107,0,.4)"/><text x="493" y="58" fill="#ff6b00" text-anchor="middle">CODEX <tspan data-tok="codex">412K</tspan></text></g>
-                <g><circle cx="430" cy="255" r="5" fill="#d2ff00" opacity=".85"/><rect x="398" y="262" width="70" height="17" rx="3" fill="#0d0f0a" stroke="rgba(210,255,0,.25)"/><text x="433" y="274" fill="#efefe5" text-anchor="middle">HERMES</text></g>
-                <g><circle cx="200" cy="300" r="4.5" fill="rgba(239,239,229,.45)"/><rect x="172" y="307" width="56" height="17" rx="3" fill="#0d0f0a" stroke="rgba(180,184,165,.25)"/><text x="200" y="319" fill="rgba(239,239,229,.6)" text-anchor="middle">CAI</text></g>
-              </g>
+              <g id="rcCars"></g>
               <text x="120" y="244" font-family="monospace" font-size="9" fill="rgba(210,255,0,.6)">▸ START / FINISH</text>
             </svg>
             <div class="rc-chips">
@@ -1569,6 +1566,67 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
         if(d)d.textContent=p(Math.floor(s/3600))+':'+p(Math.floor(s%3600/60))+':'+p(s%60);
       }
       t(); setInterval(t,1000);
+    })();
+    </script>
+    <script>
+    (function(){
+      var sec=document.getElementById('status'),
+          track=document.getElementById('rcTrack'),
+          cars=document.getElementById('rcCars'),
+          lapEl=document.getElementById('rcLap'),
+          NS='http://www.w3.org/2000/svg';
+      if(!track||!cars) return;
+      var L=track.getTotalLength();
+      // 车手品牌色（用户钦定）：claude 橙 / codex 蓝 / deepseek 蓝 / cai 终端绿 / hermes 白
+      var BRAND={claude:'#ff6b00',codex:'#4ea3ff',deepseek:'#6f78ff',cai:'#2fe06b',hermes:'#f4f4ed'};
+      document.querySelectorAll('#status .rc-lbr').forEach(function(r){
+        var nm=r.querySelector('.rc-nm'); if(!nm) return;
+        var key=nm.textContent.trim().toLowerCase().split(/\s+/)[0], dot=r.querySelector('.rc-nm i');
+        if(BRAND[key]&&dot){ dot.style.background=BRAND[key]; dot.style.opacity='1'; }
+      });
+      var DEF=[
+        {k:'claude',name:'CLAUDE',off:0.02,spd:0.050},
+        {k:'codex',name:'CODEX',off:0.31,spd:0.040},
+        {k:'deepseek',name:'DEEPSEEK',off:0.56,spd:0.046},
+        {k:'hermes',name:'HERMES',off:0.75,spd:0.030},
+        {k:'cai',name:'CAI',off:0.89,spd:0.024}
+      ];
+      var COL=DEF.map(function(d){
+        var col=BRAND[d.k], w=d.name.length*5.8+12;
+        var g=document.createElementNS(NS,'g');
+        var glow=document.createElementNS(NS,'circle'); glow.setAttribute('r','11'); glow.setAttribute('fill','none'); glow.setAttribute('stroke',col); glow.setAttribute('stroke-width','1'); glow.setAttribute('stroke-opacity','.3');
+        var dot=document.createElementNS(NS,'circle'); dot.setAttribute('r',d.k==='claude'?'6':'5'); dot.setAttribute('fill',col);
+        var rect=document.createElementNS(NS,'rect'); rect.setAttribute('x',(-w/2).toFixed(0)); rect.setAttribute('y','10'); rect.setAttribute('width',w.toFixed(0)); rect.setAttribute('height','15'); rect.setAttribute('rx','3'); rect.setAttribute('fill','#0d0f0a'); rect.setAttribute('stroke',col); rect.setAttribute('stroke-opacity','.55');
+        var txt=document.createElementNS(NS,'text'); txt.setAttribute('x','0'); txt.setAttribute('y','21'); txt.setAttribute('text-anchor','middle'); txt.setAttribute('font-family','ui-monospace,Consolas,monospace'); txt.setAttribute('font-size','9'); txt.setAttribute('font-weight','600'); txt.setAttribute('fill',col); txt.textContent=d.name;
+        g.appendChild(glow); g.appendChild(dot); g.appendChild(rect); g.appendChild(txt);
+        cars.appendChild(g);
+        return {d:d,g:g,glow:glow,pos:d.off*L};
+      });
+      var lapBase=23, claudeDist=0, running=false, last=0;
+      function frame(ts){
+        if(!running) return;
+        var dt=last?Math.min(0.05,(ts-last)/1000):0.016; last=ts;
+        for(var i=0;i<COL.length;i++){
+          var c=COL[i];
+          c.pos=(c.pos + c.d.spd*L*dt) % L;
+          var p=track.getPointAtLength(c.pos);
+          c.g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')');
+          c.glow.setAttribute('stroke-opacity',(0.2+0.18*Math.abs(Math.sin(ts/550+i))).toFixed(3));
+          if(c.d.k==='claude') claudeDist+=c.d.spd*L*dt;
+        }
+        var lap=lapBase+Math.floor(claudeDist/L);
+        if(lapEl&&lap!==lapEl._v){ lapEl._v=lap; lapEl.textContent=lap; }
+        requestAnimationFrame(frame);
+      }
+      function start(){ if(running)return; running=true; last=0; requestAnimationFrame(frame); }
+      function stop(){ running=false; }
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(es){
+          var e=es[0], own=e.isIntersecting&&e.intersectionRatio>=0.5;
+          document.body.classList.toggle('rc-immersive', own);
+          if(e.isIntersecting) start(); else stop();
+        },{threshold:[0,0.5,0.9]}).observe(sec);
+      } else { start(); }
     })();
     </script>
   </section>
