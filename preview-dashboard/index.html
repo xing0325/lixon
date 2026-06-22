@@ -491,17 +491,22 @@
   .rc-tk{ font:600 12px/1 var(--rc-mono); text-align:right; } .rc-sh{ font:600 10px/1 var(--rc-mono); text-align:right; color:var(--rc-mut); }
   .rc-pit{ font-size:8px; letter-spacing:.06em; color:var(--orange); border:1px solid rgba(255,107,0,.45); border-radius:3px; padding:2px 4px; }
   /* center stage — floating shanghai circuit */
-  .rc-stage{ position:relative; display:flex; align-items:center; justify-content:center; min-height:clamp(360px,52vh,620px); padding:34px 16px 20px; perspective:1500px; }
+  .rc-stage{ position:relative; display:flex; align-items:center; justify-content:center; min-height:clamp(380px,54vh,640px); padding:38px 16px 22px; perspective:1600px;
+    background:radial-gradient(58% 58% at 50% 46%, rgba(210,255,0,.028), transparent 70%), radial-gradient(rgba(180,184,165,.05) 1px, transparent 1px); background-size:auto, 26px 26px; }
   .rc-stage .gp{ position:absolute; top:16px; left:0; right:0; text-align:center; font:500 clamp(13px,1.5vw,19px)/1 var(--rc-mono); letter-spacing:.28em; color:var(--paper); pointer-events:none; z-index:2; }
   .rc-stage .gp i{ font-style:normal; color:var(--rc-mut2); font-size:.62em; letter-spacing:.16em; display:block; margin-top:7px; }
   .rc-stagei{ width:100%; max-width:760px; transform-style:preserve-3d; transition:transform .7s cubic-bezier(.19,1,.22,1); cursor:grab; touch-action:none; }
   .rc-stagei.drag{ transition:none; cursor:grabbing; }
   .rc-stagei svg{ width:100%; height:auto; display:block; overflow:visible; filter:drop-shadow(0 28px 44px rgba(0,0,0,.6)); }
-  #rcTrack{ stroke:#eaffb4; stroke-width:4.5; stroke-linejoin:round; stroke-linecap:round; filter:drop-shadow(0 0 4px rgba(210,255,0,.4)); }      /* bright top surface, restrained */
-  .rc-trackedge{ stroke:var(--accent); stroke-width:7.5; stroke-linejoin:round; stroke-linecap:round; fill:none; opacity:.42; }                  /* glowing edge under the top */
-  .rc-trackside{ stroke:#23280f; stroke-width:9; stroke-linejoin:round; stroke-linecap:round; fill:none; }                                       /* dark side wall (offset) = thickness */
-  .rc-trackbase{ stroke:rgba(210,255,0,.06); stroke-width:22; stroke-linejoin:round; stroke-linecap:round; fill:none; }                          /* soft halo */
-  .rc-flowline{ stroke:#ffffff; stroke-width:1.5; fill:none; stroke-dasharray:2 18; opacity:.55; animation:rcFlow 1s linear infinite; }          /* thin flowing highlight */
+  #rcTrack{ stroke:#f2ffc6; stroke-width:4; stroke-linejoin:round; stroke-linecap:round; filter:drop-shadow(0 0 3px rgba(210,255,0,.4)); }        /* lit top surface */
+  .rc-trackedge{ stroke:var(--accent); stroke-width:6.5; stroke-linejoin:round; stroke-linecap:round; fill:none; opacity:.5; }                   /* glowing rim */
+  .rc-trackside{ stroke:#1b2010; stroke-width:7; stroke-linejoin:round; stroke-linecap:round; fill:none; }                                        /* extruded side wall (JS stacks copies) */
+  .rc-trackshadow{ stroke:#000; stroke-width:16; stroke-linejoin:round; stroke-linecap:round; fill:none; opacity:.42; filter:blur(8px); }         /* ground shadow → floating */
+  .rc-trackbase{ stroke:rgba(210,255,0,.05); stroke-width:26; stroke-linejoin:round; stroke-linecap:round; fill:none; }                           /* faint halo */
+  .rc-flowline{ stroke:#ffffff; stroke-width:1.4; fill:none; stroke-dasharray:2 18; opacity:.5; animation:rcFlow 1s linear infinite; }
+  .rc-sf{ stroke:var(--paper); stroke-width:2.5; opacity:.7; } .rc-sflab{ font:600 8px/1 var(--rc-mono); letter-spacing:.1em; fill:var(--rc-mut2); }
+  .rc-sector{ fill:rgba(210,255,0,.35); } .rc-baybox{ fill:none; stroke:rgba(255,77,77,.4); stroke-width:1.5; stroke-dasharray:3 3; }
+  .rc-pitslot{ stroke:rgba(255,107,0,.4); stroke-width:9; stroke-linecap:round; opacity:.55; }
   @keyframes rcFlow{ to{ stroke-dashoffset:-20; } }
   .rc-agent text.hl{ font:600 9px/1 var(--rc-mono); opacity:0; transition:opacity .2s; }
   .rc-agent:hover text.hl{ opacity:1; }
@@ -517,11 +522,14 @@
   .rc-al.green{ background:rgba(124,255,155,.06); border-color:rgba(124,255,155,.3); } .rc-al.green .fg{ color:var(--rc-grn); }
   .rc-al.blue{ background:rgba(143,214,255,.06); border-color:rgba(143,214,255,.3); } .rc-al.blue .fg{ color:var(--rc-blu); }
   /* bottom telemetry + log */
-  .rc-tele{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; padding:12px clamp(16px,2.4vw,32px); border-top:1px solid var(--rc-hair); background:rgba(8,10,5,.4); }
+  .rc-tele{ display:grid; grid-template-columns:1.5fr 1fr 1fr 1.25fr .85fr .85fr 1.7fr; gap:8px; padding:12px clamp(16px,2.4vw,32px); border-top:1px solid var(--rc-hair); background:rgba(8,10,5,.4); }
   .rc-te{ display:flex; flex-direction:column; gap:9px; cursor:pointer; background:var(--rc-pane); border:1px solid var(--rc-hair2); border-radius:6px; padding:11px 13px; transition:border-color .2s; }
   .rc-te:hover{ border-color:var(--rc-hair); }
   .rc-te .k{ font:600 8.5px/1 var(--rc-mono); letter-spacing:.13em; text-transform:uppercase; color:var(--rc-mut2); }
-  .rc-te .v{ font:600 15px/1.1 var(--rc-mono); letter-spacing:.02em; }
+  .rc-te .v{ font:600 14px/1.15 var(--rc-mono); letter-spacing:.02em; }
+  .rc-te.pri{ background:linear-gradient(180deg,rgba(210,255,0,.06),var(--rc-pane)); border-color:rgba(210,255,0,.22); }
+  .rc-te.pri .v{ font-size:20px; }
+  .rc-te.sec .v{ font-size:13px; color:var(--rc-mut); }
   .rc-log{ border-top:1px solid var(--rc-hair2); background:var(--rc-pane2); padding:10px clamp(16px,2.4vw,32px) 14px; }
   .rc-log .rc-ph{ padding:0 0 7px; }
   .rc-loglist{ display:flex; flex-direction:column; gap:6px; font:600 10.5px/1.4 var(--rc-mono); }
@@ -1495,7 +1503,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
         {lv:'green',tx:'Claude 完成 context loader 重构'},
         {lv:'blue',tx:'DeepSeek 新增 token 边界测试'}
       ];
-      var TELE=[['TOKENS','2.35M',''],['BURN','24.3K/min',''],['COST','$0.92',''],['ACTIVE','3','rc-lime'],['PIT','1','rc-or'],['ERROR','1','rc-or'],['OUTPUT','3 commits / 4 docs','']];
+      var TELE=[['TOKENS','2.35M','','pri'],['BURN','24.3K/min','','sec'],['COST','$0.92','','sec'],['ACTIVE','3','rc-lime','pri'],['PIT','1','rc-or','sec'],['ERROR','1','rc-or','sec'],['OUTPUT','3 commits / 4 docs','','pri']];
       var LOGZ=[['22:31','CLAUDE','完成：重构 context loader'],['22:30','HERMES','等待权限：写入 /docs'],['22:30','CODEX','推送 3 个 commit'],['22:29','SYSTEM','工作区 17 个文件未提交'],['22:28','DEEPSEEK','新增 token 边界测试']];
 
       // standings
@@ -1513,52 +1521,63 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
 
       // telemetry
       var teBox=document.getElementById('rcTele');
-      if(teBox) TELE.forEach(function(t){ var d=document.createElement('div'); d.className='rc-te'; d.innerHTML='<span class="k">'+t[0]+'</span><span class="v '+t[2]+'">'+t[1]+'</span>'; teBox.appendChild(d); });
+      if(teBox) TELE.forEach(function(t){ var d=document.createElement('div'); d.className='rc-te '+(t[3]||''); d.innerHTML='<span class="k">'+t[0]+'</span><span class="v '+t[2]+'">'+t[1]+'</span>'; teBox.appendChild(d); });
 
       // live log
       var logBox=document.getElementById('rcLog');
       if(logBox) LOGZ.forEach(function(r){ var d=document.createElement('div'); var c=BRAND[r[1].toLowerCase()]||'#b4b8a5'; d.innerHTML='<time>'+r[0]+'</time><b style="color:'+c+'">['+r[1]+']</b> '+r[2]; logBox.appendChild(d); });
 
-      // ===== circuit: volumetric track + agents glued to the path =====
+      // ===== circuit: volumetric floating track + pit/error bays + glued agents + trails =====
       var track=document.getElementById('rcTrack'), markers={};
       if(track){
-        var par=track.parentNode;                 // the <g transform="translate(...)"> — agents live here too, so they share the exact track transform
-        var L=track.getTotalLength();
-        function loc(p){ p=((p%1)+1)%1; return track.getPointAtLength(p*L); }          // LOCAL path coords — no getCTM, can't drift off
+        var par=track.parentNode, L=track.getTotalLength();
+        function loc(p){ p=((p%1)+1)%1; return track.getPointAtLength(p*L); }            // LOCAL path coords — glued, no getCTM drift
         function perp(p,d){ var a=loc(p), b=loc(p+0.004), dx=b.x-a.x, dy=b.y-a.y, n=Math.hypot(dx,dy)||1; return {x:a.x - dy/n*d, y:a.y + dx/n*d}; }
-        // thickness: dark side wall (offset) + soft halo behind, glowing edge + thin flow in front
-        function clone(cls,tf){ var c=track.cloneNode(); c.removeAttribute('id'); c.setAttribute('class',cls); if(tf) c.setAttribute('transform',tf); return c; }
+        function mk(n){ return document.createElementNS(NS,n); }
+        function clone(cls,tf,stroke){ var c=track.cloneNode(); c.removeAttribute('id'); c.setAttribute('class',cls); if(tf) c.setAttribute('transform',tf); if(stroke) c.setAttribute('stroke',stroke); return c; }
+        // float shadow + halo (behind)
+        par.insertBefore(clone('rc-trackshadow','translate(0,48)'), track);
         par.insertBefore(clone('rc-trackbase'), track);
-        par.insertBefore(clone('rc-trackside','translate(0,6)'), track);
+        // extruded side wall: stacked downward copies darkening with depth → real thickness under the tilt
+        for(var k=10;k>=1;k--){ var sh=14-k; par.insertBefore(clone('rc-trackside','translate(0,'+k+')','rgb('+(18+sh)+','+(22+sh)+','+(11+sh)+')'), track); }
+        // glowing rim + lit top + flow highlight (front)
         par.insertBefore(clone('rc-trackedge'), track);
         par.appendChild(clone('rc-flowline'));
-        // pit lane + error bay (off the racing line)
-        var PIT=perp(0.0,60), ERRB=perp(0.05,60), pa=loc(0.0);
-        function mk(n){ return document.createElementNS(NS,n); }
-        var pl1=mk('line'); pl1.setAttribute('x1',pa.x); pl1.setAttribute('y1',pa.y); pl1.setAttribute('x2',PIT.x); pl1.setAttribute('y2',PIT.y); pl1.setAttribute('class','rc-pitlane'); par.appendChild(pl1);
-        var pl2=mk('line'); pl2.setAttribute('x1',PIT.x); pl2.setAttribute('y1',PIT.y); pl2.setAttribute('x2',ERRB.x); pl2.setAttribute('y2',ERRB.y); pl2.setAttribute('class','rc-pitlane'); par.appendChild(pl2);
-        var plb=mk('text'); plb.setAttribute('x',(PIT.x+ERRB.x)/2); plb.setAttribute('y',Math.min(PIT.y,ERRB.y)-9); plb.setAttribute('text-anchor','middle'); plb.setAttribute('class','rc-pitlabel'); plb.textContent='PIT / ERROR'; par.appendChild(plb);
-        // markers — inside par, positioned by local path coords (glued)
+        // start/finish tick + sector dots
+        (function(){ var a=loc(0), b=loc(0.006), dx=b.x-a.x, dy=b.y-a.y, n=Math.hypot(dx,dy)||1, ux=-dy/n, uy=dx/n;
+          var sf=mk('line'); sf.setAttribute('x1',a.x-ux*9); sf.setAttribute('y1',a.y-uy*9); sf.setAttribute('x2',a.x+ux*9); sf.setAttribute('y2',a.y+uy*9); sf.setAttribute('class','rc-sf'); par.appendChild(sf);
+          var sl=mk('text'); sl.setAttribute('x',a.x+ux*17); sl.setAttribute('y',a.y+uy*17+3); sl.setAttribute('text-anchor','middle'); sl.setAttribute('class','rc-sflab'); sl.textContent='S/F'; par.appendChild(sl);
+          [0.33,0.66].forEach(function(sp){ var q=loc(sp); var c=mk('circle'); c.setAttribute('cx',q.x); c.setAttribute('cy',q.y); c.setAttribute('r','2.4'); c.setAttribute('class','rc-sector'); par.appendChild(c); });
+        })();
+        // pit lane (Hermes) + error bay (CAI) — real little regions beside the track
+        var pitA=perp(0.0,52), pitB=perp(0.07,52), PIT={x:(pitA.x+pitB.x)/2,y:(pitA.y+pitB.y)/2};
+        var slot=mk('line'); slot.setAttribute('x1',pitA.x); slot.setAttribute('y1',pitA.y); slot.setAttribute('x2',pitB.x); slot.setAttribute('y2',pitB.y); slot.setAttribute('class','rc-pitslot'); par.appendChild(slot);
+        var pl=mk('line'); var pm=loc(0.035); pl.setAttribute('x1',pm.x); pl.setAttribute('y1',pm.y); pl.setAttribute('x2',PIT.x); pl.setAttribute('y2',PIT.y); pl.setAttribute('class','rc-pitlane'); par.appendChild(pl);
+        var plab=mk('text'); plab.setAttribute('x',PIT.x); plab.setAttribute('y',PIT.y-13); plab.setAttribute('text-anchor','middle'); plab.setAttribute('class','rc-pitlabel'); plab.textContent='PIT LANE'; par.appendChild(plab);
+        var ERRB=perp(0.13,56); var bay=mk('rect'); bay.setAttribute('x',ERRB.x-13); bay.setAttribute('y',ERRB.y-11); bay.setAttribute('width','26'); bay.setAttribute('height','22'); bay.setAttribute('rx','3'); bay.setAttribute('class','rc-baybox'); par.appendChild(bay);
+        var elab=mk('text'); elab.setAttribute('x',ERRB.x); elab.setAttribute('y',ERRB.y-16); elab.setAttribute('text-anchor','middle'); elab.setAttribute('class','rc-pitlabel'); elab.setAttribute('fill','#ff4d4d'); elab.textContent='ERR BAY'; par.appendChild(elab);
+        // markers + motion trails (inside par → glued)
         AGENTS.forEach(function(a){
+          var trail=[]; for(var i=0;i<3;i++){ var td=mk('circle'); td.setAttribute('r',(3-i*0.7).toFixed(1)); td.setAttribute('fill',BRAND[a.id]); td.setAttribute('opacity','0'); par.appendChild(td); trail.push(td); }
           var g=mk('g'); g.setAttribute('class','rc-agent'); g.setAttribute('data-ag',a.id);
           var ring=mk('circle'); ring.setAttribute('r','9'); ring.setAttribute('fill','none'); ring.setAttribute('stroke',BRAND[a.id]); ring.setAttribute('stroke-width','2');
           var dot=mk('circle'); dot.setAttribute('r','4.5'); dot.setAttribute('fill',BRAND[a.id]);
           var lbl=mk('text'); lbl.setAttribute('class','hl'); lbl.setAttribute('y','-13'); lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('fill',BRAND[a.id]); lbl.textContent=a.name;
           g.appendChild(ring); g.appendChild(dot); g.appendChild(lbl); par.appendChild(g);
-          markers[a.id]={g:g,ring:ring,dot:dot,a:a};
+          markers[a.id]={g:g,ring:ring,dot:dot,trail:trail,a:a};
         });
+        function moving(a){ return a.status==='active'||a.status==='idle'||a.status==='busy'; }
         function pos(a){ return a.status==='waiting'?PIT : a.status==='error'?ERRB : loc(a.progress); }
-        function place(){ AGENTS.forEach(function(a){ var mkr=markers[a.id], p=pos(a); mkr.g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')'); }); }
+        function trailUpd(a,m){ for(var i=0;i<m.trail.length;i++){ var t=m.trail[i]; if(moving(a)){ var q=loc(a.progress-(i+1)*0.006); t.setAttribute('cx',q.x.toFixed(1)); t.setAttribute('cy',q.y.toFixed(1)); t.setAttribute('opacity',(0.22-i*0.06).toFixed(2)); } else t.setAttribute('opacity','0'); } }
+        function place(){ AGENTS.forEach(function(a){ var m=markers[a.id], p=pos(a); m.g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')'); trailUpd(a,m); }); }
         place();
         var running=false, last=0;
-        function frame(ts){
-          if(!running) return; var dt=last?Math.min(0.05,(ts-last)/1000):0.016; last=ts;
-          AGENTS.forEach(function(a){
-            var m=markers[a.id]; if(!m) return;
-            if(a.status==='active'||a.status==='idle'||a.status==='busy') a.progress=((a.progress+a.speed*dt)%1+1)%1;
-            var p=pos(a); m.g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')');
+        function frame(ts){ if(!running) return; var dt=last?Math.min(0.05,(ts-last)/1000):0.016; last=ts;
+          AGENTS.forEach(function(a){ var m=markers[a.id]; if(!m) return;
+            if(moving(a)) a.progress=((a.progress+a.speed*dt)%1+1)%1;
+            var p=pos(a); m.g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')'); trailUpd(a,m);
             if(a.status==='error'){ m.ring.setAttribute('stroke','#ff4d4d'); m.ring.setAttribute('stroke-opacity',(Math.sin(ts/170)>0?1:0.2).toFixed(2)); m.dot.setAttribute('fill','#ff4d4d'); }
-            else if(a.status==='waiting'){ m.ring.setAttribute('stroke-opacity',(0.5+0.5*Math.abs(Math.sin(ts/470))).toFixed(2)); }
+            else if(a.status==='waiting'){ m.ring.setAttribute('stroke','#ff6b00'); m.ring.setAttribute('stroke-opacity',(0.5+0.5*Math.abs(Math.sin(ts/470))).toFixed(2)); }
             else m.ring.setAttribute('stroke-opacity', a.status==='idle'?'0.4':'0.92');
           });
           requestAnimationFrame(frame);
@@ -1574,7 +1593,7 @@ body{ font-family:'Mona Sans Variable','Microsoft YaHei',Arial,sans-serif;
       // ===== drag-to-rotate pseudo-3D + spring back =====
       var stageI=document.getElementById('rcStageI');
       if(stageI){
-        var DEF={x:33,y:0}, cur={x:33,y:0}, dragging=false, sx=0, sy=0, bx=33, by=0;
+        var DEF={x:38,y:0}, cur={x:38,y:0}, dragging=false, sx=0, sy=0, bx=38, by=0;
         function apply(){ stageI.style.transform='rotateX('+cur.x.toFixed(1)+'deg) rotateZ(-5deg) rotateY('+cur.y.toFixed(1)+'deg)'; }
         apply();
         stageI.addEventListener('pointerdown',function(e){ dragging=true; stageI.classList.add('drag'); sx=e.clientX; sy=e.clientY; bx=cur.x; by=cur.y; if(stageI.setPointerCapture) try{stageI.setPointerCapture(e.pointerId);}catch(_){} });
